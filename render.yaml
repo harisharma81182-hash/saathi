@@ -1,0 +1,58 @@
+# Render Blueprint. In Render: New -> Blueprint -> pick this repo.
+# Secrets (sync: false) are entered in the Render dashboard, never committed here.
+#
+# Stage 0 (now, free): one instance running web + worker (PROCESS_ROLE=all).
+# Stage 1 (paid): see the commented section below and docs/SCALING.md.
+
+services:
+  - type: web
+    name: saathi
+    runtime: docker
+    plan: free
+    region: singapore # closest Render region to India and to Atlas Mumbai
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health/ready
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PROCESS_ROLE
+        value: all
+      - key: MONGO_MAX_POOL
+        value: "10"
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: CLIENT_ORIGIN
+        sync: false
+
+# ---- Stage 1: scale web and worker separately (paid plans) ----
+# Change the web service above to:
+#     plan: starter
+#     scaling:
+#       minInstances: 2          # two instances so a deploy or crash never means downtime
+#       maxInstances: 6
+#       targetCPUPercent: 60
+#       targetMemoryPercent: 75
+#   and PROCESS_ROLE=web, then add:
+#
+#  - type: worker
+#    name: saathi-worker
+#    runtime: docker
+#    plan: starter
+#    region: singapore
+#    dockerfilePath: ./Dockerfile
+#    envVars:
+#      - key: NODE_ENV
+#        value: production
+#      - key: PROCESS_ROLE
+#        value: worker
+#      - key: MONGODB_URI
+#        sync: false
+#      - key: JWT_SECRET
+#        sync: false
+#      - key: ANTHROPIC_API_KEY
+#        sync: false
