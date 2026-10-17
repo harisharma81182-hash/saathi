@@ -1,0 +1,97 @@
+import { Router } from 'express';
+import { requireAuth } from '../middleware/auth.js';
+import { validate } from '../middleware/validate.js';
+import { idParams } from '../utils/schemas.js';
+import { publicMemory } from '../models/Memory.js';
+import * as agent from '../services/agent.service.js';
+import * as memory from '../services/memory.service.js';
+
+export const agentRouter = Router();
+agentRouter.use(requireAuth);
+
+/**
+ * Chat with Saathi. The reply is streamed with Server-Sent Events (SSE): one HTTP response that
+ * stays open and sends small events as things happen:
+ *
+ *   start       { conversationId, userMessageId }
+ *   expression  { expression }                 face to show
+ *   text        { delta }                      next piece of the reply
+ *   reset       { text }                       a retry happened: replace the reply text with this
+ *   tool        { id, name, status }           running / done / failed
+ *   receipt     { id, tool, summary, activities }   what changed, with activity ids for Undo
+ *   confirm     { id, type, summary, expiresAt }    show Confirm / Cancel
+ *   error       { code, message }              friendly message, the rest of the app keeps working
+ *   done        { message }                    the saved reply
+ *
+ * Problems found before streaming starts (bad input, unknown conversation, no API key) are normal
+ * JSON errors with a status code.
+ */
+agentRouter.post('/chat', validate({ body: agent.chatSchema }), async (req, res) => {
+  const turn = await agent.startTurn(req.user, req.valid.body);
+
+  res.status(200).set({
+    'Content-Type': 'text/event-stream; charset=utf-8',
+    'Cache-Control': 'no-cache, no-transform',
+    Connection: 'keep-alive',
+    'X-Accel-Buffering': 'no', // ask proxies not to hold the stream back
+  });
+  res.flushHeaders();
+
+  const send = (event, data) => {
+    if (!res.writableEnded) res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+  // A comment line every 15 s keeps proxies and load balancers from closing a quiet connection.
+  const heartbeat = setInterval(() => res.write(': ping\n\n'), 15_000);
+
+  // The user closed the tab or pressed Stop: cancel the AI call instead of paying for an unread reply.
+  const controller = new AbortController();
+  res.on('close', () => {
+    if (!res.writableFinished) controller.abort(new Error('client went away'));
+  });
+
+  try {
+    await agent.runTurn(turn, { emit: send, signal: controller.signal });
+  } finally {
+    clearInterval(heartbeat);
+    res.end();
+  }
+});
+
+agentRouter.get('/greeting', async (req, res) => {
+  res.json(await agent.greeting(req.user));
+});
+
+agentRouter.get('/conversations', async (req, res) => {
+  res.json({ conversations: await agent.listConversations(req.user._id) });
+});
+
+agentRouter.get(
+  '/conversations/:id/messages',
+  validate({ params: idParams, query: agent.messagesQuerySchema }),
+  async (req, res) => {
+    res.json(await agent.listMessages(req.user._id, req.valid.params.id, req.valid.query));
+  },
+);
+
+agentRouter.post('/actions/:id/confirm', validate({ params: idParams }), async (req, res) => {
+  res.json(await agent.confirmAction(req.user, req.valid.params.id));
+});
+
+agentRouter.post('/actions/:id/cancel', validate({ params: idParams }), async (req, res) => {
+  res.json(await agent.cancelAction(req.user, req.valid.params.id));
+});
+
+// What Saathi remembers. Settings lists these, and the user can add or delete them.
+agentRouter.get('/memories', async (req, res) => {
+  res.json({ memories: await memory.list(req.user._id, { limit: memory.MAX_MEMORIES }) });
+});
+
+agentRouter.post('/memories', validate({ body: memory.rememberSchema }), async (req, res) => {
+  const { memory: saved, duplicate } = await memory.remember(req.user._id, req.valid.body, { source: 'user' });
+  res.status(duplicate ? 200 : 201).json({ memory: publicMemory(saved), duplicate });
+});
+
+agentRouter.delete('/memories/:id', validate({ params: idParams }), async (req, res) => {
+  await memory.remove(req.user._id, req.valid.params.id);
+  res.status(204).end();
+});

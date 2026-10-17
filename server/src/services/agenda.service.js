@@ -4,6 +4,7 @@ import { Reminder, publicReminder } from '../models/Reminder.js';
 import { dayRange, lastNDays, localDateKey, daysUntil, partOfDay } from '../utils/time.js';
 import { escapeRegex } from '../utils/schemas.js';
 import { significantWords } from './task.service.js';
+import { getDayPlan } from './planner.service.js';
 
 const live = (userId) => ({ userId, deletedAt: null });
 
@@ -16,13 +17,14 @@ export async function today(user, now = new Date()) {
   const in24h = new Date(now.getTime() + 24 * 60 * 60 * 1000);
   const in30d = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-  const [dueToday, overdue, reminders, deadlines, doneToday, openCount] = await Promise.all([
+  const [dueToday, overdue, reminders, deadlines, doneToday, openCount, dayPlan] = await Promise.all([
     Task.find({ ...live(user._id), status: 'open', dueAt: { $gte: start, $lte: end } }).sort({ dueAt: 1 }).limit(20).lean(),
     Task.find({ ...live(user._id), status: 'open', dueAt: { $lt: start } }).sort({ dueAt: 1 }).limit(20).lean(),
     Reminder.find({ userId: user._id, status: 'scheduled', remindAt: { $gte: now, $lte: in24h } }).sort({ remindAt: 1 }).limit(10).lean(),
     Task.find({ ...live(user._id), status: 'open', kind: 'deadline', dueAt: { $gte: start, $lte: in30d } }).sort({ dueAt: 1 }).limit(5).lean(),
     Task.countDocuments({ ...live(user._id), status: 'done', completedAt: { $gte: start, $lte: end } }),
     Task.countDocuments({ ...live(user._id), status: 'open' }),
+    getDayPlan(user, now),
   ]);
 
   return {
@@ -33,6 +35,7 @@ export async function today(user, now = new Date()) {
     overdue: overdue.map(publicTask),
     upcomingReminders: reminders.map(publicReminder),
     countdowns: deadlines.map((t) => ({ ...publicTask(t), daysLeft: daysUntil(t.dueAt, user.timezone, now) })),
+    dayPlan,
     counts: { openTasks: openCount, doneToday, overdue: overdue.length, dueToday: dueToday.length },
   };
 }

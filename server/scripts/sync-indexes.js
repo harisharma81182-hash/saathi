@@ -11,6 +11,11 @@ import '../src/models/Reminder.js';
 import '../src/models/Notification.js';
 import '../src/models/Activity.js';
 import '../src/models/IdempotencyKey.js';
+import '../src/models/Conversation.js';
+import '../src/models/Message.js';
+import '../src/models/Memory.js';
+import '../src/models/PendingAction.js';
+import '../src/models/DayPlan.js';
 
 await connectDB(env.MONGODB_URI, { maxPoolSize: 2, autoIndex: false });
 await syncAllIndexes();

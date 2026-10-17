@@ -14,6 +14,7 @@ import { tasksRouter } from './routes/tasks.routes.js';
 import { notesRouter } from './routes/notes.routes.js';
 import { remindersRouter } from './routes/reminders.routes.js';
 import { meRouter } from './routes/me.routes.js';
+import { agentRouter } from './routes/agent.routes.js';
 import { notFound, errorHandler } from './middleware/errors.js';
 import { createOverloadGuard } from './middleware/overload.js';
 
@@ -79,6 +80,7 @@ export function createApp({ overloadGuard = createOverloadGuard({ maxLagMs: env.
   app.use('/api/notes', notesRouter);
   app.use('/api/reminders', remindersRouter);
   app.use('/api/me', meRouter);
+  app.use('/api/agent', agentRouter);
 
   app.use('/api', notFound);
   app.use(errorHandler);

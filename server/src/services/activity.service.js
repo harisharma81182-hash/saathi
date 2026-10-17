@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { Activity, publicActivity } from '../models/Activity.js';
 import { Task, TASK_FIELDS } from '../models/Task.js';
 import { Note, NOTE_FIELDS } from '../models/Note.js';
@@ -22,8 +23,19 @@ export function snapshot(entityType, doc) {
   return out;
 }
 
+// Lets the agent see which changes one tool call made (to show a receipt with Undo), without every
+// service having to return its activity entries. Inside captureActivities(fn), each record() call
+// is also collected in a list that only that call can see, even with many requests running at once.
+const capture = new AsyncLocalStorage();
+
+// Pass your own `entries` array to still see what was recorded when fn throws halfway.
+export async function captureActivities(fn, entries = []) {
+  const result = await capture.run(entries, fn);
+  return { result, activities: entries };
+}
+
 export async function record({ userId, actor, action, entityType, entity, before = null, summary }) {
-  return Activity.create({
+  const entry = await Activity.create({
     userId,
     actor,
     action,
@@ -33,6 +45,8 @@ export async function record({ userId, actor, action, entityType, entity, before
     before,
     versionAfter: entity.updatedAt,
   });
+  capture.getStore()?.push(entry);
+  return entry;
 }
 
 export async function list(userId, { limit = 50 } = {}) {

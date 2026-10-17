@@ -11,6 +11,8 @@ export const hasTestDb = Boolean(TEST_DB_URI);
 process.env.NODE_ENV = 'test';
 process.env.MONGODB_URI = TEST_DB_URI ?? 'mongodb://unused';
 process.env.JWT_SECRET ??= 'test-secret-that-is-definitely-longer-than-32-chars';
+// Tests never call the real Claude API (no cost, no flakiness): they use a fake provider instead.
+process.env.ANTHROPIC_API_KEY = '';
 
 export async function setupDb() {
   const { connectDB } = await import('../src/db/connect.js');
@@ -26,7 +28,7 @@ export async function setupDb() {
 export async function buildIndexes() {
   const mongoose = (await import('mongoose')).default;
   await Promise.all(
-    ['User', 'RateCounter', 'Job', 'Task', 'Note', 'Reminder', 'Notification', 'Activity', 'IdempotencyKey'].map((name) => import(`../src/models/${name}.js`)),
+    ['User', 'RateCounter', 'Job', 'Task', 'Note', 'Reminder', 'Notification', 'Activity', 'IdempotencyKey', 'Conversation', 'Message', 'Memory', 'PendingAction', 'DayPlan'].map((name) => import(`../src/models/${name}.js`)),
   );
   for (const model of Object.values(mongoose.models)) {
     await model.createCollection().catch(() => {});

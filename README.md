@@ -153,6 +153,13 @@ npm test
 | POST | `/api/me/notifications/:id/read`, `/read-all` | yes | Mark read |
 | GET | `/api/me/activity` | yes | Timeline of changes, each with `canUndo` |
 | POST | `/api/me/activity/:id/undo` | yes | Undo one change |
+| POST | `/api/agent/chat` | yes | Talk to Saathi `{ message, conversationId? }`. Streams Server-Sent Events: `start`, `expression`, `text`, `reset`, `tool`, `receipt`, `confirm`, `error`, `done` |
+| GET | `/api/agent/greeting` | yes | A freshly generated greeting (cached for 5 minutes) |
+| GET | `/api/agent/conversations` | yes | The user's conversations |
+| GET | `/api/agent/conversations/:id/messages` | yes | Messages, newest page (`before`, `limit`) |
+| POST | `/api/agent/actions/:id/confirm`, `/cancel` | yes | Confirm or cancel an action Saathi proposed (deleting a task) |
+| GET / POST | `/api/agent/memories` | yes | What Saathi remembers / add a memory `{ text, kind? }` |
+| DELETE | `/api/agent/memories/:id` | yes | Forget a memory |
 
 Dates are ISO 8601 with a timezone (`2026-10-18T09:00:00+05:30`); dates without one are rejected because "9 AM" is ambiguous. POST create endpoints accept an optional `Idempotency-Key` header: sending the same key twice returns the first response instead of creating a duplicate.
 

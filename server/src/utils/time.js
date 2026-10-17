@@ -42,3 +42,20 @@ export function partOfDay(timezone, at = new Date()) {
 export function formatLocal(date, timezone) {
   return DateTime.fromJSDate(date, { zone: timezone }).toFormat("ccc d LLL yyyy, h:mm a");
 }
+
+// "2026-10-18T21:30:00+05:30": the user's local time with its offset. This is the format the
+// agent reads and writes, so "9 baje" always means 9 o'clock where the user is.
+export function toLocalIso(date, timezone) {
+  return DateTime.fromJSDate(date, { zone: timezone }).toISO({ suppressMilliseconds: true });
+}
+
+// The moment it is "HH:mm" on the given local date ("2026-10-19") in the user's timezone.
+export function atLocalTime(dateKey, hhmm, timezone) {
+  const [hour, minute] = hhmm.split(':').map(Number);
+  return DateTime.fromISO(dateKey, { zone: timezone }).set({ hour, minute, second: 0, millisecond: 0 }).toJSDate();
+}
+
+// "Sunday 18 Oct 2026, 9:30 PM": for the agent's context, so it knows today's weekday.
+export function describeLocalNow(timezone, at = new Date()) {
+  return DateTime.fromJSDate(at, { zone: timezone }).toFormat('cccc d LLL yyyy, h:mm a');
+}

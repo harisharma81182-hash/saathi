@@ -3,6 +3,16 @@ import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { hasTestDb, setupDb, teardownDb, loggedInAgent, isRealMongo } from './helpers.js';
 
+// Waits until check() returns true (or gives up). Database round trips to Atlas can take a few
+// hundred milliseconds, so tests wait for the outcome instead of sleeping a fixed, tight amount.
+async function waitFor(check, { timeoutMs = 10_000, everyMs = 50 } = {}) {
+  const until = Date.now() + timeoutMs;
+  while (Date.now() < until) {
+    if (await check()) return;
+    await new Promise((r) => setTimeout(r, everyMs));
+  }
+}
+
 describe('scaling building blocks', { skip: !hasTestDb && 'MONGODB_URI_TEST not set' }, () => {
   let queue;
   let worker;
@@ -80,7 +90,11 @@ describe('scaling building blocks', { skip: !hasTestDb && 'MONGODB_URI_TEST not 
       const retrying = await queue.enqueue('test.broken', {}, { maxAttempts: 3 });
 
       const w = worker.startWorker({ concurrency: 2, pollMs: 10, idlePollMs: 10 });
-      await new Promise((r) => setTimeout(r, 300));
+      const settled = async () => {
+        const jobs = await Job.find({ _id: { $in: [ok._id, broken._id, gone._id, retrying._id] } }).lean();
+        return jobs.every((j) => j.status !== 'running' && (j.status !== 'queued' || j.lastError));
+      };
+      await waitFor(settled);
       await w.stop(1000);
 
       const byId = async (j) => Job.findById(j._id).lean();
@@ -91,7 +105,9 @@ describe('scaling building blocks', { skip: !hasTestDb && 'MONGODB_URI_TEST not 
       assert.equal((await byId(gone)).attempts, 1);
       const r = await byId(retrying);
       assert.equal(r.status, 'queued', 'scheduled for a retry');
-      assert.ok(r.runAt.getTime() > Date.now(), 'retry is in the future (backoff)');
+      // Compared with when the job was created, not with "now", so a slow network to the database
+      // cannot make this test fail.
+      assert.ok(r.runAt.getTime() >= r.createdAt.getTime() + 1000, 'retry is scheduled later (backoff)');
       assert.equal(r.lastError, 'always fails');
     });
   });
@@ -102,19 +118,20 @@ describe('scaling building blocks', { skip: !hasTestDb && 'MONGODB_URI_TEST not 
       let runs = 0;
       worker.registerHandler('test.slow', async () => {
         runs++;
-        await new Promise((r) => setTimeout(r, 900));
+        await new Promise((r) => setTimeout(r, 4000));
       });
       await queue.enqueue('test.slow');
-      // Lock of 300 ms, job takes 900 ms. Without the heartbeat the lock would expire mid-run.
-      const w = worker.startWorker({ concurrency: 1, pollMs: 20, idlePollMs: 20, lockMs: 300 });
+      // Lock of 1.5 s, job takes 4 s. Without the heartbeat the lock would expire mid-run.
+      // (The lock is long enough that a slow database round trip cannot make it expire by itself.)
+      const w = worker.startWorker({ concurrency: 1, pollMs: 20, idlePollMs: 20, lockMs: 1500 });
       // Meanwhile "another instance" keeps trying to claim work.
       const stolen = [];
-      for (let i = 0; i < 8; i++) {
-        await new Promise((r) => setTimeout(r, 100));
+      for (let i = 0; i < 16; i++) {
+        await new Promise((r) => setTimeout(r, 250));
         const j = await queue.claimNext();
         if (j) stolen.push(j);
       }
-      await w.stop(2000);
+      await w.stop(5000);
       assert.equal(stolen.length, 0, 'the running job was never claimed by anyone else');
       assert.equal(runs, 1);
       assert.equal((await Job.findOne({ type: 'test.slow' }).lean()).status, 'done');
