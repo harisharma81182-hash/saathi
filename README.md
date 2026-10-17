@@ -20,7 +20,12 @@ Saathi is a chat and voice assistant connected to your own data. Claude reads yo
 
 - Account signup and login with secure, httpOnly cookie sessions, per-IP and per-account brute-force limits
 - Built to scale horizontally: stateless instances, MongoDB job queue, shared quotas, health checks and graceful shutdown ([docs/SCALING.md](docs/SCALING.md))
-- _(coming)_ Tasks, notes and reminders, each usable directly or through the agent
+- Tasks (with due dates, priority, tags, and deadlines that show a countdown), notes, and reminders, all searchable and filterable
+- Reminders fire on time from a background worker, exactly once, and can be snoozed or cancelled
+- Undo for every change (create, edit, complete, delete, snooze), safe against double clicks and later edits
+- Today panel: due today, overdue, upcoming reminders, deadline countdowns; weekly progress with a streak
+- Typing hints: while you type, Saathi points out related open tasks (no AI call, instant)
+- Double-submit protection with `Idempotency-Key`, and duplicate reminder detection
 - _(coming)_ Agent chat with tool calling and an action receipt for every change
 - _(coming)_ Reminder scheduler with live in-app notifications
 - _(coming)_ Voice mode with an animated assistant face
@@ -132,11 +137,40 @@ npm test
 | GET | `/api/auth/me` | yes | Current user |
 | PATCH | `/api/auth/me` | yes | Update `{ name?, timezone? }` |
 
+| GET | `/api/tasks` | yes | List: `status` (open/done/all), `due` (today/overdue/upcoming/none), `kind`, `q`, `tag`, `sort` (due/created/priority), `page`, `limit` |
+| POST | `/api/tasks` | yes | Create `{ title, notes?, kind?, priority?, dueAt?, tags? }` |
+| GET / PATCH / DELETE | `/api/tasks/:id` | yes | Read, edit, delete (soft delete, undoable) |
+| POST | `/api/tasks/:id/complete`, `/reopen` | yes | Mark done / open again |
+| GET / POST | `/api/notes` | yes | List (`q`, `tag`, `pinned`) / create `{ body, title?, tags?, pinned? }` |
+| GET / PATCH / DELETE | `/api/notes/:id` | yes | Read, edit, delete |
+| GET / POST | `/api/reminders` | yes | List (`status`) / create `{ text, remindAt, taskId? }` |
+| PATCH / DELETE | `/api/reminders/:id` | yes | Change text or time / cancel |
+| POST | `/api/reminders/:id/snooze` | yes | `{ minutes }` or `{ until }` |
+| GET | `/api/me/today` | yes | Today panel data |
+| GET | `/api/me/progress` | yes | Completions per day (14 days), this week vs last, streak |
+| GET | `/api/me/hints?q=` | yes | Open tasks related to what the user is typing |
+| GET | `/api/me/notifications` | yes | Notifications (`unread=true`), with unread count |
+| POST | `/api/me/notifications/:id/read`, `/read-all` | yes | Mark read |
+| GET | `/api/me/activity` | yes | Timeline of changes, each with `canUndo` |
+| POST | `/api/me/activity/:id/undo` | yes | Undo one change |
+
+Dates are ISO 8601 with a timezone (`2026-10-18T09:00:00+05:30`); dates without one are rejected because "9 AM" is ambiguous. POST create endpoints accept an optional `Idempotency-Key` header: sending the same key twice returns the first response instead of creating a duplicate.
+
 Every error has the same shape: `{ "error": { "code": "...", "message": "...", "details": [...] } }`. Every response has an `X-Request-Id` header that matches the server log line. Responses that ask the client to wait (429, 503) include `Retry-After`.
 
 ## Deployment
 
 Render, using `render.yaml` (New, then Blueprint). Secrets are entered in the Render dashboard. Step-by-step instructions and the live link _(coming)_. Scaling stages: [docs/SCALING.md](docs/SCALING.md).
+
+## Roadmap
+
+Planned after the first release:
+
+- Google Calendar sync
+- Upload a PDF or syllabus and turn it into tasks
+- Saathi on WhatsApp or Telegram
+- Web search (weather, explanations)
+- Shared tasks with friends
 
 ## AI usage
 

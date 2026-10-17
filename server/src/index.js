@@ -4,6 +4,7 @@ import { lifecycle } from './lib/lifecycle.js';
 import { connectDB, disconnectDB } from './db/connect.js';
 import { createApp } from './app.js';
 import { startWorker } from './jobs/worker.js';
+import { registerAllHandlers } from './jobs/handlers/index.js';
 
 // One codebase, three ways to run it (PROCESS_ROLE):
 //   web    -> serves HTTP. Stateless, so any number of copies can run behind a load balancer.
@@ -24,6 +25,7 @@ async function main() {
     server.headersTimeout = 66_000;
   }
 
+  if (runsWorker) registerAllHandlers();
   const worker = runsWorker ? startWorker({ concurrency: 4 }) : null;
 
   // Graceful shutdown. Platforms send SIGTERM before stopping an instance (deploys, scale-down).

@@ -8,7 +8,12 @@ import { env } from './config/env.js';
 import { logger } from './lib/logger.js';
 import { lifecycle } from './lib/lifecycle.js';
 import { healthRouter } from './routes/health.routes.js';
+import rateLimit from 'express-rate-limit';
 import { authRouter } from './routes/auth.routes.js';
+import { tasksRouter } from './routes/tasks.routes.js';
+import { notesRouter } from './routes/notes.routes.js';
+import { remindersRouter } from './routes/reminders.routes.js';
+import { meRouter } from './routes/me.routes.js';
 import { notFound, errorHandler } from './middleware/errors.js';
 import { createOverloadGuard } from './middleware/overload.js';
 
@@ -54,7 +59,26 @@ export function createApp({ overloadGuard = createOverloadGuard({ maxLagMs: env.
   app.use(express.json({ limit: '100kb' }));
   app.use(cookieParser());
 
+  // General ceiling per IP, so one misbehaving client or script cannot hog an instance.
+  // Generous enough that normal use (including typing hints) never comes close.
+  app.use(
+    '/api',
+    rateLimit({
+      windowMs: 60_000,
+      limit: 600,
+      standardHeaders: 'draft-7',
+      legacyHeaders: false,
+      skip: () => env.NODE_ENV === 'test',
+      handler: (_req, res) =>
+        res.status(429).json({ error: { code: 'RATE_LIMITED', message: 'Too many requests. Slow down for a minute.' } }),
+    }),
+  );
+
   app.use('/api/auth', authRouter);
+  app.use('/api/tasks', tasksRouter);
+  app.use('/api/notes', notesRouter);
+  app.use('/api/reminders', remindersRouter);
+  app.use('/api/me', meRouter);
 
   app.use('/api', notFound);
   app.use(errorHandler);

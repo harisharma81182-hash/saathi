@@ -5,6 +5,12 @@ import { connectDB, syncAllIndexes, disconnectDB } from '../src/db/connect.js';
 import '../src/models/User.js';
 import '../src/models/RateCounter.js';
 import '../src/models/Job.js';
+import '../src/models/Task.js';
+import '../src/models/Note.js';
+import '../src/models/Reminder.js';
+import '../src/models/Notification.js';
+import '../src/models/Activity.js';
+import '../src/models/IdempotencyKey.js';
 
 await connectDB(env.MONGODB_URI, { maxPoolSize: 2, autoIndex: false });
 await syncAllIndexes();

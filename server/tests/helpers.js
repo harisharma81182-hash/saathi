@@ -26,7 +26,7 @@ export async function setupDb() {
 export async function buildIndexes() {
   const mongoose = (await import('mongoose')).default;
   await Promise.all(
-    ['User', 'RateCounter', 'Job'].map((name) => import(`../src/models/${name}.js`)),
+    ['User', 'RateCounter', 'Job', 'Task', 'Note', 'Reminder', 'Notification', 'Activity', 'IdempotencyKey'].map((name) => import(`../src/models/${name}.js`)),
   );
   for (const model of Object.values(mongoose.models)) {
     await model.createCollection().catch(() => {});
