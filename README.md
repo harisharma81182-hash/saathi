@@ -27,7 +27,7 @@ Saathi is a chat and voice assistant connected to your own data. The AI model (G
 - Typing hints: while you type, Saathi points out related open tasks (no AI call, instant)
 - Double-submit protection with `Idempotency-Key`, and duplicate reminder detection
 - Agent chat with tool calling, streamed replies, an action receipt (with Undo) for every change, and Confirm/Cancel before deleting
-- _(coming)_ Reminder scheduler with live in-app notifications
+- Live updates: reminders, nudges and changes appear in every open tab at once (Server-Sent Events)
 - _(coming)_ Voice mode with an animated assistant face
 
 ## Tech stack
@@ -163,6 +163,7 @@ It signs up a throwaway account (`live.<number>@example.com`), shows the greetin
 | GET / POST | `/api/reminders` | yes | List (`status`) / create `{ text, remindAt, taskId? }` |
 | PATCH / DELETE | `/api/reminders/:id` | yes | Change text or time / cancel |
 | POST | `/api/reminders/:id/snooze` | yes | `{ minutes }` or `{ until }` |
+| GET | `/api/me/events` | yes | Live updates (Server-Sent Events): `ready`, `notification` (a reminder fired, a nudge), `changed` (a task, note or reminder changed, including Undo). Works across instances: each instance polls MongoDB every 2 s for its connected users |
 | GET | `/api/me/today` | yes | Today panel data |
 | GET | `/api/me/progress` | yes | Completions per day (14 days), this week vs last, streak |
 | GET | `/api/me/hints?q=` | yes | Open tasks related to what the user is typing |

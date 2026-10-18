@@ -10,11 +10,40 @@ import { publicReminder } from '../models/Reminder.js';
 import * as agenda from '../services/agenda.service.js';
 import * as notifications from '../services/notification.service.js';
 import * as activity from '../services/activity.service.js';
+import { getLiveHub } from '../services/live.service.js';
+import { openSse } from '../utils/sse.js';
 
 // Endpoints about "my day": the Today panel, progress, typing hints, notifications, and the
 // activity timeline with Undo.
 export const meRouter = Router();
 meRouter.use(requireAuth);
+
+/**
+ * Live updates (Server-Sent Events). The page keeps this open; see services/live.service.js.
+ *   ready         { unreadCount }   connected; fetch the Today panel once now
+ *   notification  { notification }
+ *   changed       { activity }      refresh what shows this item
+ * If the connection drops, the browser's EventSource reconnects by itself.
+ */
+meRouter.get('/events', async (req, res) => {
+  const hub = getLiveHub();
+  const { send, close } = openSse(res);
+  let disconnect;
+  try {
+    disconnect = hub.connect(req.user._id, { send, close });
+  } catch (err) {
+    // Headers are already sent, so report the problem as an event and end the stream
+    // (and ask the browser to wait a minute before trying again).
+    res.write('retry: 60000\n\n');
+    send('error', { code: err.code ?? 'INTERNAL', message: err.message });
+    return close();
+  }
+  res.on('close', disconnect);
+  const unread = await notifications.list(req.user._id, { unread: true, page: 1, limit: 1 });
+  // Tell the browser to wait 5 s before reconnecting after a drop (default is about 3 s).
+  res.write('retry: 5000\n\n');
+  send('ready', { unreadCount: unread.unreadCount });
+});
 
 meRouter.get('/today', async (req, res) => {
   res.json(await agenda.today(req.user));

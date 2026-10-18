@@ -3,6 +3,7 @@ import { requireAuth } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { idParams } from '../utils/schemas.js';
 import { publicMemory } from '../models/Memory.js';
+import { openSse } from '../utils/sse.js';
 import * as agent from '../services/agent.service.js';
 import * as memory from '../services/memory.service.js';
 
@@ -28,20 +29,7 @@ agentRouter.use(requireAuth);
  */
 agentRouter.post('/chat', validate({ body: agent.chatSchema }), async (req, res) => {
   const turn = await agent.startTurn(req.user, req.valid.body);
-
-  res.status(200).set({
-    'Content-Type': 'text/event-stream; charset=utf-8',
-    'Cache-Control': 'no-cache, no-transform',
-    Connection: 'keep-alive',
-    'X-Accel-Buffering': 'no', // ask proxies not to hold the stream back
-  });
-  res.flushHeaders();
-
-  const send = (event, data) => {
-    if (!res.writableEnded) res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
-  };
-  // A comment line every 15 s keeps proxies and load balancers from closing a quiet connection.
-  const heartbeat = setInterval(() => res.write(': ping\n\n'), 15_000);
+  const { send, close } = openSse(res);
 
   // The user closed the tab or pressed Stop: cancel the AI call instead of paying for an unread reply.
   const controller = new AbortController();
@@ -52,8 +40,7 @@ agentRouter.post('/chat', validate({ body: agent.chatSchema }), async (req, res)
   try {
     await agent.runTurn(turn, { emit: send, signal: controller.signal });
   } finally {
-    clearInterval(heartbeat);
-    res.end();
+    close();
   }
 });
 

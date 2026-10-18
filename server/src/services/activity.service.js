@@ -1,4 +1,5 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { EventEmitter } from 'node:events';
 import { Activity, publicActivity } from '../models/Activity.js';
 import { Task, TASK_FIELDS } from '../models/Task.js';
 import { Note, NOTE_FIELDS } from '../models/Note.js';
@@ -34,6 +35,11 @@ export async function captureActivities(fn, entries = []) {
   return { result, activities: entries };
 }
 
+// In-process event bus: fires when this instance records or undoes a change, so live updates
+// (live.service.js) can tell the user's open tabs right away. Other instances find it by polling.
+export const activityEvents = new EventEmitter();
+activityEvents.setMaxListeners(0);
+
 export async function record({ userId, actor, action, entityType, entity, before = null, summary }) {
   const entry = await Activity.create({
     userId,
@@ -46,6 +52,7 @@ export async function record({ userId, actor, action, entityType, entity, before
     versionAfter: entity.updatedAt,
   });
   capture.getStore()?.push(entry);
+  activityEvents.emit('changed', entry);
   return entry;
 }
 
@@ -93,6 +100,7 @@ export async function undo(userId, activityId) {
   if (activity.entityType === 'reminder' && reverted.status === 'scheduled') {
     await scheduleReminderJob(reverted);
   }
+  activityEvents.emit('changed', claimed);
 
   return { activity: publicActivity(claimed, { undoWindowMs: UNDO_WINDOW_MS }), entityType: activity.entityType, entity: reverted };
 }

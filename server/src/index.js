@@ -5,6 +5,7 @@ import { connectDB, disconnectDB } from './db/connect.js';
 import { createApp } from './app.js';
 import { startWorker } from './jobs/worker.js';
 import { registerAllHandlers } from './jobs/handlers/index.js';
+import { getLiveHub } from './services/live.service.js';
 
 // One codebase, three ways to run it (PROCESS_ROLE):
 //   web    -> serves HTTP. Stateless, so any number of copies can run behind a load balancer.
@@ -39,6 +40,7 @@ async function main() {
     stopping = true;
     lifecycle.shuttingDown = true;
     logger.info({ signal }, 'shutting down');
+    getLiveHub().closeAll(); // open live-update streams would otherwise hold the server open
 
     const forceExit = setTimeout(() => {
       logger.error('shutdown took too long, forcing exit');

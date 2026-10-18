@@ -21,6 +21,8 @@ const activitySchema = new mongoose.Schema(
 );
 
 activitySchema.index({ userId: 1, createdAt: -1 });
+// Live updates look for recent Undo's too.
+activitySchema.index({ userId: 1, undoneAt: 1 });
 
 export function publicActivity(a, { undoWindowMs }) {
   return {
