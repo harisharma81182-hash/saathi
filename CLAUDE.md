@@ -48,7 +48,9 @@ Read this whole file before doing anything. It is the hand-off from the earlier 
 - Quick add: `POST /api/tasks/quick-parse` (`services/quickadd.service.js`): JSON from the AI checked with the task schema, preview only, plain fallback.
 - Browser notifications (Notification API) are frontend work: Step 5.
 
-**Not started:** Step 5 onwards (frontend, face and voice, deploy).
+**Step 5 preview built (19 Oct, commit 9c1d15e), waiting for Himanshu's OK on the look before building the other screens.** `client/`: Vite 8.3.2, React 19.3.0, Tailwind 4.3.3 (`@tailwindcss/vite`), motion 13.5.1 (versions at least two weeks old). Dev: `server` on :4000 + `npx vite` in `client` on :5173 (proxy /api). Files: `src/components/Face.jsx` (2D SVG face, morphing eye/mouth paths, hue by mood/state), `ChatPanel.jsx`, `ChatParts.jsx` (receipt slip, confirm card), `TodayPanel.jsx`, `Toasts.jsx`, `hooks/useChat.js` (SSE over POST), `hooks/useLiveEvents.js` (EventSource), `screens/{AuthScreen,HomeScreen}.jsx`, tokens in `src/index.css`. Checked with screenshots from headless Edge (playwright-core in the scratchpad, Edge at C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe); `npm run live:cleanup` afterwards. Gotcha: Element.scrollTo returns a Promise in current Edge, so never return it from useEffect. Not built yet: Tasks/Notes/Reminders/Activity/Settings screens, landing page, Express serving `client/dist` in production.
+
+**Not started:** Step 6 onwards (3D face and voice, deploy).
 
 ## Environment facts (important)
 
