@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
 import { api } from '../lib/api.js';
 import { clock, lateBy, when } from '../lib/format.js';
+import { QuickAdd } from './QuickAdd.jsx';
 
 // The Today panel: what matters today, at a glance. Refreshed live whenever something changes
 // (Saathi added a task, a reminder fired, you completed something in another tab).
@@ -29,6 +30,10 @@ export function TodayPanel({ today, error, onRetry, onChanged }) {
           <span className="font-semibold text-leaf">{counts.doneToday}</span> done · {counts.openTasks} open
         </p>
       </header>
+
+      <div className="mt-4">
+        <QuickAdd onSaved={onChanged} />
+      </div>
 
       {nothing && (
         <p className="mt-6 rounded-2xl border border-dashed border-line p-4 text-sm text-muted">
