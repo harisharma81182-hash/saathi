@@ -2,6 +2,7 @@ import { GoogleGenAI } from '@google/genai';
 import { randomUUID } from 'node:crypto';
 import { env } from '../config/env.js';
 import { AppError } from '../utils/AppError.js';
+import { aiLimitError } from './gateway.js';
 
 // Gemini adapter. The agent speaks one format (the Claude Messages format: system, messages with
 // text / tool_use / tool_result blocks, tools with input_schema). This file translates that format
@@ -191,14 +192,5 @@ export function normalizeError(err) {
     err.retryAfterMs = Math.ceil(wait * 1000);
     return err;
   }
-  const out = perDay
-    ? new AppError(
-        429,
-        'AI_DAILY_LIMIT',
-        'Aaj ke liye mera free AI quota khatam ho gaya 😅 Kal phir baat karte hain. Tab tak tasks, notes aur reminders normal chalte rahenge.',
-      )
-    : new AppError(429, 'AI_BUSY', 'Abhi mera AI thoda busy hai. Ek minute ruk ke phir try karo.');
-  out.retryAfterSeconds = perDay ? 60 * 60 : Math.max(5, Math.ceil(wait) || 60);
-  out.retryable = false; // waiting a few seconds won't help; and it is a limit, not an outage
-  return out;
+  return aiLimitError(perDay ? 'daily' : 'busy', perDay ? 60 * 60 : Math.max(5, Math.ceil(wait) || 60));
 }

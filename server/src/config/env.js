@@ -47,11 +47,17 @@ const schema = z.object({
   AI_MAX_CONCURRENCY: z.coerce.number().int().min(1).default(8),
   AI_MAX_QUEUE: z.coerce.number().int().min(0).default(50),
   AI_QUEUE_TIMEOUT_MS: z.coerce.number().int().min(100).default(15_000),
-  AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1000).default(60_000),
-  // Per-user chat messages, shared across all instances through MongoDB. Defaults depend on the
-  // provider (see below): Gemini's free tier allows only a few requests a minute.
-  AI_USER_PER_MINUTE: z.coerce.number().int().min(1).optional(),
-  AI_USER_PER_DAY: z.coerce.number().int().min(1).optional(),
+  // One attempt is aborted after AI_REQUEST_TIMEOUT_MS; one AI call, retries included, never takes
+  // longer than AI_TOTAL_TIMEOUT_MS. Chat needs an answer quickly or a clear error, not a long wait.
+  AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1000).default(20_000),
+  AI_TOTAL_TIMEOUT_MS: z.coerce.number().int().min(1000).default(28_000),
+  // Per-user chat messages, shared across all instances through MongoDB. Generous: only spam hits them.
+  AI_USER_PER_MINUTE: z.coerce.number().int().min(1).default(20),
+  AI_USER_PER_DAY: z.coerce.number().int().min(1).default(300),
+  // AI requests for the whole app (all users together), kept a bit below the provider's own project
+  // limit so Saathi says so politely instead of failing. 0 = no limit. Defaults depend on the provider.
+  AI_GLOBAL_PER_MINUTE: z.coerce.number().int().min(0).optional(),
+  AI_GLOBAL_PER_DAY: z.coerce.number().int().min(0).optional(),
 
   TRUST_PROXY: bool.default('true'),
 });
@@ -69,11 +75,11 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 
-// One chat message can take 2 or 3 model calls (tool use), so these stay well under the provider's
-// own limits. Gemini free tier: a handful of requests per minute and a few hundred per day.
-const AI_DEFAULT_LIMITS = { gemini: { perMinute: 4, perDay: 60 }, anthropic: { perMinute: 10, perDay: 200 } };
-env.AI_USER_PER_MINUTE ??= AI_DEFAULT_LIMITS[env.AI_PROVIDER].perMinute;
-env.AI_USER_PER_DAY ??= AI_DEFAULT_LIMITS[env.AI_PROVIDER].perDay;
+// Gemini's free tier for gemini-3.8-flash allows 20 requests per day per project (seen in its 429
+// answer on 18 Oct 2026); stop at 18. Claude is paid per use, so no app-wide cap by default.
+const AI_GLOBAL_DEFAULTS = { gemini: { perMinute: 8, perDay: 18 }, anthropic: { perMinute: 0, perDay: 0 } };
+env.AI_GLOBAL_PER_MINUTE ??= AI_GLOBAL_DEFAULTS[env.AI_PROVIDER].perMinute;
+env.AI_GLOBAL_PER_DAY ??= AI_GLOBAL_DEFAULTS[env.AI_PROVIDER].perDay;
 
 /** The selected provider's API key and models (main first, then the fallback for overload). */
 export const ai =

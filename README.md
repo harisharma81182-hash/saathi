@@ -107,6 +107,17 @@ cd server
 npm test
 ```
 
+### Live check with the real AI
+
+The test suite never calls a real AI. To try Saathi for real, start the server, then in a second terminal:
+
+```bash
+cd server
+npm run live:chat -- "kal subah 9 baje lab file submit karni hai, yaad dila dena"
+```
+
+It signs up a throwaway account (`live.<number>@example.com`), shows the greeting, Saathi's replies, receipts and what was saved, then deletes that account and all its data. `npm run live:cleanup` removes any leftover test accounts. Each run uses a few requests of the AI quota.
+
 ## Environment variables
 
 | Variable | Required | Description |
@@ -126,7 +137,9 @@ npm test
 | `ANTHROPIC_API_KEY` | for chat (anthropic) | Claude API key from console.anthropic.com |
 | `ANTHROPIC_MODEL` | no | Default `claude-haiku-5-5` |
 | `ANTHROPIC_FALLBACK_MODEL` | no | Used when the main model is overloaded, default `claude-sonnet-5-5` |
-| `AI_USER_PER_MINUTE`, `AI_USER_PER_DAY` | no | Chat messages per user. Defaults: 4 / 60 with gemini (free tier), 10 / 200 with anthropic |
+| `AI_REQUEST_TIMEOUT_MS`, `AI_TOTAL_TIMEOUT_MS` | no | One AI attempt gives up after 20 s; one AI call including retries after 28 s |
+| `AI_USER_PER_MINUTE`, `AI_USER_PER_DAY` | no | Chat messages per user, default 20 / 300 (only spam should hit these) |
+| `AI_GLOBAL_PER_MINUTE`, `AI_GLOBAL_PER_DAY` | no | AI requests for the whole app, kept just below the provider's project limit (gemini default 8 / 18; 0 = none). When reached, Saathi says so in a friendly message and everything except chat keeps working |
 | `AI_MAX_CONCURRENCY`, `AI_MAX_QUEUE` | no | AI call limits per instance, see [docs/SCALING.md](docs/SCALING.md) |
 | `MONGODB_URI_TEST` | for tests | Separate database for the test suite |
 

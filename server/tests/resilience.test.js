@@ -200,6 +200,24 @@ describe('AI gateway', () => {
     await assert.rejects(gw.run({ signal: already.signal, call: async () => 'never' }), /gone/);
   });
 
+  it('keeps the whole call, retries included, under the total timeout', async () => {
+    const gw = createAiGateway({ ...fast, retries: 2, requestTimeoutMs: 1000, totalTimeoutMs: 1500 });
+    let attempts = 0;
+    const started = Date.now();
+    await assert.rejects(
+      gw.run({
+        call: ({ signal }) => {
+          attempts++;
+          return new Promise((_, reject) => signal.addEventListener('abort', () => reject(signal.reason)));
+        },
+      }),
+      { code: 'AI_UNAVAILABLE' },
+    );
+    const took = Date.now() - started;
+    assert.ok(took < 1700, `took ${took} ms`);
+    assert.equal(attempts, 1, 'no second attempt that could not finish in time');
+  });
+
   it('aborts calls that hang past the timeout', async () => {
     const gw = createAiGateway({ ...fast, retries: 0, requestTimeoutMs: 1000 });
     const started = Date.now();

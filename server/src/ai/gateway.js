@@ -10,9 +10,11 @@ import * as quota from '../services/quota.service.js';
 // (and the provider's rate limits from us):
 //
 //  1. Per-user quota     shared across instances (MongoDB), so one user cannot burn the budget
+//  1b. App-wide quota    all users together stay under the provider's project limit (free tier)
 //  2. Concurrency limit  at most AI_MAX_CONCURRENCY calls in flight per instance
 //  3. Bounded queue      extra calls wait up to AI_QUEUE_TIMEOUT_MS, then get a fast 503
-//  4. Timeout            a hung call is aborted after AI_REQUEST_TIMEOUT_MS
+//  4. Timeout            a hung attempt is aborted after AI_REQUEST_TIMEOUT_MS, and the whole call
+//                        (retries included) after AI_TOTAL_TIMEOUT_MS
 //  5. Retry + backoff    on 429 / 5xx / 529 overloaded / network errors, respecting Retry-After
 //  6. Model fallback     if the primary model is overloaded, try the fallback model
 //  7. Circuit breaker    if the provider keeps failing, fail fast for a while instead of piling up
@@ -21,6 +23,19 @@ import * as quota from '../services/quota.service.js';
 // tests can use a fake provider.
 
 const log = logger.child({ component: 'ai-gateway' });
+
+// What the user sees when Saathi's AI budget runs out. Tasks, notes and reminders keep working.
+export const AI_LIMIT_MESSAGES = {
+  busy: 'Abhi mera AI thoda busy hai. Ek minute ruk ke phir try karo. Tab tak tasks, notes aur reminders normal chalte rahenge.',
+  daily: 'Aaj ke liye mera free AI quota khatam ho gaya 😅 Kal phir baat karte hain. Tab tak tasks, notes aur reminders normal chalte rahenge.',
+};
+
+export function aiLimitError(kind, retryAfterSeconds) {
+  const err = new AppError(429, kind === 'daily' ? 'AI_DAILY_LIMIT' : 'AI_BUSY', AI_LIMIT_MESSAGES[kind]);
+  err.retryAfterSeconds = retryAfterSeconds;
+  err.retryable = false; // waiting a few seconds won't help; and it is a limit, not an outage
+  return err;
+}
 
 export function isRetryableAiError(err) {
   if (err?.retryable === false) return false; // e.g. the provider's daily limit: waiting won't help
@@ -42,10 +57,13 @@ export function createAiGateway({
   maxQueue = env.AI_MAX_QUEUE,
   queueTimeoutMs = env.AI_QUEUE_TIMEOUT_MS,
   requestTimeoutMs = env.AI_REQUEST_TIMEOUT_MS,
+  totalTimeoutMs = env.AI_TOTAL_TIMEOUT_MS,
   models = ai.models,
   retries = 2,
   perUserPerMinute = env.AI_USER_PER_MINUTE,
   perUserPerDay = env.AI_USER_PER_DAY,
+  globalPerMinute = env.AI_GLOBAL_PER_MINUTE,
+  globalPerDay = env.AI_GLOBAL_PER_DAY,
   breaker = new CircuitBreaker({ threshold: 5, cooldownMs: 30_000 }),
   retryOptions = {},
 } = {}) {
@@ -63,12 +81,37 @@ export function createAiGateway({
     );
   }
 
+  const globalWindows = [
+    { kind: 'busy', key: 'ai:global:min', limit: globalPerMinute, windowMs: 60_000 },
+    { kind: 'daily', key: 'ai:global:day', limit: globalPerDay, windowMs: 24 * 60 * 60_000 }, // resets at 00:00 UTC, like Gemini's
+  ].filter((w) => w.limit > 0);
+
   /**
-   * @param {{ userId?: string, call: (ctx: { model: string, signal: AbortSignal, attempt: number }) => Promise<T> }} req
+   * Counts one request to the provider against the app-wide limit. A new piece of work (a chat
+   * message, a greeting) is refused once the limit is reached; the follow-up requests of a chat
+   * message that already started are only counted, so a message is never cut off halfway.
    */
-  async function run({ userId, call, signal: outerSignal }) {
+  async function countGlobal({ enforce }) {
+    for (const { kind, key, limit, windowMs } of globalWindows) {
+      const res = await quota.hit(key, { limit, windowMs });
+      if (enforce && !res.allowed) {
+        log.warn({ kind, limit }, 'app-wide AI limit reached');
+        throw aiLimitError(kind, Math.max(1, Math.ceil((res.resetAt.getTime() - Date.now()) / 1000)));
+      }
+    }
+  }
+
+  /**
+   * @param {{
+   *   userId?: string,        counts against this user's quota (pass it once per chat message)
+   *   continuation?: boolean, a follow-up request of work already under way (next step of a chat turn)
+   *   call: (ctx: { model: string, signal: AbortSignal, attempt: number }) => Promise<T>,
+   * }} req
+   */
+  async function run({ userId, continuation = false, call, signal: outerSignal }) {
     if (outerSignal?.aborted) throw outerSignal.reason ?? new Error('aborted');
     await enforceUserQuota(userId);
+    await countGlobal({ enforce: !continuation });
 
     if (!breaker.allow()) {
       const err = new AppError(503, 'AI_UNAVAILABLE', "I can't reach my brain right now. Try again in a little while.");
@@ -87,6 +130,8 @@ export function createAiGateway({
 
     async function callProvider() {
       let modelIndex = 0;
+      const deadline = Date.now() + totalTimeoutMs;
+      const timeoutError = () => Object.assign(new Error('AI request timed out'), { code: 'AI_TIMEOUT' });
       try {
         const result = await withRetry(
           async (attempt) => {
@@ -94,10 +139,14 @@ export function createAiGateway({
             // The caller may have gone away while this call waited in the queue.
             // ('abort' listeners never fire for a signal that is already aborted, so check first.)
             if (outerSignal?.aborted) throw outerSignal.reason ?? new Error('aborted');
+            // Each attempt gets the normal timeout, cut short so the whole call ends by the deadline.
+            const timeoutMs = Math.min(requestTimeoutMs, deadline - Date.now());
+            if (timeoutMs < 1000) throw timeoutError();
+            if (attempt > 0) await countGlobal({ enforce: false }); // a retry is one more request for the provider
             const controller = new AbortController();
             const onOuterAbort = () => controller.abort(outerSignal.reason);
             outerSignal?.addEventListener('abort', onOuterAbort, { once: true });
-            const timer = setTimeout(() => controller.abort(Object.assign(new Error('AI request timed out'), { code: 'AI_TIMEOUT' })), requestTimeoutMs);
+            const timer = setTimeout(() => controller.abort(timeoutError()), timeoutMs);
             try {
               return await call({ model, signal: controller.signal, attempt });
             } catch (err) {
@@ -112,7 +161,7 @@ export function createAiGateway({
           },
           {
             retries,
-            deadlineMs: requestTimeoutMs * 2,
+            deadlineMs: totalTimeoutMs,
             isRetryable: (err) => !outerSignal?.aborted && isRetryableAiError(err),
             retryAfterMs: retryAfterFromError,
             signal: outerSignal,

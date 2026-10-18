@@ -135,6 +135,7 @@ export async function runTurn({ user, conversation, userMessage, provider }, { e
       const response = await gateway.run({
         // The per-user quota counts chat messages, not the internal steps of one message.
         userId: step === 0 ? String(user._id) : undefined,
+        continuation: step > 0, // the app-wide limit never cuts a message off halfway
         signal,
         call: ({ model: m, signal: callSignal }) => {
           // A retry after a failed attempt: drop the half-written text of that attempt.

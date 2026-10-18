@@ -14,6 +14,9 @@ process.env.JWT_SECRET ??= 'test-secret-that-is-definitely-longer-than-32-chars'
 // Tests never call a real AI API (no cost, no flakiness): they use a fake provider instead.
 process.env.ANTHROPIC_API_KEY = '';
 process.env.GEMINI_API_KEY = '';
+// The app-wide AI limit is tested on its own gateway; elsewhere it would make tests depend on each other.
+process.env.AI_GLOBAL_PER_MINUTE = '0';
+process.env.AI_GLOBAL_PER_DAY = '0';
 
 export async function setupDb() {
   const { connectDB } = await import('../src/db/connect.js');

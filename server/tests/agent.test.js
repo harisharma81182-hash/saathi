@@ -410,6 +410,24 @@ describe('Step 3: agent', { skip: !hasTestDb && 'MONGODB_URI_TEST not set' }, ()
     assert.equal(provider.calls[0].messages.at(-1).content, 'hello?\n\nab?');
   });
 
+  it('at the app-wide AI limit, new messages get a friendly Hinglish message; a started message still finishes', async () => {
+    const { RateCounter } = await import('../src/models/RateCounter.js');
+    await RateCounter.deleteMany({ _id: /^ai:global:/ });
+    const provider = fakeProvider([use('list_tasks', {}), say('[face:happy] Sab clear hai!'), say('[face:happy] never sent')]);
+    const limits = { perUserPerMinute: 10_000, perUserPerDay: 10_000, globalPerMinute: 0, globalPerDay: 1 };
+    setAiForTests({ provider, gateway: createAiGateway({ retryOptions: { baseMs: 1, maxMs: 2 }, ...limits }) });
+
+    const first = await chat(other, 'aaj kya hai?');
+    assert.equal(replyText(first), 'Sab clear hai!', 'the second request of a message that already started still runs');
+
+    const second = await chat(other, 'aur kuch?');
+    const [error] = events(second, 'error');
+    assert.equal(error.code, 'AI_DAILY_LIMIT');
+    assert.match(error.message, /Kal phir baat karte hain/);
+    assert.equal(provider.calls.length, 2, 'nothing more was sent to the provider');
+    assert.equal((await other.agent.post('/api/tasks').send({ title: 'Works without AI' })).status, 201);
+  });
+
   it('keeps conversations private', async () => {
     useProvider([say('[face:happy] hi')]);
     const mine = (await me.agent.get('/api/agent/conversations')).body.conversations[0];

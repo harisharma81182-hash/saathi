@@ -8,8 +8,10 @@
     "start": "node src/index.js",
     "start:web": "node src/index.js",
     "db:indexes": "node scripts/sync-indexes.js",
-    "test": "node --test --test-concurrency=1",
-    "loadtest": "node loadtest/run.js"
+    "test": "node --test --test-concurrency=1 \"tests/**/*.test.js\"",
+    "loadtest": "node loadtest/run.js",
+    "live:chat": "node scripts/live-chat.js",
+    "live:cleanup": "node scripts/live-accounts.js"
   },
   "license": "MIT",
   "dependencies": {
