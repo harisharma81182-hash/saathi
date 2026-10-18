@@ -45,7 +45,7 @@ function Toast({ n, onDismiss, onChanged }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className="pointer-events-auto relative w-full max-w-sm rounded-2xl border border-line bg-surface/95 p-4 shadow-2xl shadow-black/50 backdrop-blur"
+      className="glass pointer-events-auto relative w-full max-w-sm rounded-2xl bg-ink/80 p-4"
     >
       <button onClick={onDismiss} aria-label="Band karo" className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full text-faint transition-colors hover:bg-surface-2 hover:text-text">
         <X size={15} />

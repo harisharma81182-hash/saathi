@@ -67,8 +67,11 @@ export function HomeScreen({ user, onLogout }) {
           <Hero user={user} greeting={greeting} expression={expression} state={faceState} compact={chat.messages.length > 0} />
           <ChatPanel chat={chat} />
         </main>
-        <aside className={`min-h-0 w-full border-line lg:w-[360px] lg:border-l ${tab === 'today' ? 'block' : 'hidden lg:block'}`}>
-          <TodayPanel today={today} error={todayError} onRetry={loadToday} onChanged={loadToday} />
+        {/* The Today panel floats as a soft glass sheet over the sky, not a hard column. */}
+        <aside className={`min-h-0 w-full px-3 pb-3 lg:w-[380px] lg:py-2 lg:pl-0 lg:pr-6 ${tab === 'today' ? 'block' : 'hidden lg:block'}`}>
+          <div className="glass h-full overflow-hidden rounded-3xl">
+            <TodayPanel today={today} error={todayError} onRetry={loadToday} onChanged={loadToday} />
+          </div>
         </aside>
       </div>
 
@@ -78,14 +81,29 @@ export function HomeScreen({ user, onLogout }) {
   );
 }
 
+/** True on phone-sized screens; the hero face is smaller there. */
+function useSmallScreen() {
+  const query = '(max-width: 639px)';
+  const [small, setSmall] = useState(() => window.matchMedia(query).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(query);
+    const on = () => setSmall(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  return small;
+}
+
 function Hero({ user, greeting, expression, state, compact }) {
   const text = greeting?.text;
+  const small = useSmallScreen();
+  const faceSize = compact ? 48 : small ? 104 : 148;
   const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
   return (
-    <motion.div layout transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }} className={`px-4 sm:px-8 ${compact ? 'pb-2 pt-2' : 'pb-4 pt-6 sm:pt-12'}`}>
-      <div className="mx-auto flex w-full max-w-2xl items-center gap-5 sm:gap-7">
-        <motion.div layout>
-          <Face size={compact ? 48 : 104} expression={expression} state={state} />
+    <motion.div layout transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }} className={`px-4 sm:px-8 ${compact ? 'pb-2 pt-2' : 'pb-6 pt-8 sm:pb-8 sm:pt-16'}`}>
+      <div className={`mx-auto flex w-full max-w-2xl items-center ${compact ? 'gap-4' : 'gap-6 sm:gap-10'}`}>
+        <motion.div layout className="relative">
+          <Face size={faceSize} expression={expression} state={state} aura={!compact} />
         </motion.div>
         <div className="min-w-0 flex-1">
           {!compact && <p className="mb-1.5 text-sm text-faint">{today}</p>}
@@ -151,7 +169,7 @@ function TopBar({ user, live, onLogout }) {
 
 function MobileTabs({ tab, setTab, badge }) {
   return (
-    <nav className="grid grid-cols-2 border-t border-line bg-ink pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Screens">
+    <nav className="grid grid-cols-2 border-t border-line bg-ink/70 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden" aria-label="Screens">
       {[
         ['chat', 'Chat'],
         ['today', 'Aaj'],

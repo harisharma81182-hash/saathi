@@ -56,7 +56,8 @@ const FACES = {
 
 const SPRING = { type: 'spring', stiffness: 260, damping: 22 };
 
-export function Face({ expression = 'happy', state = 'idle', size = 120, followCursor = true, label }) {
+// aura: the big hero version gets a wide, soft light around it that breathes slowly (AI Common feel).
+export function Face({ expression = 'happy', state = 'idle', size = 120, followCursor = true, label, aura = false }) {
   const reduce = useReducedMotion();
   const mood = state === 'listening' || state === 'error' ? state : state === 'thinking' ? 'thinking' : expression;
   const face = FACES[mood] ?? FACES.happy;
@@ -127,6 +128,18 @@ export function Face({ expression = 'happy', state = 'idle', size = 120, followC
       animate={floating ? { y: [0, -size * 0.025, 0] } : { y: 0 }}
       transition={floating ? { duration: 5, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.3 }}
     >
+      {aura && (
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute rounded-full"
+          style={{ inset: -size * 0.75, filter: `blur(${size * 0.22}px)` }}
+          animate={{
+            background: `radial-gradient(circle, ${hue[1]}66 0%, ${hue[1]}26 38%, ${hue[1]}00 68%)`,
+            scale: reduce ? 1 : [1, 1.07, 1],
+          }}
+          transition={{ background: { duration: 0.8 }, scale: { duration: 6, repeat: Infinity, ease: 'easeInOut' } }}
+        />
+      )}
       {/* Soft glow behind the orb; brighter while thinking or speaking. */}
       <motion.div
         aria-hidden
@@ -146,6 +159,12 @@ export function Face({ expression = 'happy', state = 'idle', size = 120, followC
             <motion.stop offset="55%" animate={{ stopColor: hue[1] }} transition={{ duration: 0.8 }} />
             <motion.stop offset="100%" animate={{ stopColor: hue[2] }} transition={{ duration: 0.8 }} />
           </radialGradient>
+          {/* Light on the rim, like a glass sphere lit from inside. */}
+          <radialGradient id={`${id}-rim`} cx="50%" cy="50%" r="50%">
+            <stop offset="78%" stopColor="#fff" stopOpacity="0" />
+            <stop offset="95%" stopColor="#fff4dc" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#fff" stopOpacity="0" />
+          </radialGradient>
           <radialGradient id={`${id}-shine`} cx="34%" cy="26%" r="30%">
             <stop offset="0%" stopColor="#fff" stopOpacity="0.55" />
             <stop offset="100%" stopColor="#fff" stopOpacity="0" />
@@ -160,6 +179,7 @@ export function Face({ expression = 'happy', state = 'idle', size = 120, followC
         >
           <circle cx="50" cy="50" r="42" fill={`url(#${id}-orb)`} />
           <circle cx="50" cy="50" r="42" fill={`url(#${id}-shine)`} />
+          <circle cx="50" cy="50" r="42" fill={`url(#${id}-rim)`} />
           {/* Thinking: a slow swirl inside the orb */}
           {state === 'thinking' && !reduce && (
             <motion.circle

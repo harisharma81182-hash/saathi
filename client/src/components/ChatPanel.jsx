@@ -92,7 +92,7 @@ export function ChatPanel({ chat }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 6 }}
             onClick={() => toBottom()}
-            className="absolute bottom-24 left-1/2 inline-flex -translate-x-1/2 items-center gap-1 rounded-full bg-surface-2 px-3.5 py-1.5 text-sm text-text shadow-lg shadow-black/40 transition hover:bg-surface"
+            className="glass absolute bottom-24 left-1/2 inline-flex -translate-x-1/2 items-center gap-1 rounded-full bg-ink/70 px-3.5 py-1.5 text-sm text-text transition hover:bg-ink/90"
           >
             Naye messages <ChevronDown size={15} />
           </motion.button>
@@ -115,7 +115,7 @@ function Message({ m, showTime, onUndo, onAnswer, onRetry }) {
     >
       {showTime && <time className="mb-3 self-center text-xs text-faint">{when(m.createdAt)}</time>}
       {mine ? (
-        <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-surface-2 px-4 py-2.5">{m.text}</p>
+        <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md border border-line bg-surface-2 px-4 py-2.5 backdrop-blur-md">{m.text}</p>
       ) : (
         <div className="flex max-w-[94%] gap-3">
           <Face size={28} expression={m.expression ?? 'happy'} state={m.streaming && !m.text ? 'thinking' : 'idle'} followCursor={false} />
@@ -199,7 +199,7 @@ function Composer({ inputRef, draft, setDraft, sending, onSubmit }) {
             e.preventDefault();
             onSubmit();
           }}
-          className="flex items-end gap-2 rounded-3xl border border-line bg-surface p-1.5 pl-4 transition-colors focus-within:border-gold/40"
+          className="glass flex items-end gap-2 rounded-3xl p-1.5 pl-4 transition-colors focus-within:border-gold/40"
         >
           <label htmlFor="chat-input" className="sr-only">
             Saathi ko likho

@@ -53,11 +53,13 @@
 }
 
 :root {
-  --ink: #0b0d14;
-  --ink-2: #0f121b;
-  --surface: #151924;
-  --surface-2: #1b2030;
-  --line: rgb(255 240 220 / 0.08);
+  /* Night sky: deep navy, never flat black, so the app feels connected to the Orbit landing page. */
+  --ink: #080b18;
+  --ink-2: #0c1024;
+  /* Surfaces are glass: a little white over the sky, so the sky shows through. */
+  --surface: rgb(226 232 255 / 0.05);
+  --surface-2: rgb(226 232 255 / 0.09);
+  --line: rgb(226 232 255 / 0.09);
   --text: #f6efe4;
   --muted: #b7ad9f;
   --faint: #918879; /* 5:1 on ink, still readable for small text */
@@ -87,12 +89,59 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* A very faint warm light from the top, where Saathi's face sits. Not a gradient wash: it fades out
-   within the first screen and the rest stays plain ink. */
+/*
+  The night sky behind every app screen: a deep navy-to-ink gradient with a soft indigo haze on the
+  right and a faint warm light at the top left where Saathi's face sits, then a sprinkle of tiny
+  static stars and a fine grain. Pure CSS: no canvas, no animation, nothing to keep in memory.
+*/
 .ambient {
+  position: relative;
+  isolation: isolate;
   background:
-    radial-gradient(60rem 28rem at 18% -6rem, rgb(242 165 65 / 0.09), transparent 70%),
-    var(--ink);
+    radial-gradient(48rem 30rem at 22% -4rem, rgb(242 165 65 / 0.1), transparent 70%),
+    radial-gradient(70rem 50rem at 105% 10%, rgb(70 82 170 / 0.2), transparent 65%),
+    radial-gradient(60rem 40rem at -10% 110%, rgb(40 50 120 / 0.22), transparent 60%),
+    linear-gradient(180deg, #0c1126 0%, #090c1c 50%, #070914 100%);
+}
+.ambient::before,
+.ambient::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+/* Stars: a few tiny dots in a large repeating tile, so they never form a visible pattern. */
+.ambient::before {
+  opacity: 0.55;
+  background-image:
+    radial-gradient(1px 1px at 23px 41px, rgb(255 248 235 / 0.8), transparent 60%),
+    radial-gradient(1px 1px at 141px 97px, rgb(255 248 235 / 0.5), transparent 60%),
+    radial-gradient(1.4px 1.4px at 287px 23px, rgb(255 236 200 / 0.7), transparent 60%),
+    radial-gradient(1px 1px at 377px 211px, rgb(210 220 255 / 0.6), transparent 60%),
+    radial-gradient(1px 1px at 89px 283px, rgb(255 248 235 / 0.45), transparent 60%),
+    radial-gradient(1.2px 1.2px at 211px 337px, rgb(255 248 235 / 0.6), transparent 60%),
+    radial-gradient(1px 1px at 331px 401px, rgb(210 220 255 / 0.45), transparent 60%),
+    radial-gradient(1px 1px at 17px 389px, rgb(255 236 200 / 0.5), transparent 60%);
+  background-size: 420px 420px;
+}
+/* Grain: an SVG noise texture at very low opacity takes the "digital flat" edge off the gradients. */
+.ambient::after {
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Glass: soft panels for the Today panel, the composer and toasts. A faint top highlight and a deep
+   soft shadow give depth without hard edges. */
+.glass {
+  background: linear-gradient(180deg, rgb(226 232 255 / 0.065), rgb(226 232 255 / 0.03));
+  border: 1px solid rgb(226 232 255 / 0.08);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    0 24px 60px -28px rgb(0 0 0 / 0.7);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  backdrop-filter: blur(18px) saturate(140%);
 }
 
 /* In the base layer, so a component can still turn it off (the chat box shows focus on its frame). */
@@ -116,7 +165,7 @@ body {
 
 /* Skeleton shimmer for loading states (no spinners). */
 .skeleton {
-  background: linear-gradient(90deg, var(--surface) 0%, var(--surface-2) 50%, var(--surface) 100%);
+  background: linear-gradient(90deg, rgb(226 232 255 / 0.05) 0%, rgb(226 232 255 / 0.11) 50%, rgb(226 232 255 / 0.05) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
   border-radius: 10px;
@@ -170,6 +219,6 @@ body {
 .night-sky {
   background:
     radial-gradient(70rem 40rem at 20% -10%, rgb(242 165 65 / 0.08), transparent 60%),
-    radial-gradient(60rem 50rem at 100% 0%, rgb(56 64 140 / 0.22), transparent 65%),
-    linear-gradient(180deg, #0b1024 0%, #080b19 55%, #060812 100%);
+    radial-gradient(60rem 50rem at 100% 0%, rgb(70 82 170 / 0.2), transparent 65%),
+    linear-gradient(180deg, #0c1126 0%, #090c1c 50%, #070914 100%);
 }
