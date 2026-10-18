@@ -45,6 +45,24 @@ export async function enforce(checks, message) {
   }
 }
 
+// Marks a window as used up, e.g. when a provider says its limit is reached although our count is
+// lower (requests made elsewhere with the same key, or a counter that started late).
+export async function fill(key, { limit, windowMs, now = Date.now() }) {
+  const windowStart = Math.floor(now / windowMs) * windowMs;
+  const update = () =>
+    RateCounter.updateOne(
+      { _id: `${key}|${windowStart}` },
+      { $max: { count: limit }, $setOnInsert: { expiresAt: new Date(windowStart + windowMs) } },
+      { upsert: true },
+    );
+  try {
+    await update();
+  } catch (err) {
+    if (err?.code !== 11000) throw err;
+    await update();
+  }
+}
+
 // Takes back one counted hit (e.g. a login attempt that turned out to be successful).
 export async function undo(key, { windowMs, now = Date.now() }) {
   const windowStart = Math.floor(now / windowMs) * windowMs;

@@ -1,5 +1,5 @@
-import './helpers.js';
-import { test, describe } from 'node:test';
+import { hasTestDb, setupDb, teardownDb } from './helpers.js';
+import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createGeminiProvider, toGeminiRequest, normalizeError } from '../src/ai/gemini.js';
 import { createAiGateway, isRetryableAiError } from '../src/ai/gateway.js';
@@ -101,15 +101,17 @@ describe('gemini adapter', () => {
     assert.deepEqual(client.requests[0].contents[2].parts[0].functionResponse.response, { error: 'Invalid input.' });
   });
 
-  test('provider errors: a short rate-limit wait is retried; the daily limit and a bad key are not', () => {
-    const short = normalizeError(Object.assign(new Error('{"error":{"code":429,"details":[{"retryDelay":"7s"}]}}'), { status: 429 }));
-    assert.equal(short.retryAfterMs, 7000);
-    assert.ok(isRetryableAiError(short));
+  test('provider errors: rate limits say which limit was hit; a bad key is not retried', () => {
+    const minute = normalizeError(Object.assign(new Error('{"error":{"code":429,"details":[{"retryDelay":"7s"}]}}'), { status: 429 }));
+    assert.equal(minute.rateLimit, 'minute');
+    assert.equal(minute.code, 'AI_BUSY');
+    assert.equal(minute.retryAfterSeconds, 7);
 
     const daily = normalizeError(Object.assign(new Error('quotaId: GenerateRequestsPerDayPerProjectPerModel-FreeTier'), { status: 429 }));
     assert.equal(daily.code, 'AI_DAILY_LIMIT');
     assert.equal(daily.status, 429);
     assert.match(daily.message, /Kal phir/);
+    assert.equal(daily.rateLimit, 'day');
     assert.equal(isRetryableAiError(daily), false);
 
     const badKey = normalizeError(Object.assign(new Error('API key not valid. Please pass a valid API key.'), { status: 400 }));
@@ -118,6 +120,30 @@ describe('gemini adapter', () => {
 
     const serverError = Object.assign(new Error('boom'), { status: 503 });
     assert.equal(normalizeError(serverError), serverError);
+  });
+
+  test('a rate-limited model hands over to the next model in the chain at once', async () => {
+    const gateway = createAiGateway({ models: ['lite-a', 'lite-b', 'flash'], modelLimits: {} });
+    const seen = [];
+    const answer = await gateway.run({
+      call: async ({ model }) => {
+        seen.push(model);
+        if (model === 'lite-a') throw normalizeError(Object.assign(new Error('PerDay'), { status: 429 }));
+        if (model === 'lite-b') throw normalizeError(Object.assign(new Error('retryDelay": "30s'), { status: 429 }));
+        return 'from flash';
+      },
+    });
+    assert.equal(answer, 'from flash');
+    assert.deepEqual(seen, ['lite-a', 'lite-b', 'flash']);
+    assert.equal(gateway.stats().breaker, 'closed', 'limits are not outages');
+
+    // Every model limited: the friendly message, without waiting.
+    const started = Date.now();
+    await assert.rejects(
+      gateway.run({ call: async () => { throw normalizeError(Object.assign(new Error('PerDay'), { status: 429 })); } }),
+      (err) => err.code === 'AI_DAILY_LIMIT',
+    );
+    assert.ok(Date.now() - started < 500);
   });
 
   test('the gateway passes the daily-limit message through without retrying or opening the breaker', async () => {
@@ -132,5 +158,41 @@ describe('gemini adapter', () => {
     }
     assert.equal(calls, 6, 'no retries');
     assert.equal(gateway.stats().breaker, 'closed');
+  });
+});
+
+describe('model chain with shared per-model limits', { skip: !hasTestDb && 'MONGODB_URI_TEST not set' }, () => {
+  before(setupDb);
+  after(teardownDb);
+
+  test('skips a model that is at its app-wide limit, and remembers a model the provider said is full', async () => {
+    const { RateCounter } = await import('../src/models/RateCounter.js');
+    await RateCounter.deleteMany({ _id: /^ai:model:/ });
+    const modelLimits = { 'lite-a': { perMinute: 2, perDay: 100 }, 'lite-b': { perMinute: 10, perDay: 2 }, flash: { perMinute: 5, perDay: 20 } };
+    const gateway = createAiGateway({ models: ['lite-a', 'lite-b', 'flash'], modelLimits });
+    const used = [];
+    const call = async ({ model }) => (used.push(model), model);
+
+    for (let i = 0; i < 4; i++) await gateway.run({ call });
+    assert.deepEqual(used, ['lite-a', 'lite-a', 'lite-b', 'lite-b'], 'lite-a stops at 2 per minute, lite-b at 2 per day');
+    assert.equal(await gateway.run({ call }), 'flash');
+
+    // The provider says flash is full for today even though our count says 1 of 20.
+    await assert.rejects(
+      gateway.run({ call: async () => { throw normalizeError(Object.assign(new Error('PerDay'), { status: 429 })); } }),
+      (err) => err.code === 'AI_BUSY', // lite-a is only full for this minute, so: try again in a minute
+    );
+    const flashDay = await RateCounter.findOne({ _id: /^ai:model:flash:day|/ }).lean();
+    assert.equal(flashDay.count, 20, 'flash is now counted as full');
+  });
+
+  test('a message that already started still gets its follow-up request when every model is at its limit', async () => {
+    const { RateCounter } = await import('../src/models/RateCounter.js');
+    await RateCounter.deleteMany({ _id: /^ai:model:/ });
+    const gateway = createAiGateway({ models: ['solo'], modelLimits: { solo: { perMinute: 0, perDay: 1 } } });
+    const call = async ({ model }) => model;
+    assert.equal(await gateway.run({ call }), 'solo');
+    assert.equal(await gateway.run({ call, continuation: true }), 'solo');
+    await assert.rejects(gateway.run({ call }), (err) => err.code === 'AI_DAILY_LIMIT' && err.retryAfterSeconds > 0);
   });
 });

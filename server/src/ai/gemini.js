@@ -14,9 +14,6 @@ import { aiLimitError } from './gateway.js';
 const EFFORT_TO_THINKING = { low: 'LOW', medium: 'MEDIUM', high: 'HIGH' };
 const REFUSAL_REASONS = new Set(['SAFETY', 'PROHIBITED_CONTENT', 'BLOCKLIST', 'SPII', 'RECITATION']);
 
-// The free tier answers 429 when its own limits are hit. A short wait (a few seconds) is worth a
-// retry; a long one, or the daily limit, is not: tell the user plainly instead.
-const MAX_RETRY_WAIT_S = 20;
 
 export function createGeminiProvider({ apiKey = env.GEMINI_API_KEY, client } = {}) {
   const ai = client ?? new GoogleGenAI({ apiKey });
@@ -184,13 +181,14 @@ export function normalizeError(err) {
     out.retryable = false;
     return out;
   }
+  // The free tier answers 429 when one of its limits is hit. Waiting is slow, so the gateway moves
+  // straight on to the next model in the chain; `rateLimit` tells it which limit this was. If no
+  // model is left, this friendly message is what the user sees.
   if (err?.status !== 429) return err;
   const message = String(err.message ?? '');
   const perDay = /PerDay/i.test(message);
   const wait = Number(/retryDelay"?\s*:\s*"?(\d+(?:\.\d+)?)s/.exec(message)?.[1]);
-  if (!perDay && Number.isFinite(wait) && wait <= MAX_RETRY_WAIT_S) {
-    err.retryAfterMs = Math.ceil(wait * 1000);
-    return err;
-  }
-  return aiLimitError(perDay ? 'daily' : 'busy', perDay ? 60 * 60 : Math.max(5, Math.ceil(wait) || 60));
+  const out = aiLimitError(perDay ? 'daily' : 'busy', perDay ? 60 * 60 : Math.max(5, Math.ceil(wait) || 60));
+  out.rateLimit = perDay ? 'day' : 'minute';
+  return out;
 }

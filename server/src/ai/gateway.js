@@ -10,13 +10,14 @@ import * as quota from '../services/quota.service.js';
 // (and the provider's rate limits from us):
 //
 //  1. Per-user quota     shared across instances (MongoDB), so one user cannot burn the budget
-//  1b. App-wide quota    all users together stay under the provider's project limit (free tier)
+//  1b. Per-model quota  all users together stay under each model's limit at the provider (free tier)
 //  2. Concurrency limit  at most AI_MAX_CONCURRENCY calls in flight per instance
 //  3. Bounded queue      extra calls wait up to AI_QUEUE_TIMEOUT_MS, then get a fast 503
 //  4. Timeout            a hung attempt is aborted after AI_REQUEST_TIMEOUT_MS, and the whole call
 //                        (retries included) after AI_TOTAL_TIMEOUT_MS
 //  5. Retry + backoff    on 429 / 5xx / 529 overloaded / network errors, respecting Retry-After
-//  6. Model fallback     if the primary model is overloaded, try the fallback model
+//  6. Model chain        models are tried in order (GEMINI_MODELS): a model that is at its limit,
+//                        rate-limited (429) or overloaded (5xx) hands over to the next one at once
 //  7. Circuit breaker    if the provider keeps failing, fail fast for a while instead of piling up
 //
 // The provider itself is passed in (`call`), so this works the same for Gemini and Claude, and the
@@ -45,8 +46,12 @@ export function isRetryableAiError(err) {
   return status === 408 || status === 409 || status === 429 || status >= 500; // 529 = overloaded
 }
 
+const MINUTE_MS = 60_000;
+const DAY_MS = 24 * 60 * 60_000; // windows start at 00:00 UTC (5:30 AM IST), when Gemini's daily quota resets
+
+const secondsUntil = (windowMs) => Math.max(1, Math.ceil((windowMs - (Date.now() % windowMs)) / 1000));
+
 function retryAfterFromError(err) {
-  if (err?.retryAfterMs) return Math.min(err.retryAfterMs, 30_000); // Gemini puts the wait in the error body
   const raw = err?.headers?.get?.('retry-after') ?? err?.headers?.['retry-after'];
   const seconds = Number(raw);
   return Number.isFinite(seconds) && seconds > 0 ? Math.min(seconds, 30) * 1000 : undefined;
@@ -62,8 +67,7 @@ export function createAiGateway({
   retries = 2,
   perUserPerMinute = env.AI_USER_PER_MINUTE,
   perUserPerDay = env.AI_USER_PER_DAY,
-  globalPerMinute = env.AI_GLOBAL_PER_MINUTE,
-  globalPerDay = env.AI_GLOBAL_PER_DAY,
+  modelLimits = env.AI_MODEL_LIMITS,
   breaker = new CircuitBreaker({ threshold: 5, cooldownMs: 30_000 }),
   retryOptions = {},
 } = {}) {
@@ -81,24 +85,47 @@ export function createAiGateway({
     );
   }
 
-  const globalWindows = [
-    { kind: 'busy', key: 'ai:global:min', limit: globalPerMinute, windowMs: 60_000 },
-    { kind: 'daily', key: 'ai:global:day', limit: globalPerDay, windowMs: 24 * 60 * 60_000 }, // resets at 00:00 UTC, like Gemini's
-  ].filter((w) => w.limit > 0);
+  // Shared counters per model (MongoDB), keyed like "ai:model:<model>:min". A limit of 0 means none.
+  const windowsFor = (model) => {
+    const limits = modelLimits[model];
+    if (!limits) return [];
+    return [
+      { kind: 'minute', key: `ai:model:${model}:min`, limit: limits.perMinute, windowMs: MINUTE_MS },
+      { kind: 'day', key: `ai:model:${model}:day`, limit: limits.perDay, windowMs: DAY_MS },
+    ].filter((w) => w.limit > 0);
+  };
 
   /**
-   * Counts one request to the provider against the app-wide limit. A new piece of work (a chat
-   * message, a greeting) is refused once the limit is reached; the follow-up requests of a chat
-   * message that already started are only counted, so a message is never cut off halfway.
+   * Picks the first model in the chain that still has room, and counts the request against it.
+   * A new piece of work (a chat message, a greeting) is refused when every model is at its limit;
+   * a follow-up request of a message already under way (`enforce: false`) still goes out, so a
+   * message is never cut off halfway (the provider may still say no, then we move on).
    */
-  async function countGlobal({ enforce }) {
-    for (const { kind, key, limit, windowMs } of globalWindows) {
-      const res = await quota.hit(key, { limit, windowMs });
-      if (enforce && !res.allowed) {
-        log.warn({ kind, limit }, 'app-wide AI limit reached');
-        throw aiLimitError(kind, Math.max(1, Math.ceil((res.resetAt.getTime() - Date.now()) / 1000)));
+  async function pickModel(skip, { enforce }) {
+    let minuteLimited = false;
+    for (const model of models) {
+      if (skip.has(model)) continue;
+      let room = true;
+      for (const w of windowsFor(model)) {
+        const res = await quota.hit(w.key, { limit: w.limit, windowMs: w.windowMs });
+        if (!res.allowed) {
+          room = false;
+          if (w.kind === 'minute') minuteLimited = true;
+          break;
+        }
       }
+      if (room) return model;
     }
+    const left = models.find((m) => !skip.has(m));
+    if (!enforce && left) return left;
+    log.warn({ minuteLimited }, 'every AI model is at its limit');
+    throw minuteLimited ? aiLimitError('busy', 60) : aiLimitError('daily', secondsUntil(DAY_MS));
+  }
+
+  /** The provider said this model is at its limit: count it as full so nobody tries it again this window. */
+  async function markFull(model, rateLimit) {
+    const w = windowsFor(model).find((x) => x.kind === rateLimit);
+    if (w) await quota.fill(w.key, { limit: w.limit, windowMs: w.windowMs });
   }
 
   /**
@@ -111,7 +138,6 @@ export function createAiGateway({
   async function run({ userId, continuation = false, call, signal: outerSignal }) {
     if (outerSignal?.aborted) throw outerSignal.reason ?? new Error('aborted');
     await enforceUserQuota(userId);
-    await countGlobal({ enforce: !continuation });
 
     if (!breaker.allow()) {
       const err = new AppError(503, 'AI_UNAVAILABLE', "I can't reach my brain right now. Try again in a little while.");
@@ -129,30 +155,38 @@ export function createAiGateway({
     }
 
     async function callProvider() {
-      let modelIndex = 0;
+      const skip = new Set(); // models that failed (limit or overload) during this call
+      let failures = 0; // failures other than rate limits; only these use up `retries`
       const deadline = Date.now() + totalTimeoutMs;
       const timeoutError = () => Object.assign(new Error('AI request timed out'), { code: 'AI_TIMEOUT' });
       try {
         const result = await withRetry(
           async (attempt) => {
-            const model = models[Math.min(modelIndex, models.length - 1)];
             // The caller may have gone away while this call waited in the queue.
             // ('abort' listeners never fire for a signal that is already aborted, so check first.)
             if (outerSignal?.aborted) throw outerSignal.reason ?? new Error('aborted');
             // Each attempt gets the normal timeout, cut short so the whole call ends by the deadline.
             const timeoutMs = Math.min(requestTimeoutMs, deadline - Date.now());
             if (timeoutMs < 1000) throw timeoutError();
-            if (attempt > 0) await countGlobal({ enforce: false }); // a retry is one more request for the provider
+            const model = await pickModel(skip, { enforce: !continuation });
             const controller = new AbortController();
             const onOuterAbort = () => controller.abort(outerSignal.reason);
             outerSignal?.addEventListener('abort', onOuterAbort, { once: true });
             const timer = setTimeout(() => controller.abort(timeoutError()), timeoutMs);
             try {
               return await call({ model, signal: controller.signal, attempt });
-            } catch (err) {
-              if (controller.signal.aborted && controller.signal.reason?.code === 'AI_TIMEOUT') {
-                throw controller.signal.reason;
+            } catch (caught) {
+              const timedOut = controller.signal.aborted && controller.signal.reason?.code === 'AI_TIMEOUT';
+              const err = timedOut ? controller.signal.reason : caught;
+              // Rate-limited or overloaded: the next attempt goes to the next model in the chain.
+              if (err?.rateLimit) {
+                await markFull(model, err.rateLimit);
+                skip.add(model);
+              } else {
+                failures++;
+                if ((err?.status === 529 || err?.status >= 500) && skip.size < models.length - 1) skip.add(model);
               }
+              err.model = model;
               throw err;
             } finally {
               clearTimeout(timer);
@@ -160,15 +194,16 @@ export function createAiGateway({
             }
           },
           {
-            retries,
+            // Moving down the chain after a rate limit does not use up the normal retries.
+            retries: retries + models.length,
             deadlineMs: totalTimeoutMs,
-            isRetryable: (err) => !outerSignal?.aborted && isRetryableAiError(err),
-            retryAfterMs: retryAfterFromError,
+            isRetryable: (err) =>
+              !outerSignal?.aborted &&
+              (err?.rateLimit ? models.some((m) => !skip.has(m)) : failures <= retries && isRetryableAiError(err)),
+            retryAfterMs: (err) => (err?.rateLimit ? 0 : retryAfterFromError(err)),
             signal: outerSignal,
             onRetry: (err, attempt, delayMs) => {
-              // Overloaded (529) or server errors: the next attempt uses the fallback model.
-              if (err?.status === 529 || err?.status >= 500) modelIndex++;
-              log.warn({ status: err?.status, code: err?.code, attempt, delayMs }, 'AI call failed, retrying');
+              log.warn({ model: err?.model, status: err?.status, code: err?.code, rateLimit: err?.rateLimit, attempt, delayMs }, 'AI call failed, retrying');
             },
             ...retryOptions,
           },

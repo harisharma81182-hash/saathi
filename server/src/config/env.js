@@ -7,6 +7,26 @@ const bool = z
   .enum(['true', 'false', '1', '0'])
   .transform((v) => v === 'true' || v === '1');
 
+// "a, b, c" -> ['a', 'b', 'c']
+const modelList = z
+  .string()
+  .transform((s) => s.split(',').map((m) => m.trim()).filter(Boolean))
+  .pipe(z.array(z.string()).min(1, 'list at least one model, e.g. gemini-3.5-flash-lite,gemini-3.8-flash'));
+
+// "model=13/480, other=4/18" -> { model: { perMinute: 13, perDay: 480 }, ... }
+const modelLimits = z.string().transform((s, ctx) => {
+  const out = {};
+  for (const item of s.split(',').map((x) => x.trim()).filter(Boolean)) {
+    const m = /^([\w.\-]+)\s*=\s*(\d+)\s*\/\s*(\d+)$/.exec(item);
+    if (!m) {
+      ctx.addIssue({ code: 'custom', message: `"${item}" should look like model=perMinute/perDay, e.g. gemini-3.5-flash-lite=13/480` });
+      return z.NEVER;
+    }
+    out[m[1]] = { perMinute: Number(m[2]), perDay: Number(m[3]) };
+  }
+  return out;
+});
+
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(4000),
@@ -38,8 +58,9 @@ const schema = z.object({
   // Which AI powers Saathi. gemini = Google's free tier (default for now); anthropic = Claude.
   AI_PROVIDER: z.enum(['gemini', 'anthropic'], { error: 'must be "gemini" or "anthropic".' }).default('gemini'),
   GEMINI_API_KEY: z.string().optional(),
-  GEMINI_MODEL: z.string().default('gemini-3.8-flash'),
-  GEMINI_FALLBACK_MODEL: z.string().optional(),
+  // Models to use, in order. When one hits its limit (or is overloaded), the next one answers.
+  // IDs checked with the models list API on 18 Oct 2026; all three support function calling.
+  GEMINI_MODELS: modelList.default(['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-3.8-flash']),
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_MODEL: z.string().default('claude-haiku-5-5'),
   ANTHROPIC_FALLBACK_MODEL: z.string().default('claude-sonnet-5-5'),
@@ -54,10 +75,11 @@ const schema = z.object({
   // Per-user chat messages, shared across all instances through MongoDB. Generous: only spam hits them.
   AI_USER_PER_MINUTE: z.coerce.number().int().min(1).default(20),
   AI_USER_PER_DAY: z.coerce.number().int().min(1).default(300),
-  // AI requests for the whole app (all users together), kept a bit below the provider's own project
-  // limit so Saathi says so politely instead of failing. 0 = no limit. Defaults depend on the provider.
-  AI_GLOBAL_PER_MINUTE: z.coerce.number().int().min(0).optional(),
-  AI_GLOBAL_PER_DAY: z.coerce.number().int().min(0).optional(),
+  // Requests per model for the whole app (all users together), as model=perMinute/perDay, kept a bit
+  // below the provider's own project limits so Saathi switches models (or says so politely) before
+  // the provider refuses. Models not listed have no app-side limit.
+  // Gemini free tier (ai.dev/rate-limit, 18 Oct 2026): 3.5 / 3.1 Flash Lite 15 RPM, 500 RPD; 3.8 Flash 5 RPM, 20 RPD.
+  AI_MODEL_LIMITS: modelLimits.prefault('gemini-3.5-flash-lite=13/480,gemini-3.1-flash-lite=13/480,gemini-3.8-flash=4/18'),
 
   TRUST_PROXY: bool.default('true'),
 });
@@ -75,16 +97,10 @@ if (!parsed.success) {
 
 export const env = parsed.data;
 
-// Gemini's free tier for gemini-3.8-flash allows 20 requests per day per project (seen in its 429
-// answer on 18 Oct 2026); stop at 18. Claude is paid per use, so no app-wide cap by default.
-const AI_GLOBAL_DEFAULTS = { gemini: { perMinute: 8, perDay: 18 }, anthropic: { perMinute: 0, perDay: 0 } };
-env.AI_GLOBAL_PER_MINUTE ??= AI_GLOBAL_DEFAULTS[env.AI_PROVIDER].perMinute;
-env.AI_GLOBAL_PER_DAY ??= AI_GLOBAL_DEFAULTS[env.AI_PROVIDER].perDay;
-
 /** The selected provider's API key and models (main first, then the fallback for overload). */
 export const ai =
   env.AI_PROVIDER === 'gemini'
-    ? { provider: 'gemini', apiKey: env.GEMINI_API_KEY, keyName: 'GEMINI_API_KEY', models: [env.GEMINI_MODEL, env.GEMINI_FALLBACK_MODEL].filter(Boolean) }
+    ? { provider: 'gemini', apiKey: env.GEMINI_API_KEY, keyName: 'GEMINI_API_KEY', models: env.GEMINI_MODELS }
     : { provider: 'anthropic', apiKey: env.ANTHROPIC_API_KEY, keyName: 'ANTHROPIC_API_KEY', models: [env.ANTHROPIC_MODEL, env.ANTHROPIC_FALLBACK_MODEL].filter(Boolean) };
 export const isProd = env.NODE_ENV === 'production';
 export const isTest = env.NODE_ENV === 'test';

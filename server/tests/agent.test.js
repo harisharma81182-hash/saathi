@@ -410,11 +410,11 @@ describe('Step 3: agent', { skip: !hasTestDb && 'MONGODB_URI_TEST not set' }, ()
     assert.equal(provider.calls[0].messages.at(-1).content, 'hello?\n\nab?');
   });
 
-  it('at the app-wide AI limit, new messages get a friendly Hinglish message; a started message still finishes', async () => {
+  it('when every model is at its app-wide limit, new messages get a friendly Hinglish message; a started message still finishes', async () => {
     const { RateCounter } = await import('../src/models/RateCounter.js');
-    await RateCounter.deleteMany({ _id: /^ai:global:/ });
+    await RateCounter.deleteMany({ _id: /^ai:model:only-model:/ });
     const provider = fakeProvider([use('list_tasks', {}), say('[face:happy] Sab clear hai!'), say('[face:happy] never sent')]);
-    const limits = { perUserPerMinute: 10_000, perUserPerDay: 10_000, globalPerMinute: 0, globalPerDay: 1 };
+    const limits = { perUserPerMinute: 10_000, perUserPerDay: 10_000, models: ['only-model'], modelLimits: { 'only-model': { perMinute: 0, perDay: 1 } } };
     setAiForTests({ provider, gateway: createAiGateway({ retryOptions: { baseMs: 1, maxMs: 2 }, ...limits }) });
 
     const first = await chat(other, 'aaj kya hai?');
