@@ -10,6 +10,8 @@ const notificationSchema = new mongoose.Schema(
     body: { type: String, default: '', maxlength: 1000 },
     // Saathi's face for this notification (the AI picks it with the text); null = default.
     expression: { type: String, default: null },
+    // Extra details for buttons, e.g. the recap's leftover task ids ("move to tomorrow").
+    data: { type: mongoose.Schema.Types.Mixed, default: null },
     refType: { type: String, enum: ['reminder', 'task', null], default: null },
     refId: { type: mongoose.Schema.Types.ObjectId, default: null },
     readAt: { type: Date, default: null },
@@ -29,6 +31,7 @@ export function publicNotification(n) {
     title: n.title,
     body: n.body,
     expression: n.expression ?? null,
+    data: n.data ?? null,
     refType: n.refType,
     refId: n.refId ? String(n.refId) : null,
     readAt: n.readAt,

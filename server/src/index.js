@@ -6,6 +6,7 @@ import { createApp } from './app.js';
 import { startWorker } from './jobs/worker.js';
 import { registerAllHandlers } from './jobs/handlers/index.js';
 import { getLiveHub } from './services/live.service.js';
+import { startPeriodicJobs } from './jobs/periodic.js';
 
 // One codebase, three ways to run it (PROCESS_ROLE):
 //   web    -> serves HTTP. Stateless, so any number of copies can run behind a load balancer.
@@ -28,6 +29,7 @@ async function main() {
 
   if (runsWorker) registerAllHandlers();
   const worker = runsWorker ? startWorker({ concurrency: 4 }) : null;
+  const stopPeriodic = runsWorker ? startPeriodicJobs() : () => {};
 
   // Graceful shutdown. Platforms send SIGTERM before stopping an instance (deploys, scale-down).
   //  1. Mark not ready -> readiness returns 503, load balancer stops sending new requests
@@ -41,6 +43,7 @@ async function main() {
     lifecycle.shuttingDown = true;
     logger.info({ signal }, 'shutting down');
     getLiveHub().closeAll(); // open live-update streams would otherwise hold the server open
+    stopPeriodic();
 
     const forceExit = setTimeout(() => {
       logger.error('shutdown took too long, forcing exit');

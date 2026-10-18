@@ -23,6 +23,7 @@ Saathi is a chat and voice assistant connected to your own data. The AI model (G
 - Tasks (with due dates, priority, tags, and deadlines that show a countdown), notes, and reminders, all searchable and filterable
 - Reminders fire on time from a background worker, exactly once, and can be snoozed or cancelled; Saathi writes a short friendly line for each at fire time (plain text if the AI is unavailable, never late)
 - Habits: daily or weekly repeating tasks, the next one created when you finish one, with a streak
+- Saathi texts first: a friendly nudge about overdue tasks (at most once per task per day, never at night) and an evening recap of the day with a button to move leftovers to tomorrow
 - Undo for every change (create, edit, complete, delete, snooze), safe against double clicks and later edits
 - Today panel: due today, overdue, upcoming reminders, deadline countdowns; weekly progress with a streak
 - Typing hints: while you type, Saathi points out related open tasks (no AI call, instant)
@@ -167,6 +168,7 @@ It signs up a throwaway account (`live.<number>@example.com`), shows the greetin
 | POST | `/api/reminders/:id/snooze` | yes | `{ minutes }` or `{ until }` |
 | GET | `/api/me/events` | yes | Live updates (Server-Sent Events): `ready`, `notification` (a reminder fired, a nudge), `changed` (a task, note or reminder changed, including Undo). Works across instances: each instance polls MongoDB every 2 s for its connected users |
 | GET | `/api/me/today` | yes | Today panel data |
+| POST | `/api/me/leftovers/move-to-tomorrow` | yes | The recap's button: today's unfinished tasks move to tomorrow, same time (each move undoable; habits and deadlines stay) |
 | GET | `/api/me/progress` | yes | Completions per day (14 days), this week vs last, streak |
 | GET | `/api/me/hints?q=` | yes | Open tasks related to what the user is typing |
 | GET | `/api/me/notifications` | yes | Notifications (`unread=true`), with unread count |

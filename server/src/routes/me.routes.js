@@ -11,6 +11,7 @@ import * as agenda from '../services/agenda.service.js';
 import * as notifications from '../services/notification.service.js';
 import * as activity from '../services/activity.service.js';
 import { getLiveHub } from '../services/live.service.js';
+import { moveLeftoversToTomorrow } from '../services/proactive.service.js';
 import { openSse } from '../utils/sse.js';
 
 // Endpoints about "my day": the Today panel, progress, typing hints, notifications, and the
@@ -43,6 +44,11 @@ meRouter.get('/events', async (req, res) => {
   // Tell the browser to wait 5 s before reconnecting after a drop (default is about 3 s).
   res.write('retry: 5000\n\n');
   send('ready', { unreadCount: unread.unreadCount });
+});
+
+// The evening recap's button: move today's unfinished tasks to tomorrow (each move is undoable).
+meRouter.post('/leftovers/move-to-tomorrow', async (req, res) => {
+  res.json(await moveLeftoversToTomorrow(req.user));
 });
 
 meRouter.get('/today', async (req, res) => {

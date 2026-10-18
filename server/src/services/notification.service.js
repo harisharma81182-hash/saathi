@@ -16,9 +16,9 @@ export const listNotificationsSchema = z.object({
 });
 
 /** Creates a notification once. Calling again with the same dedupeKey returns the existing one. */
-export async function create({ userId, kind, title, body = '', expression = null, refType = null, refId = null, dedupeKey }) {
+export async function create({ userId, kind, title, body = '', expression = null, data = null, refType = null, refId = null, dedupeKey }) {
   try {
-    const n = await Notification.create({ userId, kind, title, body, expression, refType, refId, ...(dedupeKey && { dedupeKey }) });
+    const n = await Notification.create({ userId, kind, title, body, expression, data, refType, refId, ...(dedupeKey && { dedupeKey }) });
     notificationEvents.emit('created', n);
     return { notification: n, created: true };
   } catch (err) {

@@ -25,6 +25,8 @@ const taskSchema = new mongoose.Schema(
     seriesId: { type: mongoose.Schema.Types.ObjectId, default: null },
     // The occurrence created when this one was completed (so completing twice never makes two).
     nextId: { type: mongoose.Schema.Types.ObjectId, default: null },
+    // Local date ("2026-10-18") Saathi last nudged about this task, so it nudges at most once a day.
+    nudgedOn: { type: String, default: null },
     // Who made the change: the user directly, or the agent on their behalf.
     source: { type: String, enum: ['user', 'agent'], default: 'user' },
     // Soft delete, so a delete can be undone. Deleted items are hidden everywhere.
