@@ -14,7 +14,7 @@ College students (and anyone with a busy schedule) who would rather say what the
 
 ## Solution
 
-Saathi is a chat and voice assistant connected to your own data. Claude reads your request and decides which actions to take: create a task, set a reminder, save or search a note. The server validates every action, carries it out against your account, and shows it as a receipt in the chat. A background scheduler fires reminders on time.
+Saathi is a chat and voice assistant connected to your own data. The AI model (Gemini by default, Claude as an option) reads your request and decides which actions to take: create a task, set a reminder, save or search a note. The server validates every action, carries it out against your account, and shows it as a receipt in the chat. A background scheduler fires reminders on time.
 
 ## Key features
 
@@ -26,7 +26,7 @@ Saathi is a chat and voice assistant connected to your own data. Claude reads yo
 - Today panel: due today, overdue, upcoming reminders, deadline countdowns; weekly progress with a streak
 - Typing hints: while you type, Saathi points out related open tasks (no AI call, instant)
 - Double-submit protection with `Idempotency-Key`, and duplicate reminder detection
-- _(coming)_ Agent chat with tool calling and an action receipt for every change
+- Agent chat with tool calling, streamed replies, an action receipt (with Undo) for every change, and Confirm/Cancel before deleting
 - _(coming)_ Reminder scheduler with live in-app notifications
 - _(coming)_ Voice mode with an animated assistant face
 
@@ -41,7 +41,7 @@ Saathi is a chat and voice assistant connected to your own data. Claude reads yo
 | Logging | pino (JSON) | Structured logs with request ids |
 | Deployment | Docker on Render | One image, runs on any container platform; see [docs/SCALING.md](docs/SCALING.md) for why not Kubernetes |
 | Validation | zod | One schema both validates input and produces field-level error messages |
-| AI | Claude API (tool use) | _(coming)_ |
+| AI | Google Gemini (function calling) by default, Claude API (tool use) as an option | Gemini has a free tier, which suits a student project. One provider interface (`server/src/ai/provider.js`): `AI_PROVIDER` switches between them without touching the agent code |
 | Frontend | React, Vite, Tailwind CSS, Motion | _(coming)_ |
 
 ## Architecture
@@ -52,7 +52,7 @@ Browser ──HTTPS──> Saathi container (Render)
                     └─ worker role: background job runner (reminders, slow AI work)
                           │
                           ├──> MongoDB Atlas  (users, data, job queue, rate-limit counters)
-                          └──> Claude API     (through the AI gateway: quotas, retries, circuit breaker)
+                          └──> Gemini API or Claude API (through the AI gateway: quotas, retries, circuit breaker)
 ```
 
 One Docker image runs as `web`, `worker` or `all` (`PROCESS_ROLE`). Everything that must be shared between instances (sessions, jobs, rate limits) lives in MongoDB or in the signed cookie, never in one instance's memory, so adding instances behind a load balancer just works. The full reasoning, load-test results and growth plan are in **[docs/SCALING.md](docs/SCALING.md)**.
@@ -119,10 +119,15 @@ npm test
 | `MONGO_MAX_POOL` | no | MongoDB connections per instance, default `10` |
 | `LOG_LEVEL` | no | `info` (default), `debug`, `warn`... |
 | `CLIENT_ORIGIN` | no | Frontend URL allowed by CORS, default `http://localhost:5173` |
-| `ANTHROPIC_API_KEY` | from step 3 | Claude API key from console.anthropic.com |
+| `AI_PROVIDER` | no | `gemini` (default) or `anthropic` |
+| `GEMINI_API_KEY` | for chat (gemini) | Gemini API key from aistudio.google.com (free tier) |
+| `GEMINI_MODEL` | no | Default `gemini-3.8-flash` |
+| `GEMINI_FALLBACK_MODEL` | no | Optional second model, tried when the main one is overloaded |
+| `ANTHROPIC_API_KEY` | for chat (anthropic) | Claude API key from console.anthropic.com |
 | `ANTHROPIC_MODEL` | no | Default `claude-haiku-5-5` |
 | `ANTHROPIC_FALLBACK_MODEL` | no | Used when the main model is overloaded, default `claude-sonnet-5-5` |
-| `AI_MAX_CONCURRENCY`, `AI_MAX_QUEUE`, `AI_USER_PER_MINUTE`, `AI_USER_PER_DAY` | no | AI call limits, see [docs/SCALING.md](docs/SCALING.md) |
+| `AI_USER_PER_MINUTE`, `AI_USER_PER_DAY` | no | Chat messages per user. Defaults: 4 / 60 with gemini (free tier), 10 / 200 with anthropic |
+| `AI_MAX_CONCURRENCY`, `AI_MAX_QUEUE` | no | AI call limits per instance, see [docs/SCALING.md](docs/SCALING.md) |
 | `MONGODB_URI_TEST` | for tests | Separate database for the test suite |
 
 ## API

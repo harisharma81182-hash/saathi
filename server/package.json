@@ -14,6 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",
+    "@google/genai": "^2.30.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^18.0.8",

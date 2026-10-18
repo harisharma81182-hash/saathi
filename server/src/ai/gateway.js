@@ -1,4 +1,4 @@
-import { env } from '../config/env.js';
+import { env, ai } from '../config/env.js';
 import { logger } from '../lib/logger.js';
 import { AppError } from '../utils/AppError.js';
 import { Semaphore } from '../utils/semaphore.js';
@@ -17,12 +17,13 @@ import * as quota from '../services/quota.service.js';
 //  6. Model fallback     if the primary model is overloaded, try the fallback model
 //  7. Circuit breaker    if the provider keeps failing, fail fast for a while instead of piling up
 //
-// The provider itself is passed in (`call`), so this works for Claude today and could wrap any other
-// API, and the tests can use a fake provider.
+// The provider itself is passed in (`call`), so this works the same for Gemini and Claude, and the
+// tests can use a fake provider.
 
 const log = logger.child({ component: 'ai-gateway' });
 
 export function isRetryableAiError(err) {
+  if (err?.retryable === false) return false; // e.g. the provider's daily limit: waiting won't help
   if (err?.name === 'AbortError' || err?.code === 'AI_TIMEOUT') return true;
   const status = err?.status;
   if (status === undefined) return true; // network failure, DNS, connection reset
@@ -30,6 +31,7 @@ export function isRetryableAiError(err) {
 }
 
 function retryAfterFromError(err) {
+  if (err?.retryAfterMs) return Math.min(err.retryAfterMs, 30_000); // Gemini puts the wait in the error body
   const raw = err?.headers?.get?.('retry-after') ?? err?.headers?.['retry-after'];
   const seconds = Number(raw);
   return Number.isFinite(seconds) && seconds > 0 ? Math.min(seconds, 30) * 1000 : undefined;
@@ -40,7 +42,7 @@ export function createAiGateway({
   maxQueue = env.AI_MAX_QUEUE,
   queueTimeoutMs = env.AI_QUEUE_TIMEOUT_MS,
   requestTimeoutMs = env.AI_REQUEST_TIMEOUT_MS,
-  models = [env.ANTHROPIC_MODEL, env.ANTHROPIC_FALLBACK_MODEL].filter(Boolean),
+  models = ai.models,
   retries = 2,
   perUserPerMinute = env.AI_USER_PER_MINUTE,
   perUserPerDay = env.AI_USER_PER_DAY,
@@ -52,11 +54,12 @@ export function createAiGateway({
   async function enforceUserQuota(userId) {
     if (!userId) return;
     await quota.enforce(
-      [
-        { key: `ai:${userId}:min`, limit: perUserPerMinute, windowMs: 60_000 },
-        { key: `ai:${userId}:day`, limit: perUserPerDay, windowMs: 24 * 60 * 60_000 },
-      ],
-      "You've sent a lot of messages quickly. Take a short break and try again.",
+      [{ key: `ai:${userId}:min`, limit: perUserPerMinute, windowMs: 60_000 }],
+      'Arre, itne saare messages ek saath! Thoda saans le lo, ek minute baad phir baat karte hain.',
+    );
+    await quota.enforce(
+      [{ key: `ai:${userId}:day`, limit: perUserPerDay, windowMs: 24 * 60 * 60_000 }],
+      'Aaj ke liye humari baaton ki limit poori ho gayi 😅 Kal phir milte hain. Tab tak tasks, notes aur reminders normal chalte rahenge.',
     );
   }
 
@@ -134,7 +137,7 @@ export function createAiGateway({
           recorded = true;
         }
         if (err instanceof AppError) throw err;
-        log.error({ status: err?.status, code: err?.code, msg: err?.message }, 'AI call failed');
+        log.error({ status: err?.status, code: err?.code, error: String(err?.message ?? '').slice(0, 300) }, 'AI call failed');
         const out = new AppError(503, 'AI_UNAVAILABLE', "I couldn't think that through just now. Try again in a moment.");
         out.retryAfterSeconds = 5;
         throw out;

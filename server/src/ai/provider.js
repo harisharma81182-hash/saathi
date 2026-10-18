@@ -1,12 +1,15 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { env } from '../config/env.js';
+import { env, ai } from '../config/env.js';
 import { AppError } from '../utils/AppError.js';
 import { createAiGateway } from './gateway.js';
+import { createGeminiProvider } from './gemini.js';
 
-// The "provider" is the one place that talks to Claude. Everything else asks it for a message:
+// The "provider" is the one place that talks to the AI model. Everything else asks it for a message:
 //
-//   provider.send(params, { signal, onText }) -> the complete Claude message
+//   provider.send(params, { signal, onText }) -> the complete message
 //
+// Requests and answers use the Claude Messages format. AI_PROVIDER picks who answers: Gemini
+// (src/ai/gemini.js translates to and from Google's format) or Claude (used as is).
 // onText receives the reply word by word while it is being written (streaming), so the chat can
 // show it live. Tests swap in a fake provider with setAiForTests(), so they never call the real API.
 
@@ -26,7 +29,7 @@ let provider = null;
 let gateway = null;
 
 export function aiConfigured() {
-  return Boolean(provider) || Boolean(env.ANTHROPIC_API_KEY);
+  return Boolean(provider) || Boolean(ai.apiKey);
 }
 
 export function getProvider() {
@@ -34,10 +37,10 @@ export function getProvider() {
     throw new AppError(
       503,
       'AI_NOT_CONFIGURED',
-      "Saathi's brain isn't connected yet (the Claude API key is missing). Tasks, notes and reminders still work.",
+      `Saathi's brain isn't connected yet (${ai.keyName} is missing). Tasks, notes and reminders still work.`,
     );
   }
-  provider ??= createAnthropicProvider();
+  provider ??= ai.provider === 'gemini' ? createGeminiProvider() : createAnthropicProvider();
   return provider;
 }
 

@@ -11,8 +11,9 @@ export const hasTestDb = Boolean(TEST_DB_URI);
 process.env.NODE_ENV = 'test';
 process.env.MONGODB_URI = TEST_DB_URI ?? 'mongodb://unused';
 process.env.JWT_SECRET ??= 'test-secret-that-is-definitely-longer-than-32-chars';
-// Tests never call the real Claude API (no cost, no flakiness): they use a fake provider instead.
+// Tests never call a real AI API (no cost, no flakiness): they use a fake provider instead.
 process.env.ANTHROPIC_API_KEY = '';
+process.env.GEMINI_API_KEY = '';
 
 export async function setupDb() {
   const { connectDB } = await import('../src/db/connect.js');

@@ -35,6 +35,11 @@ const schema = z.object({
   // Event-loop delay above which the instance answers 503 instead of queueing more work.
   OVERLOAD_MAX_LAG_MS: z.coerce.number().int().min(10).default(200),
 
+  // Which AI powers Saathi. gemini = Google's free tier (default for now); anthropic = Claude.
+  AI_PROVIDER: z.enum(['gemini', 'anthropic'], { error: 'must be "gemini" or "anthropic".' }).default('gemini'),
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().default('gemini-3.8-flash'),
+  GEMINI_FALLBACK_MODEL: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
   ANTHROPIC_MODEL: z.string().default('claude-haiku-5-5'),
   ANTHROPIC_FALLBACK_MODEL: z.string().default('claude-sonnet-5-5'),
@@ -43,9 +48,10 @@ const schema = z.object({
   AI_MAX_QUEUE: z.coerce.number().int().min(0).default(50),
   AI_QUEUE_TIMEOUT_MS: z.coerce.number().int().min(100).default(15_000),
   AI_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(1000).default(60_000),
-  // Per-user limits, shared across all instances through MongoDB
-  AI_USER_PER_MINUTE: z.coerce.number().int().min(1).default(10),
-  AI_USER_PER_DAY: z.coerce.number().int().min(1).default(200),
+  // Per-user chat messages, shared across all instances through MongoDB. Defaults depend on the
+  // provider (see below): Gemini's free tier allows only a few requests a minute.
+  AI_USER_PER_MINUTE: z.coerce.number().int().min(1).optional(),
+  AI_USER_PER_DAY: z.coerce.number().int().min(1).optional(),
 
   TRUST_PROXY: bool.default('true'),
 });
@@ -62,6 +68,18 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
+
+// One chat message can take 2 or 3 model calls (tool use), so these stay well under the provider's
+// own limits. Gemini free tier: a handful of requests per minute and a few hundred per day.
+const AI_DEFAULT_LIMITS = { gemini: { perMinute: 4, perDay: 60 }, anthropic: { perMinute: 10, perDay: 200 } };
+env.AI_USER_PER_MINUTE ??= AI_DEFAULT_LIMITS[env.AI_PROVIDER].perMinute;
+env.AI_USER_PER_DAY ??= AI_DEFAULT_LIMITS[env.AI_PROVIDER].perDay;
+
+/** The selected provider's API key and models (main first, then the fallback for overload). */
+export const ai =
+  env.AI_PROVIDER === 'gemini'
+    ? { provider: 'gemini', apiKey: env.GEMINI_API_KEY, keyName: 'GEMINI_API_KEY', models: [env.GEMINI_MODEL, env.GEMINI_FALLBACK_MODEL].filter(Boolean) }
+    : { provider: 'anthropic', apiKey: env.ANTHROPIC_API_KEY, keyName: 'ANTHROPIC_API_KEY', models: [env.ANTHROPIC_MODEL, env.ANTHROPIC_FALLBACK_MODEL].filter(Boolean) };
 export const isProd = env.NODE_ENV === 'production';
 export const isTest = env.NODE_ENV === 'test';
 export const runsWeb = env.PROCESS_ROLE === 'web' || env.PROCESS_ROLE === 'all';
