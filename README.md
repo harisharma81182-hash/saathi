@@ -23,6 +23,7 @@ Saathi is a chat and voice assistant connected to your own data. The AI model (G
 - Tasks (with due dates, priority, tags, and deadlines that show a countdown), notes, and reminders, all searchable and filterable
 - Reminders fire on time from a background worker, exactly once, and can be snoozed or cancelled; Saathi writes a short friendly line for each at fire time (plain text if the AI is unavailable, never late)
 - Habits: daily or weekly repeating tasks, the next one created when you finish one, with a streak
+- Quick add: one sentence becomes a task with date, priority and tags (preview before saving)
 - Saathi texts first: a friendly nudge about overdue tasks (at most once per task per day, never at night) and an evening recap of the day with a button to move leftovers to tomorrow
 - Undo for every change (create, edit, complete, delete, snooze), safe against double clicks and later edits
 - Today panel: due today, overdue, upcoming reminders, deadline countdowns; weekly progress with a streak
@@ -158,6 +159,7 @@ It signs up a throwaway account (`live.<number>@example.com`), shows the greetin
 
 | GET | `/api/tasks` | yes | List: `status` (open/done/all), `due` (today/overdue/upcoming/none), `kind`, `q`, `tag`, `sort` (due/created/priority), `page`, `limit` |
 | POST | `/api/tasks` | yes | Create `{ title, notes?, kind?, priority?, dueAt?, tags?, repeat? }`. `repeat: { every: 'day' }` or `{ every: 'week', days: ['mon','thu'] }` makes it a habit (needs `dueAt`) |
+| POST | `/api/tasks/quick-parse` | yes | Quick add: `{ text }` like "kal 5 baje DBMS assignment, important" becomes a task draft `{ draft, source: 'ai' or 'plain', warnings }` to preview; nothing is saved. Without the AI the sentence becomes the title |
 | GET | `/api/tasks/habits` | yes | Habits: the current occurrence of each repeating task, with its streak |
 | GET / PATCH / DELETE | `/api/tasks/:id` | yes | Read, edit, delete (soft delete, undoable) |
 | POST | `/api/tasks/:id/complete`, `/reopen` | yes | Mark done / open again. Completing a habit creates its next occurrence (returned as `next`); undoing the completion removes it again |

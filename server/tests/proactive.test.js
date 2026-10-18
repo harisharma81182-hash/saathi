@@ -146,3 +146,74 @@ describe('Step 4: nudges and the evening recap', { skip: !hasTestDb && 'MONGODB_
     assert.equal((await me.agent.post(`/api/me/activity/${move.id}/undo`)).status, 200);
   });
 });
+
+describe('Step 4: quick add', { skip: !hasTestDb && 'MONGODB_URI_TEST not set' }, () => {
+  let app;
+  let me;
+  let setAiForTests;
+  let createAiGateway;
+
+  const useAi = (...lines) => {
+    const provider = fakeAi(...lines);
+    setAiForTests({ provider, gateway: createAiGateway({ retries: 0, retryOptions: { baseMs: 1, maxMs: 2 }, perUserPerMinute: 1000, perUserPerDay: 1000 }) });
+    return provider;
+  };
+  const parse = (text) => me.agent.post('/api/tasks/quick-parse').send({ text });
+
+  before(async () => {
+    await setupDb();
+    const { createApp } = await import('../src/app.js');
+    app = createApp();
+    ({ setAiForTests } = await import('../src/ai/provider.js'));
+    ({ createAiGateway } = await import('../src/ai/gateway.js'));
+    me = await loggedInAgent(app, { name: 'Himanshu' });
+  });
+  after(async () => {
+    setAiForTests();
+    await teardownDb();
+  });
+
+  it('turns a sentence into a task draft to preview, checked like a normal task', async () => {
+    const tomorrow5pm = DateTime.now().setZone(TZ).plus({ days: 1 }).set({ hour: 17, minute: 0, second: 0, millisecond: 0 });
+    const provider = useAi(
+      '```json\n' + JSON.stringify({ title: 'DBMS assignment', dueAt: tomorrow5pm.toISO(), priority: 'high', kind: 'deadline', tags: ['dbms'], repeat: null }) + '\n```',
+    );
+    const res = await parse('kal 5 baje DBMS assignment, important');
+    assert.equal(res.status, 200);
+    assert.equal(res.body.source, 'ai');
+    assert.equal(res.body.draft.title, 'DBMS assignment');
+    assert.equal(new Date(res.body.draft.dueAt).getTime(), tomorrow5pm.toMillis());
+    assert.match(res.body.draft.dueAt, /\+05:30$/, 'shown in the user\'s time');
+    assert.equal(res.body.draft.priority, 'high');
+    assert.deepEqual(res.body.warnings, []);
+    assert.match(provider.calls[0].system, /Asia\/Kolkata/, 'the model knows "now" and the timezone');
+    // Nothing was saved: that happens only when the user confirms the preview.
+    assert.equal((await me.agent.get('/api/tasks?q=DBMS')).body.tasks.length, 0);
+  });
+
+  it('falls back to a plain draft when the AI answers nonsense, is down, or is not connected', async () => {
+    useAi('Sure! I would love to help you with that.');
+    let res = await parse('gym jaana');
+    assert.equal(res.body.source, 'plain');
+    assert.equal(res.body.draft.title, 'gym jaana');
+    assert.equal(res.body.warnings.length, 1);
+
+    useAi(JSON.stringify({ title: '', dueAt: 'tomorrow' }));
+    res = await parse('kuch bhi');
+    assert.equal(res.body.source, 'plain', 'an invalid draft is not passed on');
+
+    useAi(new Error('down'));
+    res = await parse('notes likhna');
+    assert.equal(res.status, 200);
+    assert.equal(res.body.source, 'plain');
+
+    setAiForTests();
+    res = await parse('notes likhna');
+    assert.equal(res.body.source, 'plain');
+  });
+
+  it('rejects an empty sentence', async () => {
+    const res = await parse('   ');
+    assert.equal(res.status, 400);
+  });
+});

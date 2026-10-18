@@ -6,6 +6,7 @@ import { idParams } from '../utils/schemas.js';
 import { publicTask } from '../models/Task.js';
 import * as tasks from '../services/task.service.js';
 import * as habits from '../services/habit.service.js';
+import * as quickAdd from '../services/quickadd.service.js';
 
 export const tasksRouter = Router();
 tasksRouter.use(requireAuth);
@@ -17,6 +18,11 @@ tasksRouter.get('/', validate({ query: tasks.listTasksSchema }), async (req, res
 tasksRouter.post('/', idempotent(), validate({ body: tasks.createTaskSchema }), async (req, res) => {
   const task = await tasks.create(req.user._id, req.valid.body);
   res.status(201).json({ task: publicTask(task) });
+});
+
+// Quick add: one sentence -> a task draft to preview (nothing is saved; save with POST /api/tasks).
+tasksRouter.post('/quick-parse', validate({ body: quickAdd.quickAddSchema }), async (req, res) => {
+  res.json(await quickAdd.parse(req.user, req.valid.body));
 });
 
 // Habits (repeating tasks): the current occurrence of each, with its streak.
