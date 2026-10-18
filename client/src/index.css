@@ -138,3 +138,38 @@ body {
     scroll-behavior: auto;
   }
 }
+
+/* Saathi Orbit (landing page): the label floating above each planet. */
+.orbit-tag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -100%);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  padding: 3px 10px;
+  border-radius: 999px;
+  color: var(--text);
+  background: rgb(12 15 30 / 0.7);
+  border: 1px solid rgb(243 239 230 / 0.14);
+  transition: opacity 0.3s;
+  will-change: transform;
+}
+.orbit-tag b {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: 1px;
+}
+
+/* Night sky: the backdrop shared by the landing page fallback and the app (deep navy, not flat black). */
+.night-sky {
+  background:
+    radial-gradient(70rem 40rem at 20% -10%, rgb(242 165 65 / 0.08), transparent 60%),
+    radial-gradient(60rem 50rem at 100% 0%, rgb(56 64 140 / 0.22), transparent 65%),
+    linear-gradient(180deg, #0b1024 0%, #080b19 55%, #060812 100%);
+}

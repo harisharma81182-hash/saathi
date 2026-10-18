@@ -1,13 +1,30 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { api } from './lib/api.js';
 import { Face } from './components/Face.jsx';
 import { AuthScreen } from './screens/AuthScreen.jsx';
 import { HomeScreen } from './screens/HomeScreen.jsx';
 
+// The landing page carries the 3D library, so it is loaded only for visitors who are not logged in.
+const LandingScreen = lazy(() => import('./landing/LandingScreen.jsx'));
+
+// Logged out, the page is the landing scene, or the login/signup form (#login, #signup), so the
+// browser's Back button goes from the form back to the landing page.
+const authViewFromHash = () => (location.hash === '#login' ? 'login' : location.hash === '#signup' ? 'signup' : 'landing');
+
 // Who is logged in decides the screen. The cookie is httpOnly, so the only way to know is to ask.
 export function App() {
   const [session, setSession] = useState({ status: 'loading', user: null });
+  const [authView, setAuthView] = useState(authViewFromHash);
+  useEffect(() => {
+    const onHash = () => setAuthView(authViewFromHash());
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+  const go = (view) => {
+    location.hash = view === 'landing' ? '' : view;
+    setAuthView(view);
+  };
 
   useEffect(() => {
     api('/auth/me')
@@ -17,7 +34,12 @@ export function App() {
 
   const logout = async () => {
     await api('/auth/logout', { method: 'POST' }).catch(() => {});
+    go('landing');
     setSession({ status: 'out', user: null });
+  };
+  const authed = (user) => {
+    history.replaceState(null, '', location.pathname); // drop #login / #signup
+    setSession({ status: 'in', user });
   };
 
   return (
@@ -39,9 +61,16 @@ export function App() {
           </div>
         </motion.div>
       )}
-      {session.status === 'out' && (
+      {session.status === 'out' && authView === 'landing' && (
+        <motion.div key="landing" className="h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+          <Suspense fallback={<div className="night-sky h-full" />}>
+            <LandingScreen onLogin={() => go('login')} onSignup={() => go('signup')} />
+          </Suspense>
+        </motion.div>
+      )}
+      {session.status === 'out' && authView !== 'landing' && (
         <motion.div key="auth" className="h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-          <AuthScreen onAuthed={(user) => setSession({ status: 'in', user })} />
+          <AuthScreen key={authView} initialMode={authView} onBack={() => go('landing')} onAuthed={authed} />
         </motion.div>
       )}
       {session.status === 'in' && (

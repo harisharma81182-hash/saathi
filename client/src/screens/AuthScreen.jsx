@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
-import { Eye, EyeOff } from 'lucide-react';
+import { ChevronLeft, Eye, EyeOff } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { Face } from '../components/Face.jsx';
 
 // Login and signup on one calm screen, with Saathi's face reacting to what happens.
-export function AuthScreen({ onAuthed }) {
-  const [mode, setMode] = useState('signup');
+export function AuthScreen({ onAuthed, onBack, initialMode = 'signup' }) {
+  const [mode, setMode] = useState(initialMode);
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState(null);
@@ -41,7 +41,15 @@ export function AuthScreen({ onAuthed }) {
 
   const failed = Boolean(message || Object.keys(errors).some((k) => errors[k]));
   return (
-    <main className="ambient flex min-h-full items-center justify-center px-5 py-10">
+    <main className="ambient relative flex min-h-full items-center justify-center px-5 py-10">
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="absolute left-3 top-[max(env(safe-area-inset-top),12px)] inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm text-faint transition-colors hover:bg-surface hover:text-text sm:left-6"
+        >
+          <ChevronLeft size={16} /> Wapas
+        </button>
+      )}
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
           <Face size={112} state={busy ? 'thinking' : 'idle'} expression={failed ? 'concerned' : 'happy'} />
