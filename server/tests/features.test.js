@@ -194,7 +194,7 @@ describe('Step 2 features', { skip: !hasTestDb && 'MONGODB_URI_TEST not set' }, 
       const r = (await me.agent.post('/api/reminders').send({ text: 'Drink water', remindAt: inMinutes(1) })).body.reminder;
       const job = await Job.findOne({ 'payload.reminderId': r.id }).lean();
 
-      assert.deepEqual(await fireReminder(job.payload), { fired: true });
+      assert.deepEqual(await fireReminder(job.payload), { fired: true, aiLine: false });
       assert.deepEqual(await fireReminder(job.payload), { skipped: 'sent' });
 
       const n = await me.agent.get('/api/me/notifications?unread=true');
@@ -227,7 +227,7 @@ describe('Step 2 features', { skip: !hasTestDb && 'MONGODB_URI_TEST not set' }, 
       assert.equal(act.action, 'reminder.cancelled');
       const restored = await me.agent.post(`/api/me/activity/${act.id}/undo`);
       assert.equal(restored.body.reminder.status, 'scheduled');
-      assert.deepEqual(await fireReminder(job.payload), { fired: true });
+      assert.deepEqual(await fireReminder(job.payload), { fired: true, aiLine: false });
     });
 
     it('marks notifications read', async () => {

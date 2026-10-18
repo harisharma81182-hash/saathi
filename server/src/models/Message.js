@@ -24,6 +24,8 @@ const messageSchema = new mongoose.Schema(
     toolCalls: { type: [toolCallSchema], default: [] },
     // ok = normal reply; failed = the AI could not answer (shown to the user, not sent back to the model)
     status: { type: String, enum: ['ok', 'failed'], default: 'ok' },
+    // A message Saathi started by itself (not a reply): nudge or recap. null for normal chat.
+    origin: { type: String, enum: ['nudge', 'recap', null], default: null },
     model: { type: String, default: null },
     usage: {
       inputTokens: { type: Number, default: 0 },
@@ -45,6 +47,7 @@ export function publicMessage(m) {
     text: m.text,
     expression: m.expression,
     status: m.status,
+    origin: m.origin ?? null,
     toolCalls: (m.toolCalls ?? []).map((t) => ({
       name: t.name,
       ok: t.ok,

@@ -4,6 +4,8 @@ import { AppError } from '../utils/AppError.js';
 import { isoDateTime, tags, pagination, escapeRegex } from '../utils/schemas.js';
 import { dayRange } from '../utils/time.js';
 import * as activity from './activity.service.js';
+import * as habits from './habit.service.js';
+import mongoose from 'mongoose';
 
 const nullableDate = z.union([isoDateTime, z.null()]);
 
@@ -14,6 +16,8 @@ export const createTaskSchema = z.object({
   priority: z.enum(['low', 'normal', 'high']).optional(),
   dueAt: nullableDate.optional(),
   tags: tags.optional(),
+  // Makes it a habit: { every: 'day' } or { every: 'week', days: ['mon', 'wed'] }. Needs a due time.
+  repeat: habits.repeatSchema.optional(),
 });
 
 export const updateTaskSchema = createTaskSchema
@@ -94,8 +98,12 @@ export function significantWords(text) {
   );
 }
 
+const NEEDS_DUE = 'A repeating task needs a due time for its first occurrence (e.g. today 18:00).';
+
 export async function create(userId, data, { actor = 'user' } = {}) {
-  const task = await Task.create({ ...data, userId, source: actor });
+  if (data.repeat && !data.dueAt) throw AppError.badRequest(NEEDS_DUE);
+  const _id = new mongoose.Types.ObjectId();
+  const task = await Task.create({ ...data, _id, userId, source: actor, seriesId: data.repeat ? _id : null });
   await activity.record({
     userId,
     actor,
@@ -121,15 +129,20 @@ export function update(userId, id, changes, { actor = 'user' } = {}) {
     actor,
     action: 'task.updated',
     summary: (t) => `Updated task "${t.title}"`,
-    apply: (t) => Object.assign(t, changes),
+    apply: (t) => {
+      Object.assign(t, changes);
+      if (t.repeat && !t.dueAt) throw AppError.badRequest(NEEDS_DUE);
+      if (t.repeat && !t.seriesId) t.seriesId = t._id; // a normal task that becomes a habit
+    },
   });
 }
 
+/** Marks a task done. For a habit, the next occurrence is created too (task.$locals.next). */
 export async function complete(userId, id, { actor = 'user' } = {}) {
   const task = await get(userId, id);
   // Completing twice (double click, agent retry) is a no-op, not an error and not a second log entry.
   if (task.status === 'done') return task;
-  return mutate(userId, id, {
+  const done = await mutate(userId, id, {
     actor,
     action: 'task.completed',
     summary: (t) => `Completed "${t.title}"`,
@@ -138,11 +151,14 @@ export async function complete(userId, id, { actor = 'user' } = {}) {
       t.completedAt = new Date();
     },
   });
+  done.$locals.next = await habits.scheduleNext(userId, done, { actor });
+  return done;
 }
 
 export async function reopen(userId, id, { actor = 'user' } = {}) {
   const task = await get(userId, id);
   if (task.status === 'open') return task;
+  await habits.dropUntouchedNext(task);
   return mutate(userId, id, {
     actor,
     action: 'task.reopened',

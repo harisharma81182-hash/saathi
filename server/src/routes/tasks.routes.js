@@ -5,6 +5,7 @@ import { idempotent } from '../middleware/idempotency.js';
 import { idParams } from '../utils/schemas.js';
 import { publicTask } from '../models/Task.js';
 import * as tasks from '../services/task.service.js';
+import * as habits from '../services/habit.service.js';
 
 export const tasksRouter = Router();
 tasksRouter.use(requireAuth);
@@ -18,6 +19,11 @@ tasksRouter.post('/', idempotent(), validate({ body: tasks.createTaskSchema }), 
   res.status(201).json({ task: publicTask(task) });
 });
 
+// Habits (repeating tasks): the current occurrence of each, with its streak.
+tasksRouter.get('/habits', async (req, res) => {
+  res.json({ habits: await habits.list(req.user) });
+});
+
 tasksRouter.get('/:id', validate({ params: idParams }), async (req, res) => {
   res.json({ task: publicTask(await tasks.get(req.user._id, req.valid.params.id)) });
 });
@@ -28,7 +34,9 @@ tasksRouter.patch('/:id', validate({ params: idParams, body: tasks.updateTaskSch
 });
 
 tasksRouter.post('/:id/complete', validate({ params: idParams }), async (req, res) => {
-  res.json({ task: publicTask(await tasks.complete(req.user._id, req.valid.params.id)) });
+  const task = await tasks.complete(req.user._id, req.valid.params.id);
+  // For a habit, the next occurrence that was just created.
+  res.json({ task: publicTask(task), next: task.$locals.next ? publicTask(task.$locals.next) : null });
 });
 
 tasksRouter.post('/:id/reopen', validate({ params: idParams }), async (req, res) => {

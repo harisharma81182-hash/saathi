@@ -21,7 +21,8 @@ Saathi is a chat and voice assistant connected to your own data. The AI model (G
 - Account signup and login with secure, httpOnly cookie sessions, per-IP and per-account brute-force limits
 - Built to scale horizontally: stateless instances, MongoDB job queue, shared quotas, health checks and graceful shutdown ([docs/SCALING.md](docs/SCALING.md))
 - Tasks (with due dates, priority, tags, and deadlines that show a countdown), notes, and reminders, all searchable and filterable
-- Reminders fire on time from a background worker, exactly once, and can be snoozed or cancelled
+- Reminders fire on time from a background worker, exactly once, and can be snoozed or cancelled; Saathi writes a short friendly line for each at fire time (plain text if the AI is unavailable, never late)
+- Habits: daily or weekly repeating tasks, the next one created when you finish one, with a streak
 - Undo for every change (create, edit, complete, delete, snooze), safe against double clicks and later edits
 - Today panel: due today, overdue, upcoming reminders, deadline countdowns; weekly progress with a streak
 - Typing hints: while you type, Saathi points out related open tasks (no AI call, instant)
@@ -155,9 +156,10 @@ It signs up a throwaway account (`live.<number>@example.com`), shows the greetin
 | PATCH | `/api/auth/me` | yes | Update `{ name?, timezone? }` |
 
 | GET | `/api/tasks` | yes | List: `status` (open/done/all), `due` (today/overdue/upcoming/none), `kind`, `q`, `tag`, `sort` (due/created/priority), `page`, `limit` |
-| POST | `/api/tasks` | yes | Create `{ title, notes?, kind?, priority?, dueAt?, tags? }` |
+| POST | `/api/tasks` | yes | Create `{ title, notes?, kind?, priority?, dueAt?, tags?, repeat? }`. `repeat: { every: 'day' }` or `{ every: 'week', days: ['mon','thu'] }` makes it a habit (needs `dueAt`) |
+| GET | `/api/tasks/habits` | yes | Habits: the current occurrence of each repeating task, with its streak |
 | GET / PATCH / DELETE | `/api/tasks/:id` | yes | Read, edit, delete (soft delete, undoable) |
-| POST | `/api/tasks/:id/complete`, `/reopen` | yes | Mark done / open again |
+| POST | `/api/tasks/:id/complete`, `/reopen` | yes | Mark done / open again. Completing a habit creates its next occurrence (returned as `next`); undoing the completion removes it again |
 | GET / POST | `/api/notes` | yes | List (`q`, `tag`, `pinned`) / create `{ body, title?, tags?, pinned? }` |
 | GET / PATCH / DELETE | `/api/notes/:id` | yes | Read, edit, delete |
 | GET / POST | `/api/reminders` | yes | List (`status`) / create `{ text, remindAt, taskId? }` |

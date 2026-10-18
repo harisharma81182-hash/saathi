@@ -366,6 +366,37 @@ export async function greeting(user, { signal } = {}) {
   return out;
 }
 
+/**
+ * A short message Saathi starts by itself: a reminder line, a nudge, the evening recap. Same
+ * persona and context as chat (name, local time, today's agenda, memories), no tools.
+ * Returns { text, expression }; throws if the AI is unavailable, and callers fall back to plain text.
+ * Not counted against the user's chat quota (the user did not ask), but against the model limits.
+ */
+export async function proactiveMessage(user, instruction, { signal } = {}) {
+  const provider = getProvider();
+  const conversation = await Conversation.findOne({ userId: user._id }).sort({ lastMessageAt: -1 }).lean();
+  const context = await loadContext(user, conversation);
+  const response = await getGateway().run({
+    signal,
+    call: ({ model, signal: callSignal }) =>
+      provider.send(requestParams(model, systemBlocks(context), [{ role: 'user', content: `(${instruction} No tools.)` }]), { signal: callSignal }),
+  });
+  const raw = response.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
+  const { text, expression } = splitExpression(raw);
+  if (!text) throw new Error('empty proactive message');
+  return { text: text.slice(0, 800), expression, model: response.model };
+}
+
+/** Puts a message Saathi started into the user's chat, so it reads like a friend texting first. */
+export async function postProactiveMessage(user, { text, expression, model = null, origin }) {
+  const conversation =
+    (await Conversation.findOne({ userId: user._id }).sort({ lastMessageAt: -1 })) ??
+    (await Conversation.create({ userId: user._id, title: 'Saathi' }));
+  const message = await Message.create({ userId: user._id, conversationId: conversation._id, role: 'assistant', text, expression, model, origin });
+  await Conversation.updateOne({ _id: conversation._id }, { $inc: { messageCount: 1 }, $set: { lastMessageAt: message.createdAt } });
+  return message;
+}
+
 export async function listConversations(userId) {
   const rows = await Conversation.find({ userId }).sort({ lastMessageAt: -1 }).limit(20).lean();
   return rows.map(publicConversation);

@@ -12,6 +12,19 @@ const taskSchema = new mongoose.Schema(
     dueAt: { type: Date, default: null },
     tags: { type: [String], default: [] },
     completedAt: { type: Date, default: null },
+    // Habits: a repeating task. Completing one occurrence creates the next (see habit.service.js).
+    //   every: 'day', or 'week' on the given weekdays (default: the weekday of the first due date)
+    repeat: {
+      type: new mongoose.Schema(
+        { every: { type: String, enum: ['day', 'week'], required: true }, days: { type: [String], default: undefined } },
+        { _id: false },
+      ),
+      default: null,
+    },
+    // All occurrences of one habit share a seriesId (the first occurrence's id), for the streak.
+    seriesId: { type: mongoose.Schema.Types.ObjectId, default: null },
+    // The occurrence created when this one was completed (so completing twice never makes two).
+    nextId: { type: mongoose.Schema.Types.ObjectId, default: null },
     // Who made the change: the user directly, or the agent on their behalf.
     source: { type: String, enum: ['user', 'agent'], default: 'user' },
     // Soft delete, so a delete can be undone. Deleted items are hidden everywhere.
@@ -49,8 +62,10 @@ taskSchema.index({ userId: 1, deletedAt: 1, status: 1, dueSort: 1 });
 taskSchema.index({ userId: 1, deletedAt: 1, status: 1, dueAt: 1 });
 // Weekly progress: tasks completed per day.
 taskSchema.index({ userId: 1, completedAt: 1 });
+// One occurrence per habit per due time, even if two requests complete the same task at once.
+taskSchema.index({ seriesId: 1, dueAt: 1 }, { unique: true, partialFilterExpression: { seriesId: { $type: 'objectId' } } });
 
-export const TASK_FIELDS = ['title', 'notes', 'kind', 'status', 'priority', 'dueAt', 'tags', 'completedAt'];
+export const TASK_FIELDS = ['title', 'notes', 'kind', 'status', 'priority', 'dueAt', 'tags', 'completedAt', 'repeat'];
 
 export function publicTask(t) {
   return {
@@ -63,6 +78,8 @@ export function publicTask(t) {
     dueAt: t.dueAt,
     tags: t.tags,
     completedAt: t.completedAt,
+    repeat: t.repeat ? { every: t.repeat.every, ...(t.repeat.days?.length && { days: t.repeat.days }) } : null,
+    seriesId: t.seriesId ? String(t.seriesId) : null,
     source: t.source,
     createdAt: t.createdAt,
     updatedAt: t.updatedAt,

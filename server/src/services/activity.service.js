@@ -6,6 +6,7 @@ import { Note, NOTE_FIELDS } from '../models/Note.js';
 import { Reminder, REMINDER_FIELDS } from '../models/Reminder.js';
 import { AppError } from '../utils/AppError.js';
 import { scheduleReminderJob } from './reminder.scheduling.js';
+import { dropUntouchedNext } from './habit.service.js';
 
 // How long a change can be undone. The UI shows the Undo button for a few seconds;
 // the server allows a little longer so slow networks and the agent ("undo that") still work.
@@ -100,6 +101,8 @@ export async function undo(userId, activityId) {
   if (activity.entityType === 'reminder' && reverted.status === 'scheduled') {
     await scheduleReminderJob(reverted);
   }
+  // Undoing the completion of a habit also removes the next occurrence it created (if untouched).
+  if (activity.entityType === 'task' && activity.action === 'task.completed') await dropUntouchedNext(reverted);
   activityEvents.emit('changed', claimed);
 
   return { activity: publicActivity(claimed, { undoWindowMs: UNDO_WINDOW_MS }), entityType: activity.entityType, entity: reverted };

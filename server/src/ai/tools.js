@@ -6,6 +6,7 @@ import { MEMORY_KINDS } from '../models/Memory.js';
 import { objectId, escapeRegex } from '../utils/schemas.js';
 import { toLocalIso, formatLocal } from '../utils/time.js';
 import * as tasks from '../services/task.service.js';
+import * as habits from '../services/habit.service.js';
 import * as notes from '../services/note.service.js';
 import * as reminders from '../services/reminder.service.js';
 import * as activity from '../services/activity.service.js';
@@ -41,6 +42,7 @@ function taskView(t, tz) {
     priority: t.priority,
     due: t.dueAt ? toLocalIso(new Date(t.dueAt), tz) : null,
     tags: t.tags,
+    ...(t.repeat && { repeat: t.repeat }),
   };
 }
 
@@ -64,6 +66,7 @@ export function todayView(today, tz) {
     countdowns: today.countdowns.map((t) => ({ ...taskView(t, tz), daysLeft: t.daysLeft })),
     counts: today.counts,
     dayPlan: today.dayPlan,
+    habits: (today.habits ?? []).map((h) => ({ ...taskView(h, tz), streak: h.streak })),
   };
 }
 
@@ -77,6 +80,10 @@ export const TOOLS = [
     input: tasks.createTaskSchema.extend({
       dueAt: describe(tasks.createTaskSchema.shape.dueAt, `When it is due. ${isoHint} Omit or null if no due time.`),
       kind: describe(tasks.createTaskSchema.shape.kind, '"deadline" for exams and submissions (shown as a countdown), otherwise "task".'),
+      repeat: describe(
+        tasks.createTaskSchema.shape.repeat,
+        'For habits and routines ("roz", "har Monday"): { every: "day" } or { every: "week", days: ["mon", "wed", "fri"] }. Needs dueAt (the first time). Completing one creates the next.',
+      ),
       force: z.boolean().default(false).describe('Create even if similar open tasks exist. Only after the user confirmed.'),
     }),
     async run({ user }, { force, ...data }) {
@@ -123,7 +130,10 @@ export const TOOLS = [
     input: z.object({ taskId: objectId }),
     async run({ user }, { taskId }) {
       const task = await tasks.complete(user._id, taskId, AGENT);
-      return { data: { done: true, task: taskView(task, user.timezone) } };
+      const next = task.$locals.next;
+      if (!next) return { data: { done: true, task: taskView(task, user.timezone) } };
+      const streak = await habits.streak(user, task);
+      return { data: { done: true, task: taskView(task, user.timezone), habit: { streak, next: taskView(next, user.timezone) } } };
     },
   },
   {
@@ -218,7 +228,7 @@ export const TOOLS = [
   },
   {
     name: 'get_today',
-    description: 'The user\'s day right now: tasks due today, overdue tasks, reminders in the next 24 hours, exam countdowns, today\'s plan. Use it after making changes or before planning the day.',
+    description: 'The user\'s day right now: tasks due today, overdue tasks, reminders in the next 24 hours, exam countdowns, today\'s plan, habits with their streaks. Use it after making changes or before planning the day.',
     input: z.object({}),
     async run({ user }) {
       return { data: todayView(await agenda.today(user), user.timezone) };

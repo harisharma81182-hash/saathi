@@ -5,9 +5,11 @@ import mongoose from 'mongoose';
 const notificationSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    kind: { type: String, enum: ['reminder', 'nudge', 'system'], required: true },
+    kind: { type: String, enum: ['reminder', 'nudge', 'recap', 'system'], required: true },
     title: { type: String, required: true, maxlength: 200 },
     body: { type: String, default: '', maxlength: 1000 },
+    // Saathi's face for this notification (the AI picks it with the text); null = default.
+    expression: { type: String, default: null },
     refType: { type: String, enum: ['reminder', 'task', null], default: null },
     refId: { type: mongoose.Schema.Types.ObjectId, default: null },
     readAt: { type: Date, default: null },
@@ -26,6 +28,7 @@ export function publicNotification(n) {
     kind: n.kind,
     title: n.title,
     body: n.body,
+    expression: n.expression ?? null,
     refType: n.refType,
     refId: n.refId ? String(n.refId) : null,
     readAt: n.readAt,

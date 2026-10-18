@@ -457,6 +457,36 @@ describe('Step 3: agent', { skip: !hasTestDb && 'MONGODB_URI_TEST not set' }, ()
     assert.equal((await other.agent.post('/api/tasks').send({ title: 'Works without AI' })).status, 201);
   });
 
+  it('a firing reminder gets a line written by Saathi; without the AI it still fires with the plain text', async () => {
+    const { fireReminder } = await import('../src/jobs/handlers/reminder.js');
+    const { Job } = await import('../src/models/Job.js');
+    const { Notification } = await import('../src/models/Notification.js');
+    const makeDueReminder = async (text) => {
+      const at = new Date(Date.now() + 60 * 60_000).toISOString();
+      const res = await me.agent.post('/api/reminders').send({ text, remindAt: at });
+      assert.equal(res.status, 201);
+      return Job.findOne({ type: 'reminder.fire', 'payload.reminderId': res.body.reminder.id }).lean();
+    };
+
+    const provider = useProvider([say('[face:excited] Himanshu! Lab file ka time ho gaya, bas 10 minute mein khatam kar!')]);
+    const job = await makeDueReminder('Lab file submit karna');
+    assert.deepEqual(await fireReminder(job.payload), { fired: true, aiLine: true });
+    const n = await Notification.findOne({ refId: job.payload.reminderId }).lean();
+    assert.equal(n.title, 'Lab file submit karna', 'the title stays the user\'s own words');
+    assert.equal(n.body, 'Himanshu! Lab file ka time ho gaya, bas 10 minute mein khatam kar!');
+    assert.equal(n.expression, 'excited');
+    assert.match(provider.calls[0].messages[0].content, /Lab file submit karna/);
+    assert.equal(provider.calls[0].tools, undefined, 'no tools for a reminder line');
+
+    // The AI is down: the reminder is not lost or late, it goes out as plain text.
+    useProvider([httpError(500), httpError(500), httpError(500)]);
+    const job2 = await makeDueReminder('Paani peena');
+    assert.deepEqual(await fireReminder(job2.payload), { fired: true, aiLine: false });
+    const plain = await Notification.findOne({ refId: job2.payload.reminderId }).lean();
+    assert.equal(plain.title, 'Paani peena');
+    assert.equal(plain.body, '');
+  });
+
   it('keeps conversations private', async () => {
     useProvider([say('[face:happy] hi')]);
     const mine = (await me.agent.get('/api/agent/conversations')).body.conversations[0];
