@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { DateTime } from 'luxon';
 import { Task } from '../models/Task.js';
+import { Reminder } from '../models/Reminder.js';
 import { DayPlan, publicDayPlan } from '../models/DayPlan.js';
 import { AppError } from '../utils/AppError.js';
 import { isoDateTime, objectId, escapeRegex } from '../utils/schemas.js';
@@ -24,6 +25,10 @@ export const studyPlanSchema = z.object({
   examAt: isoDateTime,
   topics: z.array(z.string().trim().min(1).max(80)).max(20, 'At most 20 topics.').default([]),
   studyTime: hhmm.default('18:00'),
+  // An open plan for this subject already exists:
+  //   replace = the user is changing it (new topics, new time): its upcoming sessions are removed first
+  //   force   = the user really wants a second, separate plan next to it
+  replace: z.boolean().default(false),
   force: z.boolean().default(false),
 });
 
@@ -56,7 +61,7 @@ export function sessionLabels(topics, days) {
 }
 
 export async function makeStudyPlan(user, input, { actor = 'agent', now = new Date() } = {}) {
-  const { subject, examAt, topics, studyTime, force } = input;
+  const { subject, examAt, topics, studyTime, replace, force } = input;
   const tz = user.timezone;
   if (examAt.getTime() <= now.getTime()) throw AppError.badRequest('That exam time has already passed. Check the date.');
 
@@ -74,18 +79,29 @@ export async function makeStudyPlan(user, input, { actor = 'agent', now = new Da
   const planDates = dates.slice(-MAX_PLAN_DAYS);
 
   const tag = tagFor(subject);
-  if (!force) {
-    const existing = await Task.countDocuments({
-      userId: user._id,
-      deletedAt: null,
-      status: 'open',
-      tags: { $all: [tag, 'study-plan'] },
-      dueAt: { $gte: now, $lte: examAt },
-    });
-    if (existing > 0) {
-      throw AppError.conflict(
-        `A ${subject} study plan already exists (${existing} open sessions). Ask the user if they want a second plan; if yes, call again with force: true.`,
-      );
+  const existing = await Task.find({
+    userId: user._id,
+    deletedAt: null,
+    status: 'open',
+    tags: { $all: [tag, 'study-plan'] },
+    dueAt: { $gte: now, $lte: examAt },
+  })
+    .select('_id')
+    .lean();
+  if (existing.length > 0 && !replace && !force) {
+    throw AppError.conflict(
+      `A ${subject} study plan already exists (${existing.length} upcoming sessions). If the user is changing it (topics, time), call again with replace: true. Use force: true only if they clearly want a second, separate plan.`,
+    );
+  }
+  // Changing the plan: remove the upcoming sessions and cancel their reminders first. Each change is
+  // in the activity log like any other, so the whole update can be undone. (Done sessions stay.)
+  let replaced = 0;
+  if (replace) {
+    for (const { _id } of existing) {
+      const linked = await Reminder.find({ userId: user._id, taskId: _id, status: 'scheduled' }).select('_id').lean();
+      for (const r of linked) await reminders.cancel(user, r._id, { actor });
+      await tasks.remove(user._id, _id, { actor });
+      replaced++;
     }
   }
 
@@ -127,7 +143,7 @@ export async function makeStudyPlan(user, input, { actor = 'agent', now = new Da
     sessions.push({ task, reminder });
   }
 
-  return { examTask, examTaskCreated, sessions };
+  return { examTask, examTaskCreated, sessions, replaced };
 }
 
 export const dayPlanSchema = z.object({

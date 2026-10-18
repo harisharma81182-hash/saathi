@@ -316,6 +316,35 @@ describe('Step 3: agent', { skip: !hasTestDb && 'MONGODB_URI_TEST not set' }, ()
     await chat(me, 'DBMS plan bana do');
     assert.equal(second.is_error, true);
     assert.match(second.content, /already exists/);
+    assert.match(second.content, /replace: true/, 'the error tells the model how to change the plan');
+  });
+
+  it('changing a study plan replaces its upcoming sessions and reminders instead of adding a second plan', async () => {
+    const examAt = daysFromNow(6);
+    useProvider([use('make_study_plan', { subject: 'OS', examAt, topics: ['Processes', 'Scheduling'], studyTime: '18:00' }), say('[face:happy] Ban gaya.')]);
+    await chat(me, 'OS exam ka plan bana do');
+    const before = (await me.agent.get('/api/tasks?tag=study-plan&q=OS:')).body.tasks;
+    assert.ok(before.length >= 4);
+
+    useProvider([
+      use('make_study_plan', { subject: 'OS', examAt, topics: ['Deadlocks', 'Memory', 'Paging'], studyTime: '19:00', replace: true }),
+      say('[face:happy] Plan update ho gaya.'),
+    ]);
+    const res = await chat(me, 'topics badal do: deadlocks, memory, paging. roz 7 baje');
+    const [receipt] = events(res, 'receipt');
+    assert.match(receipt.summary, new RegExp(`updated: \\d+ new sessions with reminders \\(replaced ${before.length} old ones\\)`));
+    assert.equal(receipt.activities.filter((a) => a.action === 'task.deleted').length, before.length);
+    assert.equal(receipt.activities.filter((a) => a.action === 'reminder.cancelled').length, before.length);
+
+    // Only the new plan is left: one session a day, all at 7 PM, and the old reminders are cancelled.
+    const after = (await me.agent.get('/api/tasks?tag=study-plan&q=OS:')).body.tasks;
+    assert.equal(after.length, receipt.activities.filter((a) => a.action === 'task.created').length, 'only the new sessions (the exam is reused)');
+    const istMinutes = (iso) => (new Date(iso).getUTCHours() * 60 + new Date(iso).getUTCMinutes() + 330) % 1440;
+    assert.ok(after.every((t) => istMinutes(t.dueAt) === 19 * 60), 'all sessions at 19:00 IST');
+    assert.equal(after.filter((t) => t.title.includes('Processes')).length, 0);
+    const reminders = (await me.agent.get('/api/reminders?limit=100')).body.reminders.filter((r) => r.text.startsWith('OS study time'));
+    assert.equal(reminders.filter((r) => r.status === 'scheduled').length, after.length);
+    assert.equal((await me.agent.get('/api/tasks?kind=deadline&q=OS exam')).body.tasks.length, 1, 'the exam deadline is reused');
   });
 
   it('saves a day plan that shows on the Today panel, and rejects overlapping slots', async () => {

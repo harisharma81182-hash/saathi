@@ -271,7 +271,11 @@ export const TOOLS = [
       examAt: describe(planner.studyPlanSchema.shape.examAt, `When the exam starts. ${isoHint} If only the date is known, use 10:00.`),
       topics: describe(planner.studyPlanSchema.shape.topics, 'Topics to cover, in study order (from the user, or the standard syllabus you know).'),
       studyTime: describe(planner.studyPlanSchema.shape.studyTime, 'Daily study time in 24-hour HH:mm, local time. Pick one that fits the user\'s routine.'),
-      force: describe(planner.studyPlanSchema.shape.force, 'Make a plan even if one already exists for this subject. Only after the user confirmed.'),
+      replace: describe(
+        planner.studyPlanSchema.shape.replace,
+        'The user is changing their existing plan for this subject (new topics, new time, new exam date): remove its upcoming sessions and reminders, then make the new plan.',
+      ),
+      force: describe(planner.studyPlanSchema.shape.force, 'Make a second, separate plan next to an existing one. Only if the user clearly asked for two plans.'),
     }),
     async run({ user }, data) {
       const plan = await planner.makeStudyPlan(user, data);
@@ -279,10 +283,13 @@ export const TOOLS = [
       return {
         data: {
           created: true,
+          replacedSessions: plan.replaced,
           exam: { ...taskView(plan.examTask, tz), alreadyExisted: !plan.examTaskCreated },
           sessions: plan.sessions.map(({ task, reminder }) => ({ taskId: String(task._id), title: task.title, at: toLocalIso(reminder.remindAt, tz) })),
         },
-        summary: `Study plan for ${data.subject}: ${plan.sessions.length} sessions with reminders${plan.examTaskCreated ? ', plus the exam as a deadline' : ''}`,
+        summary: plan.replaced
+          ? `Study plan for ${data.subject} updated: ${plan.sessions.length} new sessions with reminders (replaced ${plan.replaced} old ones)`
+          : `Study plan for ${data.subject}: ${plan.sessions.length} sessions with reminders${plan.examTaskCreated ? ', plus the exam as a deadline' : ''}`,
       };
     },
   },
