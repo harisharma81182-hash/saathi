@@ -100,23 +100,54 @@ export function AuthScreen({ onAuthed }) {
   );
 }
 
-function Field({ label, error, hint, ...input }) {
+function Field({ label, error, hint, type = 'text', ...input }) {
   const id = `f-${label}`;
+  const isPassword = type === 'password';
+  const [visible, setVisible] = useState(false);
   return (
-    <label htmlFor={id} className="flex flex-col gap-1">
-      <span className="text-sm text-muted">{label}</span>
-      <input
-        id={id}
-        {...input}
-        aria-invalid={Boolean(error)}
-        aria-describedby={error || hint ? `${id}-msg` : undefined}
-        className={`rounded-xl border bg-surface px-4 py-3 text-text outline-none transition placeholder:text-faint focus:border-gold/60 ${error ? 'border-vermilion/70' : 'border-line'}`}
-      />
+    <div className="flex flex-col gap-1">
+      <label htmlFor={id} className="text-sm text-muted">
+        {label}
+      </label>
+      <div className="relative">
+        <input
+          id={id}
+          {...input}
+          type={isPassword && visible ? 'text' : type}
+          aria-invalid={Boolean(error)}
+          aria-describedby={error || hint ? `${id}-msg` : undefined}
+          className={`w-full rounded-xl border bg-surface px-4 py-3 text-text outline-none transition placeholder:text-faint focus:border-gold/60 ${isPassword ? 'pr-12' : ''} ${error ? 'border-vermilion/70' : 'border-line'}`}
+        />
+        {isPassword && <PasswordToggle visible={visible} onToggle={() => setVisible((v) => !v)} controls={id} />}
+      </div>
       {(error || hint) && (
         <span id={`${id}-msg`} className={`text-xs ${error ? 'text-vermilion' : 'text-faint'}`}>
           {error ?? hint}
         </span>
       )}
-    </label>
+    </div>
+  );
+}
+
+// The eye button inside a password field: shows the password while "on", hides it again on a
+// second click. A 44px touch target, so it is easy to hit on a phone.
+function PasswordToggle({ visible, onToggle, controls }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={visible ? 'Password chhupao' : 'Password dikhao'}
+      aria-pressed={visible}
+      aria-controls={controls}
+      title={visible ? 'Password chhupao' : 'Password dikhao'}
+      className={`absolute inset-y-0 right-0 grid w-12 place-items-center rounded-r-xl transition-colors ${visible ? 'text-gold' : 'text-faint hover:text-gold'}`}
+    >
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z" />
+        <circle cx="12" cy="12" r="2.8" />
+        {/* A line across the eye while the password is hidden. */}
+        {!visible && <path d="M4 20 20 4" />}
+      </svg>
+    </button>
   );
 }
