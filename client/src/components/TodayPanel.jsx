@@ -1,33 +1,41 @@
 import { useState } from 'react';
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
+import { Check, Flame, RotateCw } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { clock, lateBy, when } from '../lib/format.js';
+import { Face } from './Face.jsx';
 import { QuickAdd } from './QuickAdd.jsx';
 
 // The Today panel: what matters today, at a glance. Refreshed live whenever something changes
 // (Saathi added a task, a reminder fired, you completed something in another tab).
+// Quiet on purpose: sections are separated by space and small labels, not boxes, so the chat and
+// Saathi's face stay the focus of the screen.
 
 export function TodayPanel({ today, error, onRetry, onChanged }) {
   if (error) {
     return (
       <Panel>
         <p className="text-sm text-muted">{error.message}</p>
-        <button onClick={onRetry} className="mt-3 rounded-full border border-line px-4 py-1.5 text-sm hover:border-gold/50">
-          Dobara load karo
+        <button onClick={onRetry} className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-gold hover:text-text">
+          <RotateCw size={14} /> Dobara load karo
         </button>
       </Panel>
     );
   }
   if (!today) return <PanelSkeleton />;
 
-  const { countdowns, dueToday, overdue, upcomingReminders, habits = [], dayPlan, counts } = today;
-  const nothing = !countdowns.length && !dueToday.length && !overdue.length && !upcomingReminders.length && !habits.length;
+  const { countdowns, upcomingReminders, habits = [], dayPlan, counts } = today;
+  // Habits have their own section with the streak, so they are not listed twice.
+  const dueToday = today.dueToday.filter((t) => !t.repeat);
+  const overdue = today.overdue.filter((t) => !t.repeat);
+  const nothing = !countdowns.length && !dueToday.length && !overdue.length && !upcomingReminders.length && !habits.length && !dayPlan?.slots?.length;
   return (
     <Panel>
-      <header className="flex items-baseline justify-between">
-        <h2 className="font-display text-2xl font-bold">Aaj</h2>
-        <p className="text-sm text-muted">
-          <span className="font-semibold text-leaf">{counts.doneToday}</span> done · {counts.openTasks} open
+      <header className="flex items-baseline justify-between gap-3">
+        <h2 className="font-display text-xl font-semibold">Aaj</h2>
+        <p className="text-sm text-faint">
+          {counts.doneToday > 0 && <span className="text-leaf">{counts.doneToday} ho gaye · </span>}
+          {counts.openTasks} baaki
         </p>
       </header>
 
@@ -36,31 +44,33 @@ export function TodayPanel({ today, error, onRetry, onChanged }) {
       </div>
 
       {nothing && (
-        <p className="mt-6 rounded-2xl border border-dashed border-line p-4 text-sm text-muted">
-          Aaj ka din khaali hai. Chat mein Saathi ko bolo kya karna hai, woh yahan dikhne lagega.
-        </p>
+        <div className="mt-12 flex flex-col items-center text-center">
+          <Face size={56} expression="sleepy" followCursor={false} label="Saathi aaram kar raha hai" />
+          <p className="mt-4 font-display text-lg font-semibold">Aaj abhi tak khaali hai</p>
+          <p className="mt-1 max-w-[16rem] text-sm text-faint">Chat mein bolo ya upar ek line likho. Jo bhi banega, yahan dikhega.</p>
+        </div>
       )}
 
       <LayoutGroup>
         {countdowns.length > 0 && (
           <Section title="Countdown">
-            <div className="grid grid-cols-2 gap-2">
-              {countdowns.slice(0, 4).map((t) => (
-                <motion.div layout key={t.id} className="rounded-2xl bg-gold-soft p-3">
-                  <p className="font-display text-3xl font-bold leading-none text-gold">
-                    {t.daysLeft === 0 ? 'Aaj' : t.daysLeft}
-                    {t.daysLeft > 0 && <span className="ml-1 text-sm font-semibold text-gold/70">din</span>}
-                  </p>
-                  <p className="mt-1 line-clamp-2 text-sm leading-snug">{t.title}</p>
-                </motion.div>
+            <ul className="flex flex-col gap-3">
+              {countdowns.slice(0, 3).map((t) => (
+                <motion.li layout key={t.id} className="flex items-center gap-4">
+                  <span className="w-10 text-right font-display text-3xl font-semibold leading-none text-gold tabular-nums">{t.daysLeft === 0 ? '0' : t.daysLeft}</span>
+                  <span className="min-w-0">
+                    <span className="block truncate">{t.title}</span>
+                    <span className="block text-xs text-faint">{t.daysLeft === 0 ? 'aaj hai' : t.daysLeft === 1 ? 'din bacha, kal hai' : 'din bache'}</span>
+                  </span>
+                </motion.li>
               ))}
-            </div>
+            </ul>
           </Section>
         )}
 
         {overdue.length > 0 && (
-          <Section title="Pending" tone="text-vermilion">
-            <TaskList tasks={overdue} meta={(t) => <span className="text-vermilion/90">{lateBy(t.dueAt)}</span>} onChanged={onChanged} />
+          <Section title="Pending">
+            <TaskList tasks={overdue} meta={(t) => <span className="text-vermilion">{lateBy(t.dueAt)}</span>} onChanged={onChanged} />
           </Section>
         )}
 
@@ -72,14 +82,18 @@ export function TodayPanel({ today, error, onRetry, onChanged }) {
 
         {habits.length > 0 && (
           <Section title="Habits">
-            <ul className="flex flex-col gap-1.5">
+            <ul className="flex flex-col">
               {habits.map((h) => (
-                <motion.li layout key={h.id} className="flex items-center gap-3 rounded-xl px-1 py-1">
-                  <Check task={h} onChanged={onChanged} />
-                  <span className="flex-1 truncate">{h.title}</span>
-                  <span className={`text-sm ${h.streak >= 3 ? 'text-gold' : 'text-faint'}`} title={`${h.streak} din lagatar`}>
-                    {h.streak > 0 ? `🔥 ${h.streak}` : when(h.dueAt)}
-                  </span>
+                <motion.li layout key={h.id} className="flex items-center gap-3 py-1.5">
+                  <TaskCheck task={h} onChanged={onChanged} />
+                  <span className="min-w-0 flex-1 truncate">{h.title}</span>
+                  {h.streak > 0 ? (
+                    <span className={`inline-flex items-center gap-1 text-sm tabular-nums ${h.streak >= 3 ? 'text-gold' : 'text-faint'}`} title={`${h.streak} din lagatar`}>
+                      <Flame size={14} strokeWidth={2} /> {h.streak}
+                    </span>
+                  ) : (
+                    <span className="text-sm text-faint">{when(h.dueAt)}</span>
+                  )}
                 </motion.li>
               ))}
             </ul>
@@ -90,9 +104,9 @@ export function TodayPanel({ today, error, onRetry, onChanged }) {
           <Section title="Reminders">
             <ul className="flex flex-col gap-2">
               {upcomingReminders.map((r) => (
-                <li key={r.id} className="flex gap-3 text-sm">
-                  <span className="w-20 shrink-0 text-faint">{clock(r.remindAt)}</span>
-                  <span className="flex-1">{r.text}</span>
+                <li key={r.id} className="flex gap-4 text-sm">
+                  <span className="w-16 shrink-0 text-faint tabular-nums">{clock(r.remindAt)}</span>
+                  <span className="min-w-0 flex-1 text-muted">{r.text}</span>
                 </li>
               ))}
             </ul>
@@ -104,11 +118,11 @@ export function TodayPanel({ today, error, onRetry, onChanged }) {
             <ol className="relative ml-1 border-l border-line pl-4">
               {dayPlan.slots.map((s, i) => (
                 <li key={i} className="relative pb-3 text-sm last:pb-0">
-                  <span className="absolute -left-[21px] top-1.5 h-2.5 w-2.5 rounded-full border-2 border-ink bg-gold" />
-                  <span className="text-faint">
+                  <span className="absolute -left-[20.5px] top-1.5 h-2 w-2 rounded-full bg-gold/80 ring-4 ring-ink" />
+                  <span className="text-faint tabular-nums">
                     {s.start}–{s.end}
                   </span>{' '}
-                  {s.label}
+                  <span className="text-muted">{s.label}</span>
                 </li>
               ))}
             </ol>
@@ -121,23 +135,24 @@ export function TodayPanel({ today, error, onRetry, onChanged }) {
 
 function TaskList({ tasks, meta, onChanged }) {
   return (
-    <ul className="flex flex-col gap-1">
+    <ul className="flex flex-col">
       <AnimatePresence initial={false}>
         {tasks.map((t) => (
           <motion.li
             layout
             key={t.id}
-            initial={{ opacity: 0, x: -6 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 12 }}
-            className="flex items-center gap-3 rounded-xl px-1 py-1"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, x: 8 }}
+            transition={{ duration: 0.25 }}
+            className="flex items-center gap-3 py-1.5"
           >
-            <Check task={t} onChanged={onChanged} />
-            <span className="flex-1 truncate">
-              {t.priority === 'high' && <span className="mr-1.5 inline-block h-1.5 w-1.5 -translate-y-0.5 rounded-full bg-gold" title="Important" />}
+            <TaskCheck task={t} onChanged={onChanged} />
+            <span className="min-w-0 flex-1 truncate">
               {t.title}
+              {t.priority === 'high' && <span className="ml-2 text-xs text-gold">important</span>}
             </span>
-            <span className="shrink-0 text-sm text-faint">{meta(t)}</span>
+            <span className="shrink-0 text-sm text-faint tabular-nums">{meta(t)}</span>
           </motion.li>
         ))}
       </AnimatePresence>
@@ -145,8 +160,8 @@ function TaskList({ tasks, meta, onChanged }) {
   );
 }
 
-/** Tick a task off right from the panel, with a small celebration. */
-function Check({ task, onChanged }) {
+/** Tick a task off right from the panel: the circle fills, a soft ring fades out, the item leaves. */
+function TaskCheck({ task, onChanged }) {
   const [state, setState] = useState('idle');
   const done = state === 'done';
   async function complete() {
@@ -154,7 +169,7 @@ function Check({ task, onChanged }) {
     try {
       await api(`/tasks/${task.id}/complete`, { method: 'POST' });
       setState('done');
-      setTimeout(onChanged, 650); // let the tick play before the item leaves
+      setTimeout(onChanged, 600); // let the tick show before the item leaves
     } catch {
       setState('idle');
     }
@@ -163,55 +178,52 @@ function Check({ task, onChanged }) {
     <button
       onClick={complete}
       disabled={state !== 'idle'}
-      aria-label={`${task.title} done karo`}
-      className={`relative grid h-5 w-5 shrink-0 place-items-center rounded-full border-2 transition-colors ${done ? 'border-leaf bg-leaf' : 'border-faint hover:border-gold'}`}
+      aria-label={`"${task.title}" ho gaya`}
+      className="group relative -m-2 grid shrink-0 place-items-center p-2"
     >
+      <span
+        className={`grid h-[18px] w-[18px] place-items-center rounded-full border-[1.5px] transition-colors ${done ? 'border-leaf bg-leaf text-ink' : 'border-faint group-hover:border-gold'}`}
+      >
+        {done && <Check size={11} strokeWidth={3.2} />}
+      </span>
       <AnimatePresence>
         {done && (
-          <>
-            <motion.svg initial={{ pathLength: 0, opacity: 0 }} animate={{ pathLength: 1, opacity: 1 }} viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#0b0d14" strokeWidth="4" strokeLinecap="round">
-              <motion.path d="M5 12l5 5 9-10" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.3 }} />
-            </motion.svg>
-            {/* A small burst of light, once. */}
-            <motion.span
-              aria-hidden
-              className="absolute inset-0 rounded-full border-2 border-leaf"
-              initial={{ scale: 1, opacity: 0.8 }}
-              animate={{ scale: 2.4, opacity: 0 }}
-              transition={{ duration: 0.6 }}
-            />
-          </>
+          <motion.span
+            aria-hidden
+            className="absolute h-[18px] w-[18px] rounded-full border border-leaf"
+            initial={{ scale: 1, opacity: 0.7 }}
+            animate={{ scale: 2, opacity: 0 }}
+            transition={{ duration: 0.5 }}
+          />
         )}
       </AnimatePresence>
     </button>
   );
 }
 
-function Section({ title, tone = 'text-muted', children }) {
+function Section({ title, children }) {
   return (
-    <motion.section layout className="mt-6">
-      <h3 className={`mb-2 font-display text-sm font-semibold ${tone}`}>{title}</h3>
+    <motion.section layout className="mt-8">
+      <h3 className="mb-2 text-sm font-medium text-faint">{title}</h3>
       {children}
     </motion.section>
   );
 }
 
 function Panel({ children }) {
-  return <div className="h-full overflow-y-auto scroll-quiet px-5 py-5">{children}</div>;
+  return <div className="scroll-quiet h-full overflow-y-auto px-6 py-6">{children}</div>;
 }
 
 function PanelSkeleton() {
   return (
     <Panel>
-      <div className="skeleton h-8 w-24" />
-      <div className="mt-6 grid grid-cols-2 gap-2">
-        <div className="skeleton h-20" />
-        <div className="skeleton h-20" />
-      </div>
-      <div className="skeleton mt-6 h-5 w-32" />
+      <div className="skeleton h-7 w-20" />
+      <div className="skeleton mt-4 h-11" />
+      <div className="skeleton mt-8 h-4 w-24" />
+      <div className="skeleton mt-3 h-9 w-3/4" />
+      <div className="skeleton mt-8 h-4 w-28" />
       <div className="skeleton mt-3 h-6" />
-      <div className="skeleton mt-2 h-6" />
-      <div className="skeleton mt-2 h-6 w-3/4" />
+      <div className="skeleton mt-2 h-6 w-4/5" />
     </Panel>
   );
 }

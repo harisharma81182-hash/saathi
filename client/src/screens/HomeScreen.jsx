@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { Bell, LogOut } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { useChat } from '../hooks/useChat.js';
 import { useLiveEvents } from '../hooks/useLiveEvents.js';
@@ -66,7 +67,7 @@ export function HomeScreen({ user, onLogout }) {
           <Hero user={user} greeting={greeting} expression={expression} state={faceState} compact={chat.messages.length > 0} />
           <ChatPanel chat={chat} />
         </main>
-        <aside className={`min-h-0 w-full border-line lg:w-[380px] lg:border-l ${tab === 'today' ? 'block' : 'hidden lg:block'}`}>
+        <aside className={`min-h-0 w-full border-line lg:w-[360px] lg:border-l ${tab === 'today' ? 'block' : 'hidden lg:block'}`}>
           <TodayPanel today={today} error={todayError} onRetry={loadToday} onChanged={loadToday} />
         </aside>
       </div>
@@ -79,36 +80,34 @@ export function HomeScreen({ user, onLogout }) {
 
 function Hero({ user, greeting, expression, state, compact }) {
   const text = greeting?.text;
+  const today = new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' });
   return (
-    <motion.div layout className={`flex items-center gap-4 px-4 sm:px-6 ${compact ? 'py-3' : 'py-6 sm:py-8'}`}>
-      <div className="mx-auto flex w-full max-w-2xl items-center gap-4 sm:gap-6">
+    <motion.div layout transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }} className={`px-4 sm:px-8 ${compact ? 'pb-2 pt-2' : 'pb-4 pt-6 sm:pt-12'}`}>
+      <div className="mx-auto flex w-full max-w-2xl items-center gap-5 sm:gap-7">
         <motion.div layout>
-          <Face size={compact ? 64 : 112} expression={expression} state={state} />
+          <Face size={compact ? 48 : 104} expression={expression} state={state} />
         </motion.div>
         <div className="min-w-0 flex-1">
+          {!compact && <p className="mb-1.5 text-sm text-faint">{today}</p>}
           <AnimatePresence mode="wait">
             {greeting ? (
               <motion.h1
                 key="greeting"
                 layout
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`font-display font-bold leading-tight tracking-tight ${compact ? 'line-clamp-2 text-lg sm:text-xl' : 'text-2xl sm:text-4xl'}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4 }}
+                className={`font-display font-semibold tracking-tight text-balance ${compact ? 'line-clamp-1 text-lg text-muted' : 'text-2xl sm:text-3xl'}`}
               >
-                {text ?? `Hi ${user.name}!`}
+                {text ?? `Hi ${user.name}, aaj kya karna hai?`}
               </motion.h1>
             ) : (
-              <motion.div key="skeleton" exit={{ opacity: 0 }} className="flex flex-col gap-2">
-                <div className="skeleton h-8 w-4/5" />
-                <div className="skeleton h-8 w-1/2" />
+              <motion.div key="skeleton" exit={{ opacity: 0 }} className="flex flex-col gap-2" aria-label="Saathi greeting likh raha hai">
+                <div className="skeleton h-7 w-4/5" />
+                <div className="skeleton h-7 w-1/2" />
               </motion.div>
             )}
           </AnimatePresence>
-          {!compact && (
-            <p className="mt-2 text-sm text-faint">
-              {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}
-            </p>
-          )}
         </div>
       </div>
     </motion.div>
@@ -118,23 +117,32 @@ function Hero({ user, greeting, expression, state, compact }) {
 function TopBar({ user, live, onLogout }) {
   const [perm, setPerm] = useState(() => ('Notification' in window ? Notification.permission : 'unsupported'));
   return (
-    <header className="flex items-center justify-between px-4 pt-[max(env(safe-area-inset-top),10px)] pb-2 sm:px-6">
+    <header className="flex items-center justify-between px-4 pb-1 pt-[max(env(safe-area-inset-top),12px)] sm:px-8">
       <div className="flex items-center gap-2">
-        <span className="font-display text-xl font-bold tracking-tight">Saathi</span>
+        <span className="font-display text-lg font-semibold tracking-tight">Saathi</span>
         <span
-          className={`h-2 w-2 rounded-full ${live === 'live' ? 'bg-leaf' : 'bg-faint'}`}
-          title={live === 'live' ? 'Live: updates turant aayenge' : 'Reconnect ho raha hai...'}
+          className={`h-1.5 w-1.5 rounded-full transition-colors ${live === 'live' ? 'bg-leaf' : 'bg-faint'}`}
+          title={live === 'live' ? 'Live: updates turant aayenge' : 'Dobara jud raha hai...'}
         />
       </div>
-      <div className="flex items-center gap-1 text-sm">
+      <div className="flex items-center gap-1">
         {perm === 'default' && (
-          <button onClick={() => Notification.requestPermission().then(setPerm)} className="rounded-full px-3 py-1.5 text-muted hover:bg-surface hover:text-text">
-            Notifications on karo
+          <button
+            onClick={() => Notification.requestPermission().then(setPerm)}
+            className="inline-flex h-9 items-center gap-2 rounded-full px-3 text-sm text-faint transition-colors hover:bg-surface hover:text-text"
+          >
+            <Bell size={16} />
+            <span className="hidden sm:inline">Alerts on karo</span>
           </button>
         )}
-        <span className="hidden px-2 text-faint sm:inline">{user.name}</span>
-        <button onClick={onLogout} className="rounded-full px-3 py-1.5 text-muted hover:bg-surface hover:text-text">
-          Logout
+        <span className="hidden px-2 text-sm text-faint sm:inline">{user.name}</span>
+        <button
+          onClick={onLogout}
+          aria-label="Logout"
+          title="Logout"
+          className="grid h-9 w-9 place-items-center rounded-full text-faint transition-colors hover:bg-surface hover:text-text"
+        >
+          <LogOut size={17} />
         </button>
       </div>
     </header>
@@ -143,15 +151,15 @@ function TopBar({ user, live, onLogout }) {
 
 function MobileTabs({ tab, setTab, badge }) {
   return (
-    <nav className="grid grid-cols-2 border-t border-line bg-ink pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Sections">
+    <nav className="grid grid-cols-2 border-t border-line bg-ink pb-[env(safe-area-inset-bottom)] lg:hidden" aria-label="Screens">
       {[
         ['chat', 'Chat'],
         ['today', 'Aaj'],
       ].map(([id, label]) => (
-        <button key={id} onClick={() => setTab(id)} aria-current={tab === id} className={`relative py-3 font-display font-semibold ${tab === id ? 'text-gold' : 'text-muted'}`}>
+        <button key={id} onClick={() => setTab(id)} aria-current={tab === id} className={`relative py-3 font-display font-semibold transition-colors ${tab === id ? 'text-text' : 'text-faint'}`}>
           {label}
-          {id === 'today' && badge > 0 && <span className="ml-1.5 rounded-full bg-vermilion px-1.5 text-xs text-ink">{badge}</span>}
-          {tab === id && <motion.span layoutId="tab-line" className="absolute inset-x-10 top-0 h-0.5 rounded-full bg-gold" />}
+          {id === 'today' && badge > 0 && <span className="ml-1.5 inline-block h-1.5 w-1.5 -translate-y-2 rounded-full bg-vermilion" aria-label={`${badge} pending`} />}
+          {tab === id && <motion.span layoutId="tab-line" className="absolute inset-x-12 top-0 h-0.5 rounded-full bg-gold" transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} />}
         </button>
       ))}
     </nav>

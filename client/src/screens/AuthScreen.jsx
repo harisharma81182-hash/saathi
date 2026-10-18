@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
+import { Eye, EyeOff } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { Face } from '../components/Face.jsx';
 
@@ -44,11 +45,11 @@ export function AuthScreen({ onAuthed }) {
       <div className="w-full max-w-sm">
         <div className="mb-8 flex flex-col items-center text-center">
           <Face size={112} state={busy ? 'thinking' : 'idle'} expression={failed ? 'concerned' : 'happy'} />
-          <h1 className="mt-5 font-display text-4xl font-bold tracking-tight">Saathi</h1>
-          <p className="mt-1 text-muted">Tumhara dost jo din sambhalne mein saath deta hai.</p>
+          <h1 className="mt-6 font-display text-3xl font-semibold tracking-tight">Saathi</h1>
+          <p className="mt-1 text-muted">Tumhara dost, jo din sambhalne mein saath deta hai.</p>
         </div>
 
-        <div className="mb-5 grid grid-cols-2 rounded-full bg-surface p-1" role="tablist">
+        <div className="mb-6 grid grid-cols-2 rounded-full bg-surface p-1" role="tablist">
           {[
             ['signup', 'Naya account'],
             ['login', 'Login'],
@@ -62,9 +63,9 @@ export function AuthScreen({ onAuthed }) {
                 setErrors({});
                 setMessage(null);
               }}
-              className={`relative rounded-full py-2 text-sm font-semibold transition-colors ${mode === m ? 'text-ink' : 'text-muted hover:text-text'}`}
+              className={`relative rounded-full py-2 text-sm font-semibold transition-colors ${mode === m ? 'text-text' : 'text-faint hover:text-text'}`}
             >
-              {mode === m && <motion.span layoutId="auth-tab" className="absolute inset-0 rounded-full bg-gold" transition={{ type: 'spring', stiffness: 400, damping: 32 }} />}
+              {mode === m && <motion.span layoutId="auth-tab" className="absolute inset-0 rounded-full bg-surface-2" transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} />}
               <span className="relative">{text}</span>
             </button>
           ))}
@@ -83,14 +84,14 @@ export function AuthScreen({ onAuthed }) {
             hint={mode === 'signup' ? 'Kam se kam 8 characters, ek letter aur ek number.' : null}
           />
           {message && (
-            <p role="alert" className="rounded-xl bg-vermilion/10 px-3 py-2 text-sm text-vermilion">
+            <p role="alert" className="border-l-2 border-vermilion/60 pl-3 text-sm text-text">
               {message}
             </p>
           )}
           <button
             type="submit"
             disabled={busy}
-            className="mt-2 rounded-full bg-gold py-3 font-display text-lg font-semibold text-ink transition hover:brightness-110 disabled:opacity-60"
+            className="mt-3 rounded-full bg-gold py-3 font-display text-lg font-semibold text-ink transition hover:brightness-110 active:scale-[0.99] disabled:opacity-60"
           >
             {busy ? 'Ek second...' : mode === 'signup' ? 'Shuru karte hain' : 'Andar chalo'}
           </button>
@@ -142,12 +143,7 @@ function PasswordToggle({ visible, onToggle, controls }) {
       title={visible ? 'Password chhupao' : 'Password dikhao'}
       className={`absolute inset-y-0 right-0 grid w-12 place-items-center rounded-r-xl transition-colors ${visible ? 'text-gold' : 'text-faint hover:text-gold'}`}
     >
-      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-        <path d="M2.5 12s3.5-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.5 6.5-9.5 6.5S2.5 12 2.5 12z" />
-        <circle cx="12" cy="12" r="2.8" />
-        {/* A line across the eye while the password is hidden. */}
-        {!visible && <path d="M4 20 20 4" />}
-      </svg>
+      {visible ? <Eye size={19} aria-hidden /> : <EyeOff size={19} aria-hidden />}
     </button>
   );
 }

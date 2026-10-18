@@ -1,21 +1,24 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { ArrowUp, ChevronDown, RotateCw } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { when } from '../lib/format.js';
 import { Face } from './Face.jsx';
 import { ConfirmCard, ReceiptSlip, ToolActivity, TypingDots } from './ChatParts.jsx';
 
-const QUICK_ACTIONS = [
-  { label: 'Study plan', text: 'Exam aa raha hai, study plan bana do' },
-  { label: 'Plan my day', text: 'Aaj ka din plan kar do' },
-  { label: 'Reminder', text: 'Kal subah 9 baje yaad dila dena ' },
-  { label: 'Aaj kya hai?', text: 'Aaj kya kya karna hai?' },
+// Things to try, shown while the chat is empty. Full sentences, so it is obvious they can be said as is.
+const SUGGESTIONS = [
+  '25 ko DBMS exam hai, study plan bana do',
+  'Kal subah 9 baje lab file yaad dila dena',
+  'Aaj ka din plan kar do',
+  'Roz raat 10 baje 20 minute reading',
 ];
 
 export function ChatPanel({ chat }) {
   const { messages, loading, loadError, sending, send, undoReceipt, answerConfirm, reload } = chat;
   const [draft, setDraft] = useState('');
   const scroller = useRef(null);
+  const input = useRef(null);
   const [atBottom, setAtBottom] = useState(true);
   const [unseen, setUnseen] = useState(false);
   const reduce = useReducedMotion();
@@ -49,19 +52,26 @@ export function ChatPanel({ chat }) {
   };
 
   return (
-    <section className="relative flex min-h-0 flex-1 flex-col" aria-label="Chat with Saathi">
-      <div ref={scroller} onScroll={onScroll} className="scroll-quiet min-h-0 flex-1 overflow-y-auto px-4 pb-4 sm:px-6" aria-live="polite">
+    <section className="relative flex min-h-0 flex-1 flex-col" aria-label="Saathi se baat">
+      <div ref={scroller} onScroll={onScroll} className="scroll-quiet min-h-0 flex-1 overflow-y-auto px-4 pb-6 sm:px-8" aria-live="polite">
         {loading && <ChatSkeleton />}
         {loadError && (
-          <div className="mx-auto mt-10 max-w-sm text-center text-muted">
-            <p>{loadError.message}</p>
-            <button onClick={reload} className="mt-3 rounded-full border border-line px-4 py-1.5 text-sm text-text hover:border-gold/50">
-              Dobara load karo
+          <div className="mx-auto mt-12 max-w-sm text-center">
+            <p className="text-muted">{loadError.message}</p>
+            <button onClick={reload} className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-gold hover:text-text">
+              <RotateCw size={14} /> Dobara load karo
             </button>
           </div>
         )}
-        {!loading && !loadError && messages.length === 0 && <EmptyChat onPick={(t) => setDraft(t)} />}
-        <ol className="mx-auto flex max-w-2xl flex-col gap-5 pt-2">
+        {!loading && !loadError && messages.length === 0 && (
+          <EmptyChat
+            onPick={(t) => {
+              setDraft(t);
+              input.current?.focus();
+            }}
+          />
+        )}
+        <ol className="mx-auto flex max-w-2xl flex-col gap-6 pt-2">
           {messages.map((m, i) => (
             <Message
               key={m.id}
@@ -78,18 +88,18 @@ export function ChatPanel({ chat }) {
       <AnimatePresence>
         {unseen && !atBottom && (
           <motion.button
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
+            exit={{ opacity: 0, y: 6 }}
             onClick={() => toBottom()}
-            className="absolute bottom-28 left-1/2 -translate-x-1/2 rounded-full bg-surface-2 px-4 py-1.5 text-sm text-text shadow-lg shadow-black/40"
+            className="absolute bottom-24 left-1/2 inline-flex -translate-x-1/2 items-center gap-1 rounded-full bg-surface-2 px-3.5 py-1.5 text-sm text-text shadow-lg shadow-black/40 transition hover:bg-surface"
           >
-            Naye messages ↓
+            Naye messages <ChevronDown size={15} />
           </motion.button>
         )}
       </AnimatePresence>
 
-      <Composer draft={draft} setDraft={setDraft} sending={sending} onSubmit={submit} showQuick={messages.length > 0} />
+      <Composer inputRef={input} draft={draft} setDraft={setDraft} sending={sending} onSubmit={submit} />
     </section>
   );
 }
@@ -98,20 +108,20 @@ function Message({ m, showTime, onUndo, onAnswer, onRetry }) {
   const mine = m.role === 'user';
   return (
     <motion.li
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
       className={`flex flex-col ${mine ? 'items-end' : 'items-start'}`}
     >
-      {showTime && <time className="mb-2 self-center text-xs text-faint">{when(m.createdAt)}</time>}
+      {showTime && <time className="mb-3 self-center text-xs text-faint">{when(m.createdAt)}</time>}
       {mine ? (
         <p className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md bg-surface-2 px-4 py-2.5">{m.text}</p>
       ) : (
-        <div className="flex max-w-[92%] gap-3">
-          <Face size={30} expression={m.expression ?? 'happy'} state={m.streaming && !m.text ? 'thinking' : 'idle'} followCursor={false} />
+        <div className="flex max-w-[94%] gap-3">
+          <Face size={28} expression={m.expression ?? 'happy'} state={m.streaming && !m.text ? 'thinking' : 'idle'} followCursor={false} />
           <div className="min-w-0 flex-1 pt-0.5">
-            {m.origin && <p className="mb-0.5 text-xs text-gold/80">{m.origin === 'recap' ? 'Aaj ka hisaab' : 'Saathi ne yaad kiya'}</p>}
-            {m.text ? <p className="whitespace-pre-wrap leading-relaxed">{m.text}</p> : m.streaming && !m.tools?.length ? <TypingDots /> : null}
+            {m.origin && <p className="mb-1 text-xs text-faint">{m.origin === 'recap' ? 'Aaj ka hisaab' : 'Saathi ne khud yaad kiya'}</p>}
+            {m.text ? <p className="whitespace-pre-wrap">{m.text}</p> : m.streaming && !m.tools?.length ? <TypingDots /> : null}
             <ToolActivity tools={m.tools ?? []} />
             {m.receipts?.map((r) => (
               <ReceiptSlip key={r.id} receipt={r} onUndo={() => onUndo(r.id)} />
@@ -120,11 +130,11 @@ function Message({ m, showTime, onUndo, onAnswer, onRetry }) {
               <ConfirmCard key={c.id} confirm={c} onAnswer={(a) => onAnswer(c.id, a)} />
             ))}
             {m.error && (
-              <div role="alert" className="mt-2 rounded-xl bg-vermilion/10 px-3 py-2 text-sm text-text">
-                {m.error.message}
+              <div role="alert" className="mt-2 border-l-2 border-vermilion/60 pl-3 text-sm">
+                <p className="text-text">{m.error.message}</p>
                 {m.error.code !== 'AI_DAILY_LIMIT' && (
-                  <button onClick={onRetry} className="ml-2 font-semibold text-gold hover:underline">
-                    Dobara bhejo
+                  <button onClick={onRetry} className="mt-1 inline-flex items-center gap-1.5 text-xs font-semibold text-gold hover:text-text">
+                    <RotateCw size={12} /> Dobara bhejo
                   </button>
                 )}
               </div>
@@ -136,16 +146,15 @@ function Message({ m, showTime, onUndo, onAnswer, onRetry }) {
   );
 }
 
-function Composer({ draft, setDraft, sending, onSubmit, showQuick }) {
-  const area = useRef(null);
+function Composer({ inputRef, draft, setDraft, sending, onSubmit }) {
   const [hints, setHints] = useState([]);
 
   // Grow with the text, up to a few lines.
   useLayoutEffect(() => {
-    const el = area.current;
+    const el = inputRef.current;
     el.style.height = 'auto';
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
-  }, [draft]);
+  }, [draft, inputRef]);
 
   // "Guide while typing": open tasks related to what is being typed (no AI call, instant).
   useEffect(() => {
@@ -163,44 +172,41 @@ function Composer({ draft, setDraft, sending, onSubmit, showQuick }) {
     };
   }, [draft]);
 
+  const canSend = draft.trim() && !sending;
   return (
-    <div className="border-t border-line bg-ink/80 px-4 pb-[max(env(safe-area-inset-bottom),12px)] pt-3 backdrop-blur sm:px-6">
+    <div className="px-4 pb-[max(env(safe-area-inset-bottom),16px)] pt-2 sm:px-8">
       <div className="mx-auto max-w-2xl">
         <AnimatePresence>
           {hints.length > 0 && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mb-2 flex flex-wrap items-center gap-2 text-xs text-muted">
-              <span>Pehle se hai:</span>
+            <motion.p
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="mb-2 flex flex-wrap items-center gap-x-3 gap-y-1 px-1 text-xs text-faint"
+            >
+              <span>Pehle se list mein:</span>
               {hints.map((h) => (
-                <span key={h.id} className="rounded-full bg-surface px-2.5 py-1 text-text">
+                <span key={h.id} className="text-muted">
                   {h.title}
                   {h.dueAt && <span className="text-faint"> · {when(h.dueAt)}</span>}
                 </span>
               ))}
-            </motion.div>
+            </motion.p>
           )}
         </AnimatePresence>
-        {showQuick && !draft && (
-          <div className="mb-2 flex gap-2 overflow-x-auto pb-1">
-            {QUICK_ACTIONS.map((q) => (
-              <button key={q.label} onClick={() => setDraft(q.text)} className="shrink-0 rounded-full border border-line px-3 py-1 text-xs text-muted hover:border-gold/40 hover:text-text">
-                {q.label}
-              </button>
-            ))}
-          </div>
-        )}
         <form
           onSubmit={(e) => {
             e.preventDefault();
             onSubmit();
           }}
-          className="flex items-end gap-2 rounded-3xl border border-line bg-surface p-1.5 pl-4 focus-within:border-gold/40"
+          className="flex items-end gap-2 rounded-3xl border border-line bg-surface p-1.5 pl-4 transition-colors focus-within:border-gold/40"
         >
           <label htmlFor="chat-input" className="sr-only">
             Saathi ko likho
           </label>
           <textarea
             id="chat-input"
-            ref={area}
+            ref={inputRef}
             rows={1}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -215,13 +221,11 @@ function Composer({ draft, setDraft, sending, onSubmit, showQuick }) {
           />
           <button
             type="submit"
-            disabled={!draft.trim() || sending}
+            disabled={!canSend}
             aria-label="Bhejo"
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold text-ink transition hover:brightness-110 disabled:bg-surface-2 disabled:text-faint"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gold text-ink transition hover:brightness-110 active:scale-95 disabled:bg-surface-2 disabled:text-faint"
           >
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 19V5M5 12l7-7 7 7" />
-            </svg>
+            <ArrowUp size={18} strokeWidth={2.4} />
           </button>
         </form>
       </div>
@@ -231,26 +235,33 @@ function Composer({ draft, setDraft, sending, onSubmit, showQuick }) {
 
 function EmptyChat({ onPick }) {
   return (
-    <div className="mx-auto mt-6 max-w-md text-center">
-      <p className="text-muted">Kuch bhi bolo, Saathi kaam kar dega. Shuruaat ke liye:</p>
-      <div className="mt-4 grid grid-cols-2 gap-2 text-left">
-        {QUICK_ACTIONS.map((q) => (
-          <button key={q.label} onClick={() => onPick(q.text)} className="rounded-2xl border border-line bg-surface p-3 transition hover:border-gold/40">
-            <span className="font-display text-base font-semibold">{q.label}</span>
-            <span className="mt-0.5 block text-xs text-faint">{q.text}</span>
-          </button>
+    <div className="mx-auto mt-4 max-w-2xl sm:mt-8">
+      <p className="text-muted">Jo bhi karna hai, normal baat ki tarah bolo. Saathi task, reminder ya plan khud bana dega.</p>
+      <p className="mt-6 text-sm text-faint">Jaise:</p>
+      <ul className="mt-2 flex flex-col">
+        {SUGGESTIONS.map((s) => (
+          <li key={s}>
+            <button
+              onClick={() => onPick(s)}
+              className="group -mx-2 w-full rounded-lg px-2 py-2 text-left text-text transition-colors hover:bg-surface"
+            >
+              <span className="text-faint transition-colors group-hover:text-gold">“</span>
+              {s}
+              <span className="text-faint transition-colors group-hover:text-gold">”</span>
+            </button>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }
 
 function ChatSkeleton() {
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-5 pt-4" aria-label="Loading chat">
+    <div className="mx-auto flex max-w-2xl flex-col gap-6 pt-4" aria-label="Chat load ho rahi hai">
       <div className="skeleton ml-auto h-10 w-2/5" />
       <div className="flex gap-3">
-        <div className="skeleton h-8 w-8 rounded-full" />
+        <div className="skeleton h-7 w-7 rounded-full" />
         <div className="skeleton h-16 flex-1" />
       </div>
       <div className="skeleton ml-auto h-10 w-1/3" />

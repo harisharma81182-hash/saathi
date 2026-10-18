@@ -1,11 +1,36 @@
 @import 'tailwindcss';
 
 /*
-  Saathi's look: dark first. Deep ink background, quiet lifted surfaces, and one warm golden light
-  (Saathi's orb) that everything else stays calm around. Colours are CSS variables so the light
-  theme only has to swap the variables, not the components.
+  Saathi's design system (the same rules on every screen; see client/DESIGN.md):
+  - Dark ink base, quiet surfaces, and ONE warm light: Saathi's golden orb. Gold is an accent for the
+    primary action and a few key numbers, not decoration.
+  - Two fonts: Baloo 2 for headings and numbers, Mukta for everything else.
+  - A fixed type scale (below; other sizes do not exist) and Tailwind's 4px spacing scale, using
+    only steps 1, 1.5, 2, 3, 4, 6, 8, 12, 16.
+  - Whitespace separates sections; boxes only where something is a real object (a message, the
+    composer, a draft being edited).
+  Colours are CSS variables so a light theme only swaps the variables, not the components.
 */
 @theme {
+  /* Type scale: 12 / 14 / 16 / 18 / 22 / 28 / 36 / 44 px. */
+  --text-*: initial;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.35rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.6rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.65rem;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.85rem;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 2.2rem;
+  --text-3xl: 2.25rem;
+  --text-3xl--line-height: 2.6rem;
+  --text-4xl: 2.75rem;
+  --text-4xl--line-height: 3.1rem;
+
   --color-ink: var(--ink);
   --color-ink-2: var(--ink-2);
   --color-surface: var(--surface);
@@ -35,13 +60,13 @@
   --line: rgb(255 240 220 / 0.08);
   --text: #f6efe4;
   --muted: #b7ad9f;
-  --faint: #7d756b;
+  --faint: #918879; /* 5:1 on ink, still readable for small text */
   --gold: #f2a541;
   --amber: #d9822b;
   --gold-soft: rgb(242 165 65 / 0.14);
   --leaf: #3fae9f;
   --vermilion: #ef6a45;
-  --violet: #a77bf3;
+  --violet: #a77bf3; /* only for voice (listening), never decoration */
   color-scheme: dark;
 }
 

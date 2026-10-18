@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
+import { Check, Plus } from 'lucide-react';
 import { api } from '../lib/api.js';
 
 // Quick add: type one sentence ("kal 5 baje DBMS assignment, important"), Saathi turns it into a
@@ -76,8 +77,8 @@ export function QuickAdd({ onSaved }) {
 
   return (
     <div className="mb-2">
-      <form onSubmit={parse} className="flex items-center gap-2 rounded-2xl border border-line bg-surface px-3 py-2 focus-within:border-gold/40">
-        <span aria-hidden className="text-lg leading-none text-gold">+</span>
+      <form onSubmit={parse} className="flex items-center gap-2.5 rounded-xl border border-transparent bg-surface/70 px-3 py-2.5 transition-colors focus-within:border-gold/30 hover:bg-surface">
+        <Plus size={16} className="shrink-0 text-faint" aria-hidden />
         <label htmlFor="quick-add" className="sr-only">
           Quick add
         </label>
@@ -86,15 +87,15 @@ export function QuickAdd({ onSaved }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           disabled={state === 'preview' || busy}
-          placeholder="Quick add: kal 5 baje DBMS assignment, important"
+          placeholder="Ek line mein naya task likho"
           className="min-w-0 flex-1 bg-transparent text-sm text-text outline-none placeholder:text-faint focus-visible:outline-none disabled:opacity-60"
         />
         {text.trim() && state === 'idle' && (
-          <button type="submit" className="shrink-0 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-ink">
+          <button type="submit" className="shrink-0 rounded-full bg-gold px-3 py-1 text-xs font-semibold text-ink transition hover:brightness-110 active:scale-95">
             Banao
           </button>
         )}
-        {state === 'parsing' && <span className="shrink-0 text-xs text-muted">Samajh raha hoon...</span>}
+        {state === 'parsing' && <span className="shrink-0 text-xs text-faint">Samajh raha hoon...</span>}
       </form>
       {error && state === 'idle' && <p className="mt-1 px-1 text-xs text-vermilion">{error}</p>}
 
@@ -106,12 +107,14 @@ export function QuickAdd({ onSaved }) {
             exit={{ opacity: 0, y: -6, height: 0 }}
             className="overflow-hidden"
           >
-            <div className="mt-2 rounded-2xl border border-gold/25 bg-gold-soft/50 p-3">
+            <div className="mt-2 rounded-2xl bg-surface p-4">
               {state === 'saved' ? (
-                <p className="text-sm text-leaf">✓ Task ban gaya</p>
+                <p className="inline-flex items-center gap-1.5 text-sm text-leaf">
+                  <Check size={14} strokeWidth={2.6} /> Task ban gaya
+                </p>
               ) : (
                 <>
-                  <p className="mb-2 text-xs text-muted">Check kar lo, phir save karo:</p>
+                  <p className="mb-2 text-xs text-faint">Check kar lo, phir save karo</p>
                   <label className="sr-only" htmlFor="qa-title">
                     Title
                   </label>
@@ -119,7 +122,7 @@ export function QuickAdd({ onSaved }) {
                     id="qa-title"
                     value={draft.title}
                     onChange={(e) => edit({ title: e.target.value })}
-                    className="w-full rounded-lg bg-ink/60 px-2.5 py-1.5 font-display font-semibold text-text outline-none"
+                    className="w-full rounded-lg bg-ink/50 px-2.5 py-1.5 font-display text-lg font-semibold text-text outline-none focus-visible:outline-none focus:bg-ink/80"
                   />
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
                     <label className="sr-only" htmlFor="qa-due">
@@ -130,24 +133,24 @@ export function QuickAdd({ onSaved }) {
                       type="datetime-local"
                       value={draft.dueInput}
                       onChange={(e) => edit({ dueInput: e.target.value })}
-                      className="rounded-lg bg-ink/60 px-2 py-1 text-text outline-none [color-scheme:dark]"
+                      className="rounded-lg bg-ink/50 px-2 py-1 text-text outline-none [color-scheme:dark] focus-visible:outline-none focus:bg-ink/80"
                     />
-                    {draft.kind === 'deadline' && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-gold">Deadline</span>}
-                    {draft.repeat && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-leaf">{REPEAT_LABEL(draft.repeat)}</span>}
+                    {draft.kind === 'deadline' && <span className="text-gold">Deadline</span>}
+                    {draft.repeat && <span className="text-leaf">{REPEAT_LABEL(draft.repeat)}</span>}
                     {draft.tags?.map((t) => (
-                      <span key={t} className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">
+                      <span key={t} className="text-faint">
                         #{t}
                       </span>
                     ))}
                   </div>
-                  <div className="mt-2 flex gap-1" role="radiogroup" aria-label="Priority">
+                  <div className="mt-3 flex gap-1" role="radiogroup" aria-label="Priority">
                     {PRIORITIES.map(([value, label]) => (
                       <button
                         key={value}
                         role="radio"
                         aria-checked={draft.priority === value}
                         onClick={() => edit({ priority: value })}
-                        className={`rounded-full px-2.5 py-0.5 text-xs ${draft.priority === value ? 'bg-gold text-ink' : 'bg-surface-2 text-muted hover:text-text'}`}
+                        className={`rounded-full px-2.5 py-1 text-xs transition-colors ${draft.priority === value ? 'bg-surface-2 text-text ring-1 ring-gold/50' : 'text-faint hover:text-text'}`}
                       >
                         {label}
                       </button>
@@ -159,11 +162,11 @@ export function QuickAdd({ onSaved }) {
                     </p>
                   ))}
                   {error && <p className="mt-2 text-xs text-vermilion">{error}</p>}
-                  <div className="mt-3 flex gap-2">
+                  <div className="mt-4 flex gap-2">
                     <button
                       onClick={save}
                       disabled={busy || !draft.title.trim()}
-                      className="rounded-full bg-gold px-4 py-1.5 text-xs font-semibold text-ink disabled:opacity-50"
+                      className="rounded-full bg-gold px-4 py-1.5 text-xs font-semibold text-ink transition hover:brightness-110 active:scale-95 disabled:opacity-50"
                     >
                       {state === 'saving' ? 'Save ho raha hai...' : 'Save karo'}
                     </button>
@@ -174,7 +177,7 @@ export function QuickAdd({ onSaved }) {
                         setError(null);
                       }}
                       disabled={busy}
-                      className="rounded-full px-3 py-1.5 text-xs text-muted hover:text-text"
+                      className="rounded-full px-3 py-1.5 text-xs text-faint transition-colors hover:bg-surface-2 hover:text-text"
                     >
                       Rehne do
                     </button>

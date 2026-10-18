@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { useState } from 'react';
+import { X } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { Face } from './Face.jsx';
 
@@ -40,16 +41,19 @@ function Toast({ n, onDismiss, onChanged }) {
     <motion.div
       layout
       role="status"
-      initial={{ opacity: 0, y: -16, scale: 0.96 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, x: 40, transition: { duration: 0.2 } }}
-      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-      className="pointer-events-auto w-full max-w-sm rounded-2xl border border-line bg-surface/95 p-3 shadow-2xl shadow-black/50 backdrop-blur"
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, transition: { duration: 0.2 } }}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      className="pointer-events-auto relative w-full max-w-sm rounded-2xl border border-line bg-surface/95 p-4 shadow-2xl shadow-black/50 backdrop-blur"
     >
+      <button onClick={onDismiss} aria-label="Band karo" className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full text-faint transition-colors hover:bg-surface-2 hover:text-text">
+        <X size={15} />
+      </button>
       <div className="flex gap-3">
         <Face size={36} expression={n.expression ?? (n.kind === 'nudge' ? 'concerned' : 'happy')} followCursor={false} />
         <div className="min-w-0 flex-1">
-          <p className="font-display font-semibold leading-tight">{n.title}</p>
+          <p className="pr-6 font-display font-semibold leading-tight">{n.title}</p>
           {n.body && <p className="mt-0.5 text-sm text-muted">{n.body}</p>}
           {note ? (
             <p className="mt-2 text-xs text-leaf">{note}</p>
@@ -70,7 +74,7 @@ function Toast({ n, onDismiss, onChanged }) {
                   Bache kaam kal karo
                 </Btn>
               )}
-              <Btn onClick={onDismiss}>Theek hai</Btn>
+
             </div>
           )}
         </div>
@@ -83,7 +87,7 @@ function Btn({ primary, ...props }) {
   return (
     <button
       {...props}
-      className={`rounded-full px-3 py-1 text-xs font-semibold transition disabled:opacity-50 ${primary ? 'bg-gold text-ink hover:brightness-110' : 'bg-surface-2 text-text hover:bg-line'}`}
+      className={`rounded-full px-3 py-1 text-xs font-semibold transition active:scale-95 disabled:opacity-50 ${primary ? 'bg-gold text-ink hover:brightness-110' : 'bg-surface-2 text-text hover:bg-line'}`}
     />
   );
 }

@@ -114,6 +114,8 @@ Keep this order. Each step ends with: it runs, tests pass, a short explanation t
 
 ### Step 5: frontend
 
+- **DESIGN RULE (Himanshu, 19 Oct 2026), for ALL screens: Saathi must not look like a generic "vibe-coded" AI dashboard.** Follow `client/DESIGN.md`: no stock purple/blue gradients, no card soup, no emoji as icons, no glow except Saathi's orb; one icon set (lucide-react); dark base with gold used sparingly; two fonts; the fixed type and spacing scale; hierarchy by space (face + greeting + chat get the room); subtle motion (no bouncing), hover/press states, skeletons, Hinglish empty states, readable contrast; equally good on phone. This overrides older notes below where they conflict (e.g. the face's mood hues are now warm-family: ember while thinking, dusk when concerned; violet only for listening).
+
 - `client/`: Vite + React + Tailwind CSS + Motion (`motion` package). Served by Express in production from the same origin (cookies keep working); Vite dev server proxies `/api` to port 4000 in development.
 - Screens: login/signup; Home = chat (left/center) + Today panel (right); Tasks (Open / **Completed** tabs; completed view grouped by day with the weekly progress chart); Notes; Reminders; Activity timeline with Undo; Settings (name, timezone, voice, what Saathi remembers).
 - Every screen handles loading, empty (an invitation to act), error (what went wrong and what to do) and success states.

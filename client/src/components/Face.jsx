@@ -11,16 +11,18 @@ import { motion, useReducedMotion, useSpring } from 'motion/react';
 // Eyes and mouth are closed paths with the same number of points in every expression, so Motion can
 // morph smoothly between them instead of jumping.
 
-// Orb colours by mood: warm gold when happy, deep indigo while thinking, soft blue when concerned...
+// Orb colours by mood. All stay in Saathi's warm family (no stock purple/blue): bright gold when
+// happy, a dimmer ember while thinking, a muted dusk when concerned or sorry. Violet only while
+// listening in voice mode.
 const HUES = {
   happy: ['#FFE6B0', '#F2A541', '#B8641A'],
   excited: ['#FFF0C2', '#FFB547', '#C8661B'],
   laughing: ['#FFF0C2', '#FFB547', '#C8661B'],
   proud: ['#FFE6B0', '#F2A541', '#A9581A'],
   surprised: ['#FFF3D1', '#FFC15E', '#C77A24'],
-  thinking: ['#C9C3FF', '#6E64D8', '#2E2A6E'],
-  concerned: ['#CFE6FF', '#6FA3E0', '#2D4F86'],
-  sorry: ['#D5E4FA', '#7C9CCB', '#33496E'],
+  thinking: ['#F1D3A0', '#B47A33', '#4E3114'],
+  concerned: ['#EADFCD', '#A99173', '#4A3D2E'],
+  sorry: ['#E4DCD0', '#998B79', '#433A31'],
   sleepy: ['#E9D3A8', '#B88A4A', '#5E431F'],
   listening: ['#F1D2FF', '#A77BF3', '#5A2C9C'],
   error: ['#FFD2C4', '#E4572E', '#7E2512'],
@@ -122,19 +124,19 @@ export function Face({ expression = 'happy', state = 'idle', size = 120, followC
       aria-label={label ?? `Saathi looks ${mood}`}
       className="relative shrink-0"
       style={{ width: size, height: size }}
-      animate={floating ? { y: [0, -size * 0.035, 0] } : { y: 0 }}
-      transition={floating ? { duration: 4.2, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.3 }}
+      animate={floating ? { y: [0, -size * 0.025, 0] } : { y: 0 }}
+      transition={floating ? { duration: 5, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.3 }}
     >
       {/* Soft glow behind the orb; brighter while thinking or speaking. */}
       <motion.div
         aria-hidden
         className="absolute inset-0 rounded-full"
         animate={{
-          background: `radial-gradient(circle, ${hue[1]}66 0%, ${hue[1]}00 68%)`,
-          scale: state === 'thinking' || state === 'speaking' ? [1.25, 1.45, 1.25] : 1.3,
-          opacity: state === 'idle' ? 0.75 : 1,
+          background: `radial-gradient(circle, ${hue[1]}55 0%, ${hue[1]}00 66%)`,
+          scale: state === 'speaking' ? [1.25, 1.33, 1.25] : 1.25,
+          opacity: state === 'idle' ? 0.6 : 0.85,
         }}
-        transition={{ duration: reduce ? 0 : 2.4, repeat: !reduce && (state === 'thinking' || state === 'speaking') ? Infinity : 0, ease: 'easeInOut' }}
+        transition={{ duration: reduce ? 0 : 2.4, repeat: !reduce && state === 'speaking' ? Infinity : 0, ease: 'easeInOut' }}
         style={{ filter: `blur(${size * 0.12}px)` }}
       />
       <svg viewBox="0 0 100 100" width={size} height={size} className="relative">
@@ -166,7 +168,7 @@ export function Face({ expression = 'happy', state = 'idle', size = 120, followC
               r="30"
               fill="none"
               stroke="#ffffff"
-              strokeOpacity="0.16"
+              strokeOpacity="0.12"
               strokeWidth="1.2"
               strokeDasharray="10 14"
               animate={{ rotate: 360 }}
