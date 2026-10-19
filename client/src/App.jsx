@@ -14,7 +14,15 @@ const LandingScreen = lazy(() => import('./landing/LandingScreen.jsx'));
 // focus. One shared transition, so the whole app feels like one place.
 const PAGE = {
   initial: { opacity: 0, scale: 0.985, filter: 'blur(8px)' },
-  animate: { opacity: 1, scale: 1, filter: 'blur(0px)', transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
+  // transitionEnd removes the filter and transform afterwards: a leftover filter (even blur(0px))
+  // would keep the whole screen on a costly layer and stop the glass panels' backdrop blur working.
+  animate: {
+    opacity: 1,
+    scale: 1,
+    filter: 'blur(0px)',
+    transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] },
+    transitionEnd: { filter: 'none', transform: 'none' },
+  },
   exit: { opacity: 0, scale: 1.01, filter: 'blur(8px)', transition: { duration: 0.3, ease: [0.4, 0, 1, 1] } },
 };
 

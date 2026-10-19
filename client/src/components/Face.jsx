@@ -14,7 +14,7 @@ import { motion, useReducedMotion, useSpring } from 'motion/react';
 // Orb colours by mood. All stay in Saathi's warm family (no stock purple/blue): bright gold when
 // happy, a dimmer ember while thinking, a muted dusk when concerned or sorry. Violet only while
 // listening in voice mode.
-const HUES = {
+export const HUES = {
   happy: ['#FFE6B0', '#F2A541', '#B8641A'],
   excited: ['#FFF0C2', '#FFB547', '#C8661B'],
   laughing: ['#FFF0C2', '#FFB547', '#C8661B'],

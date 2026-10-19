@@ -4,7 +4,8 @@ import { Bell, LogOut } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { useChat } from '../hooks/useChat.js';
 import { useLiveEvents } from '../hooks/useLiveEvents.js';
-import { Face } from '../components/Face.jsx';
+import { HeroFace } from '../components/HeroFace.jsx';
+import { CursorGlow } from '../components/CursorGlow.jsx';
 import { ChatPanel } from '../components/ChatPanel.jsx';
 import { TodayPanel } from '../components/TodayPanel.jsx';
 import { Toasts } from '../components/Toasts.jsx';
@@ -60,6 +61,7 @@ export function HomeScreen({ user, onLogout }) {
 
   return (
     <div className="ambient flex h-full flex-col">
+      <CursorGlow />
       <TopBar user={user} live={live} onLogout={onLogout} />
 
       <div className="flex min-h-0 flex-1">
@@ -103,7 +105,7 @@ function Hero({ user, greeting, expression, state, compact }) {
     <motion.div layout transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }} className={`px-4 sm:px-8 ${compact ? 'pb-2 pt-2' : 'pb-6 pt-8 sm:pb-8 sm:pt-16'}`}>
       <div className={`mx-auto flex w-full max-w-2xl items-center ${compact ? 'gap-4' : 'gap-6 sm:gap-10'}`}>
         <motion.div layout className="relative">
-          <Face size={faceSize} expression={expression} state={state} aura={!compact} />
+          <HeroFace size={faceSize} expression={expression} state={state} aura={!compact} />
         </motion.div>
         <div className="min-w-0 flex-1">
           {!compact && <p className="mb-1.5 text-sm text-faint">{today}</p>}
