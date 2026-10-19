@@ -10,6 +10,14 @@ const LandingScreen = lazy(() => import('./landing/LandingScreen.jsx'));
 
 // Logged out, the page is the landing scene, or the login/signup form (#login, #signup), so the
 // browser's Back button goes from the form back to the landing page.
+// Moving between landing, login and Home: the old screen softly blurs away, the new one comes into
+// focus. One shared transition, so the whole app feels like one place.
+const PAGE = {
+  initial: { opacity: 0, scale: 0.985, filter: 'blur(8px)' },
+  animate: { opacity: 1, scale: 1, filter: 'blur(0px)', transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] } },
+  exit: { opacity: 0, scale: 1.01, filter: 'blur(8px)', transition: { duration: 0.3, ease: [0.4, 0, 1, 1] } },
+};
+
 const authViewFromHash = () => (location.hash === '#login' ? 'login' : location.hash === '#signup' ? 'signup' : 'landing');
 
 // Who is logged in decides the screen. The cookie is httpOnly, so the only way to know is to ask.
@@ -62,19 +70,19 @@ export function App() {
         </motion.div>
       )}
       {session.status === 'out' && authView === 'landing' && (
-        <motion.div key="landing" className="h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        <motion.div key="landing" className="min-h-full" {...PAGE}>
           <Suspense fallback={<div className="night-sky h-full" />}>
             <LandingScreen onLogin={() => go('login')} onSignup={() => go('signup')} />
           </Suspense>
         </motion.div>
       )}
       {session.status === 'out' && authView !== 'landing' && (
-        <motion.div key="auth" className="h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        <motion.div key="auth" className="h-full" {...PAGE}>
           <AuthScreen key={authView} initialMode={authView} onBack={() => go('landing')} onAuthed={authed} />
         </motion.div>
       )}
       {session.status === 'in' && (
-        <motion.div key="home" className="h-full" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <motion.div key="home" className="h-full" {...PAGE}>
           <HomeScreen user={session.user} onLogout={logout} />
         </motion.div>
       )}

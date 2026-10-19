@@ -222,3 +222,96 @@ body {
     radial-gradient(60rem 50rem at 100% 0%, rgb(70 82 170 / 0.2), transparent 65%),
     linear-gradient(180deg, #0c1126 0%, #090c1c 50%, #070914 100%);
 }
+
+/*
+  Buttons. Two kinds only, used on every screen:
+  - .btn-gold   the one primary action: marigold with a soft glow that grows on hover, a light sheen
+                sweeping across, a 1px lift, and a press that settles back down
+  - .btn-ghost  everything else: quiet text that gets a glass background on hover
+  .btn-lg makes either one the hero size.
+*/
+@layer components {
+  .btn-gold,
+  .btn-ghost {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    padding: 0.5rem 1.1rem;
+    font-size: var(--text-sm);
+    font-weight: 600;
+    white-space: nowrap;
+    transition:
+      transform 0.25s var(--ease-out-soft),
+      box-shadow 0.35s var(--ease-out-soft),
+      background-color 0.25s,
+      color 0.25s,
+      filter 0.25s;
+  }
+  .btn-gold {
+    overflow: hidden;
+    color: var(--ink);
+    background: linear-gradient(180deg, #f7b85e, var(--gold) 55%, #e8933a);
+    box-shadow:
+      0 0 0 1px rgb(255 214 150 / 0.35) inset,
+      0 8px 28px -8px rgb(242 165 65 / 0.55);
+  }
+  .btn-gold::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 35%, rgb(255 255 255 / 0.45) 50%, transparent 65%);
+    transform: translateX(-120%);
+    transition: transform 0.8s var(--ease-out-soft);
+  }
+  .btn-gold:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 0 0 1px rgb(255 214 150 / 0.45) inset,
+      0 12px 40px -8px rgb(242 165 65 / 0.75);
+  }
+  .btn-gold:hover::after {
+    transform: translateX(120%);
+  }
+  .btn-ghost {
+    color: var(--text);
+  }
+  .btn-ghost:hover {
+    background-color: rgb(226 232 255 / 0.08);
+  }
+  .btn-gold:active,
+  .btn-ghost:active {
+    transform: translateY(0) scale(0.98);
+  }
+  .btn-gold:disabled,
+  .btn-ghost:disabled {
+    opacity: 0.55;
+    transform: none;
+    pointer-events: none;
+  }
+  .btn-lg {
+    padding: 0.85rem 1.6rem;
+    font-size: var(--text-base);
+    font-family: var(--font-display);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-gold::after {
+    display: none;
+  }
+}
+
+/* Lenis (smooth scrolling on the landing page) needs the page to size itself. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}

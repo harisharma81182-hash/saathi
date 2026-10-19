@@ -99,9 +99,9 @@ export function AuthScreen({ onAuthed, onBack, initialMode = 'signup' }) {
           <button
             type="submit"
             disabled={busy}
-            className="mt-3 rounded-full bg-gold py-3 font-display text-lg font-semibold text-ink transition hover:brightness-110 active:scale-[0.99] disabled:opacity-60"
+            className="btn-gold btn-lg mt-3 w-full"
           >
-            {busy ? 'Ek second...' : mode === 'signup' ? 'Shuru karte hain' : 'Andar chalo'}
+            {busy ? 'Ek second...' : mode === 'signup' ? 'Account banao' : 'Andar chalo'}
           </button>
         </form>
       </div>

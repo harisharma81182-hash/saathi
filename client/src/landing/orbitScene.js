@@ -18,7 +18,13 @@ export function createOrbitScene({ canvas, labels: labelsEl }) {
   const density = lite ? 0.55 : 1;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // The prototype was tuned on three r149, before colour management existed. Keep its exact colours:
+  // hex colours are used as is (no sRGB -> linear conversion) and the output is not converted either.
+  // (React Three Fiber turns colour management back on for the Home face; only one 3D view is ever
+  // on screen at a time.)
+  THREE.ColorManagement.enabled = false;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: !lite, alpha: false, powerPreference: lite ? 'low-power' : 'high-performance' });
+  renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
   const DPR = Math.min(window.devicePixelRatio || 1, lite ? 1.25 : 1.5);
   renderer.setPixelRatio(DPR);
   renderer.setClearColor(0x05060d, 1);
@@ -401,7 +407,14 @@ export function createOrbitScene({ canvas, labels: labelsEl }) {
   resize();
 
   // ---------- loop: runs only while the page is visible and the canvas is on screen ----------
-  const clock = new THREE.Clock();
+  // Frame timing (THREE.Clock is deprecated in current three.js).
+  let last = performance.now();
+  const delta = () => {
+    const now = performance.now();
+    const dt = (now - last) / 1000;
+    last = now;
+    return dt;
+  };
   const tmp = new THREE.Vector3();
   let simTime = 0;
   let raf = 0;
@@ -409,7 +422,7 @@ export function createOrbitScene({ canvas, labels: labelsEl }) {
 
   function frame() {
     raf = requestAnimationFrame(frame);
-    const dt = Math.min(clock.getDelta(), 0.05);
+    const dt = Math.min(delta(), 0.05);
     simTime += dt * speed;
     uniformsShared.uTime.value += dt * Math.max(speed, 0.35);
 
@@ -485,7 +498,7 @@ export function createOrbitScene({ canvas, labels: labelsEl }) {
   function update() {
     const shouldRun = !document.hidden && onScreen;
     if (shouldRun && !raf) {
-      clock.getDelta(); // don't jump ahead by the time spent paused
+      delta(); // don't jump ahead by the time spent paused
       raf = requestAnimationFrame(frame);
     } else if (!shouldRun && raf) {
       cancelAnimationFrame(raf);
