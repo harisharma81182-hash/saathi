@@ -82,6 +82,18 @@ const schema = z.object({
   AI_MODEL_LIMITS: modelLimits.prefault('gemini-3.5-flash-lite=13/480,gemini-3.1-flash-lite=13/480,gemini-3.8-flash=4/18'),
 
   TRUST_PROXY: bool.default('true'),
+
+  // Email for "Password bhool gaye?" links. Leave SMTP_HOST empty in development: the reset link is
+  // then written to the server log instead of being emailed. For Gmail: smtp.gmail.com, port 465,
+  // SMTP_SECURE=true, your Gmail address as SMTP_USER and a Gmail App Password as SMTP_PASS.
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),
+  SMTP_SECURE: bool.default('false'),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  MAIL_FROM: z.string().optional(),
+  // Where the app lives, for links in emails (defaults to CLIENT_ORIGIN).
+  APP_URL: z.string().optional(),
 });
 
 const parsed = schema.safeParse(process.env);

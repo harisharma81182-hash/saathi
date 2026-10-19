@@ -9,6 +9,9 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, required: true, select: false },
     // IANA timezone such as "Asia/Kolkata". The agent uses it to understand "kal 5 baje".
     timezone: { type: String, default: 'Asia/Kolkata' },
+    // Goes up when the password is reset. Login tokens carry the number they were issued with, so
+    // every older session stops working at once ("log out everywhere").
+    sessionVersion: { type: Number, default: 0 },
   },
   { timestamps: true },
 );

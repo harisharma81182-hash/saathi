@@ -16,6 +16,7 @@ import '../src/models/Message.js';
 import '../src/models/Memory.js';
 import '../src/models/PendingAction.js';
 import '../src/models/DayPlan.js';
+import '../src/models/PasswordReset.js';
 
 await connectDB(env.MONGODB_URI, { maxPoolSize: 2, autoIndex: false });
 await syncAllIndexes();

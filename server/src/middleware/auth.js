@@ -6,8 +6,9 @@ import { TtlCache } from '../utils/ttlCache.js';
 
 export const COOKIE_NAME = 'saathi_token';
 
-export function signToken(userId) {
-  return jwt.sign({ sub: userId }, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN });
+/** A login token for this user; it is only valid while the user's sessionVersion stays the same. */
+export function signToken(user) {
+  return jwt.sign({ sub: String(user._id ?? user.id), sv: user.sessionVersion ?? 0 }, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN });
 }
 
 // The token lives in an httpOnly cookie, so JavaScript in the page (and any injected script)
@@ -49,7 +50,7 @@ export function forgetCachedUser(userId) {
 async function loadUser(id) {
   const cached = userCache.get(id);
   if (cached) return cached;
-  const user = await User.findById(id).select('name email timezone createdAt').lean();
+  const user = await User.findById(id).select('name email timezone createdAt sessionVersion').lean();
   if (user) userCache.set(id, user);
   return user;
 }
@@ -69,6 +70,8 @@ export async function requireAuth(req, _res, next) {
 
   const user = await loadUser(String(payload.sub));
   if (!user) return next(AppError.unauthorized('This account no longer exists.'));
+  // The password was reset after this token was issued: this session has been logged out.
+  if ((payload.sv ?? 0) !== (user.sessionVersion ?? 0)) return next(AppError.unauthorized('Password badal gaya hai. Naye password se login karo.'));
 
   req.user = user;
   req.userId = String(user._id);

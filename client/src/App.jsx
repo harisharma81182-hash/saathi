@@ -4,6 +4,7 @@ import { api } from './lib/api.js';
 import { Face } from './components/Face.jsx';
 import { AuthScreen } from './screens/AuthScreen.jsx';
 import { HomeScreen } from './screens/HomeScreen.jsx';
+import { ForgotScreen, ResetScreen } from './screens/PasswordScreens.jsx';
 
 // The landing page carries the 3D library, so it is loaded only for visitors who are not logged in.
 const LandingScreen = lazy(() => import('./landing/LandingScreen.jsx'));
@@ -26,7 +27,11 @@ const PAGE = {
   exit: { opacity: 0, scale: 1.01, filter: 'blur(8px)', transition: { duration: 0.3, ease: [0.4, 0, 1, 1] } },
 };
 
-const authViewFromHash = () => (location.hash === '#login' ? 'login' : location.hash === '#signup' ? 'signup' : 'landing');
+// #reset=<token> comes from the "Password bhool gaye?" email; it opens the reset page whether or
+// not someone is logged in (the token stays in the #fragment, never sent to any server log).
+const VIEWS = { '#login': 'login', '#signup': 'signup', '#forgot': 'forgot' };
+const authViewFromHash = () => (location.hash.startsWith('#reset=') ? 'reset' : (VIEWS[location.hash] ?? 'landing'));
+const resetToken = () => (location.hash.startsWith('#reset=') ? location.hash.slice('#reset='.length) : null);
 
 // Who is logged in decides the screen. The cookie is httpOnly, so the only way to know is to ask.
 export function App() {
@@ -60,12 +65,25 @@ export function App() {
 
   return (
     <AnimatePresence mode="wait">
-      {session.status === 'loading' && (
+      {authView === 'reset' && (
+        <motion.div key="reset" className="h-full" {...PAGE}>
+          <ResetScreen
+            token={resetToken()}
+            onForgot={() => go('forgot')}
+            onLogin={() => {
+              // Every session was logged out by the reset, this one included.
+              setSession({ status: 'out', user: null });
+              go('login');
+            }}
+          />
+        </motion.div>
+      )}
+      {authView !== 'reset' && session.status === 'loading' && (
         <motion.div key="loading" className="ambient grid h-full place-items-center" exit={{ opacity: 0 }}>
           <Face state="thinking" size={96} label="Saathi is waking up" />
         </motion.div>
       )}
-      {session.status === 'offline' && (
+      {authView !== 'reset' && session.status === 'offline' && (
         <motion.div key="offline" className="ambient grid h-full place-items-center px-6 text-center">
           <div className="flex max-w-sm flex-col items-center gap-4">
             <Face state="error" size={96} />
@@ -84,12 +102,17 @@ export function App() {
           </Suspense>
         </motion.div>
       )}
-      {session.status === 'out' && authView !== 'landing' && (
-        <motion.div key="auth" className="h-full" {...PAGE}>
-          <AuthScreen key={authView} initialMode={authView} onBack={() => go('landing')} onAuthed={authed} />
+      {session.status === 'out' && authView === 'forgot' && (
+        <motion.div key="forgot" className="h-full" {...PAGE}>
+          <ForgotScreen onBack={() => go('login')} onLogin={() => go('login')} />
         </motion.div>
       )}
-      {session.status === 'in' && (
+      {session.status === 'out' && (authView === 'login' || authView === 'signup') && (
+        <motion.div key="auth" className="h-full" {...PAGE}>
+          <AuthScreen key={authView} initialMode={authView} onBack={() => go('landing')} onForgot={() => go('forgot')} onAuthed={authed} />
+        </motion.div>
+      )}
+      {authView !== 'reset' && session.status === 'in' && (
         <motion.div key="home" className="h-full" {...PAGE}>
           <HomeScreen user={session.user} onLogout={logout} />
         </motion.div>

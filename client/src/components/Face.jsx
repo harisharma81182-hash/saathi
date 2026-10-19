@@ -200,10 +200,11 @@ export function Face({ expression = 'happy', state = 'idle', size = 120, followC
 
         {/* Features */}
         <motion.g style={{ x: gx, y: gy }} fill="#2a190b">
+          {/* Worried brows: the inner ends lift (inner ends down would read as angry). */}
           {face.brow && (
             <>
-              <motion.path d="M 31 36 L 41 39" stroke="#2a190b" strokeWidth="2" strokeLinecap="round" initial={false} animate={{ opacity: 1 }} />
-              <motion.path d="M 69 36 L 59 39" stroke="#2a190b" strokeWidth="2" strokeLinecap="round" initial={false} animate={{ opacity: 1 }} />
+              <motion.path d="M 31 39.5 L 41 36" stroke="#2a190b" strokeWidth="2" strokeLinecap="round" initial={false} animate={{ opacity: 1 }} />
+              <motion.path d="M 69 39.5 L 59 36" stroke="#2a190b" strokeWidth="2" strokeLinecap="round" initial={false} animate={{ opacity: 1 }} />
             </>
           )}
           <motion.path initial={false} animate={{ d: eyePath(37, 47, rx, eyeTop, eyeBottom) }} transition={blink ? { duration: 0.06 } : SPRING} />

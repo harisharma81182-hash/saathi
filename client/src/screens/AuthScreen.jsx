@@ -5,7 +5,7 @@ import { api } from '../lib/api.js';
 import { Face } from '../components/Face.jsx';
 
 // Login and signup on one calm screen, with Saathi's face reacting to what happens.
-export function AuthScreen({ onAuthed, onBack, initialMode = 'signup' }) {
+export function AuthScreen({ onAuthed, onBack, onForgot, initialMode = 'signup' }) {
   const [mode, setMode] = useState(initialMode);
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [errors, setErrors] = useState({});
@@ -41,21 +41,7 @@ export function AuthScreen({ onAuthed, onBack, initialMode = 'signup' }) {
 
   const failed = Boolean(message || Object.keys(errors).some((k) => errors[k]));
   return (
-    <main className="ambient relative flex min-h-full items-center justify-center px-5 py-10">
-      {onBack && (
-        <button
-          onClick={onBack}
-          className="absolute left-3 top-[max(env(safe-area-inset-top),12px)] inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm text-faint transition-colors hover:bg-surface hover:text-text sm:left-6"
-        >
-          <ChevronLeft size={16} /> Wapas
-        </button>
-      )}
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center text-center">
-          <Face size={112} state={busy ? 'thinking' : 'idle'} expression={failed ? 'concerned' : 'happy'} />
-          <h1 className="mt-6 font-display text-3xl font-semibold tracking-tight">Saathi</h1>
-          <p className="mt-1 text-muted">Tumhara dost, jo din sambhalne mein saath deta hai.</p>
-        </div>
+    <AuthShell onBack={onBack} busy={busy} failed={failed} title="Saathi" subtitle="Tumhara dost, jo din sambhalne mein saath deta hai.">
 
         <div className="mb-6 grid grid-cols-2 rounded-full bg-surface p-1" role="tablist">
           {[
@@ -89,8 +75,13 @@ export function AuthScreen({ onAuthed, onBack, initialMode = 'signup' }) {
             onChange={set('password')}
             error={errors.password}
             autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
-            hint={mode === 'signup' ? 'Kam se kam 8 characters, ek letter aur ek number.' : null}
+            hint={mode === 'signup' ? PASSWORD_HINT : null}
           />
+          {mode === 'login' && onForgot && (
+            <button type="button" onClick={onForgot} className="-mt-1 self-end rounded px-1 text-sm text-faint transition-colors hover:text-gold">
+              Password bhool gaye?
+            </button>
+          )}
           {message && (
             <p role="alert" className="border-l-2 border-vermilion/60 pl-3 text-sm text-text">
               {message}
@@ -101,16 +92,41 @@ export function AuthScreen({ onAuthed, onBack, initialMode = 'signup' }) {
             disabled={busy}
             className="btn-gold btn-lg mt-3 w-full"
           >
-            {busy ? 'Ek second...' : mode === 'signup' ? 'Account banao' : 'Andar chalo'}
+            {busy ? 'Ek second...' : mode === 'signup' ? 'Account banao' : 'Login karo'}
           </button>
         </form>
+    </AuthShell>
+  );
+}
+
+export const PASSWORD_HINT = 'Kam se kam 8 characters, ek letter aur ek number.';
+
+/** The frame shared by login, signup, "Password bhool gaye?" and the reset page. */
+export function AuthShell({ onBack, busy, failed, title, subtitle, children }) {
+  return (
+    <main className="ambient relative flex min-h-full items-center justify-center px-5 py-10">
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="absolute left-3 top-[max(env(safe-area-inset-top),12px)] inline-flex items-center gap-1 rounded-full px-3 py-2 text-sm text-faint transition-colors hover:bg-surface hover:text-text sm:left-6"
+        >
+          <ChevronLeft size={16} /> Wapas
+        </button>
+      )}
+      <div className="w-full max-w-sm">
+        <div className="mb-8 flex flex-col items-center text-center">
+          <Face size={112} state={busy ? 'thinking' : 'idle'} expression={failed ? 'concerned' : 'happy'} />
+          <h1 className="mt-6 font-display text-3xl font-semibold tracking-tight">{title}</h1>
+          {subtitle && <p className="mt-1 text-muted">{subtitle}</p>}
+        </div>
+        {children}
       </div>
     </main>
   );
 }
 
-function Field({ label, error, hint, type = 'text', ...input }) {
-  const id = `f-${label}`;
+export function Field({ label, error, hint, type = 'text', ...input }) {
+  const id = `f-${label.replace(/\s+/g, '-')}`;
   const isPassword = type === 'password';
   const [visible, setVisible] = useState(false);
   return (

@@ -9,14 +9,19 @@ import { logger } from '../lib/logger.js';
 
 const email = z.string().trim().toLowerCase().pipe(z.email('Enter a valid email address.'));
 
+export const emailSchema = email;
+
+// The same password rules for signup and for a password reset.
+export const passwordSchema = z
+  .string()
+  .min(8, 'Password must be at least 8 characters.')
+  .max(72, 'Password can be at most 72 characters.')
+  .refine((p) => /[a-zA-Z]/.test(p) && /\d/.test(p), 'Password must contain a letter and a number.');
+
 export const signupSchema = z.object({
   name: z.string().trim().min(1, 'Enter your name.').max(60, 'Name can be at most 60 characters.'),
   email,
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters.')
-    .max(72, 'Password can be at most 72 characters.')
-    .refine((p) => /[a-zA-Z]/.test(p) && /\d/.test(p), 'Password must contain a letter and a number.'),
+  password: passwordSchema,
   timezone: z
     .string()
     .optional()

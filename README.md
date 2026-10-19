@@ -19,6 +19,7 @@ Saathi is a chat and voice assistant connected to your own data. The AI model (G
 ## Key features
 
 - Account signup and login with secure, httpOnly cookie sessions, per-IP and per-account brute-force limits
+- "Password bhool gaye?": an emailed single-use reset link (30 minutes, stored only as a hash) that logs out every other session
 - Built to scale horizontally: stateless instances, MongoDB job queue, shared quotas, health checks and graceful shutdown ([docs/SCALING.md](docs/SCALING.md))
 - Tasks (with due dates, priority, tags, and deadlines that show a countdown), notes, and reminders, all searchable and filterable
 - Reminders fire on time from a background worker, exactly once, and can be snoozed or cancelled; Saathi writes a short friendly line for each at fire time (plain text if the AI is unavailable, never late)
@@ -143,6 +144,8 @@ It signs up a throwaway account (`live.<number>@example.com`), shows the greetin
 | `AI_USER_PER_MINUTE`, `AI_USER_PER_DAY` | no | Chat messages per user, default 20 / 300 (only spam should hit these) |
 | `AI_MODEL_LIMITS` | no | Requests per model for the whole app, `model=perMinute/perDay`, kept just below the free-tier limits (default `gemini-3.5-flash-lite=13/480,gemini-3.1-flash-lite=13/480,gemini-3.8-flash=4/18`). When every model is at its limit, Saathi says so in a friendly message and everything except chat keeps working |
 | `AI_MAX_CONCURRENCY`, `AI_MAX_QUEUE` | no | AI call limits per instance, see [docs/SCALING.md](docs/SCALING.md) |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | for email | SMTP server for password reset links (Gmail App Password works). Without `SMTP_HOST` the link is printed in the server log |
+| `APP_URL` | no | Address used in email links, default `CLIENT_ORIGIN` |
 | `MONGODB_URI_TEST` | for tests | Separate database for the test suite |
 
 ## API
@@ -154,6 +157,9 @@ It signs up a throwaway account (`live.<number>@example.com`), shows the greetin
 | POST | `/api/auth/signup` | no | Create an account `{ name, email, password, timezone? }` |
 | POST | `/api/auth/login` | no | Log in `{ email, password }` |
 | POST | `/api/auth/logout` | no | Clear the session cookie |
+| POST | `/api/auth/forgot-password` | no | `{ email }`: emails a reset link (30 minutes, single use; only a hash of the token is stored). Always the same answer, so it never reveals which emails have accounts. Rate-limited per IP and per address |
+| POST | `/api/auth/reset-password/check` | no | `{ token }`: is this link still usable? |
+| POST | `/api/auth/reset-password` | no | `{ token, password }`: sets the new password (signup rules) and logs out every session |
 | GET | `/api/auth/me` | yes | Current user |
 | PATCH | `/api/auth/me` | yes | Update `{ name?, timezone? }` |
 

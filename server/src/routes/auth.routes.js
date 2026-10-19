@@ -4,6 +4,7 @@ import { validate } from '../middleware/validate.js';
 import { requireAuth, signToken, setAuthCookie, clearAuthCookie } from '../middleware/auth.js';
 import { publicUser } from '../models/User.js';
 import * as auth from '../services/auth.service.js';
+import * as reset from '../services/passwordReset.service.js';
 
 export const authRouter = Router();
 
@@ -24,14 +25,31 @@ const authLimiter = rateLimit({
 
 authRouter.post('/signup', authLimiter, validate({ body: auth.signupSchema }), async (req, res) => {
   const user = await auth.signup(req.valid.body);
-  setAuthCookie(res, signToken(user.id));
+  setAuthCookie(res, signToken(user));
   res.status(201).json({ user: publicUser(user) });
 });
 
 authRouter.post('/login', authLimiter, validate({ body: auth.loginSchema }), async (req, res) => {
   const user = await auth.login(req.valid.body);
-  setAuthCookie(res, signToken(user.id));
+  setAuthCookie(res, signToken(user));
   res.json({ user: publicUser(user) });
+});
+
+// "Password bhool gaye?" Always the same answer, whether or not the email has an account.
+authRouter.post('/forgot-password', validate({ body: reset.forgotSchema }), async (req, res) => {
+  res.json(await reset.requestReset(req.valid.body, { ip: req.ip }));
+});
+
+// The reset page asks first whether its link still works, to show a clear message instead of a form.
+authRouter.post('/reset-password/check', validate({ body: reset.tokenSchema }), async (req, res) => {
+  res.json(await reset.checkToken(req.valid.body));
+});
+
+// Sets the new password and logs out every session, this browser included.
+authRouter.post('/reset-password', validate({ body: reset.resetSchema }), async (req, res) => {
+  const result = await reset.resetPassword(req.valid.body, { ip: req.ip });
+  clearAuthCookie(res);
+  res.json(result);
 });
 
 authRouter.post('/logout', (_req, res) => {
