@@ -89,6 +89,16 @@ describe('Step 2 features', { skip: !hasTestDb && 'MONGODB_URI_TEST not set' }, 
       assert.ok(sorted.indexOf(c.id) < sorted.indexOf(b.id), 'tasks without a due date come last');
     });
 
+    it('lists completed tasks newest first (the Completed tab)', async () => {
+      const first = (await me.agent.post('/api/tasks').send({ title: 'Done first' })).body.task;
+      const second = (await me.agent.post('/api/tasks').send({ title: 'Done second' })).body.task;
+      await me.agent.post(`/api/tasks/${first.id}/complete`);
+      await new Promise((r) => setTimeout(r, 20));
+      await me.agent.post(`/api/tasks/${second.id}/complete`);
+      const done = (await me.agent.get('/api/tasks?status=done&sort=completed')).body.tasks.map((t) => t.id);
+      assert.ok(done.indexOf(second.id) < done.indexOf(first.id));
+    });
+
     it('Idempotency-Key makes a double-submitted create happen once', async () => {
       const send = () => me.agent.post('/api/tasks').set('Idempotency-Key', 'tap-123').send({ title: 'Buy notebook' });
       const first = await send();

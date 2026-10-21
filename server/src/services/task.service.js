@@ -30,7 +30,8 @@ export const listTasksSchema = z.object({
   kind: z.enum(['task', 'deadline']).optional(),
   q: z.string().trim().max(100).optional(),
   tag: z.string().trim().toLowerCase().max(30).optional(),
-  sort: z.enum(['due', 'created', 'priority']).default('due'),
+  // completed = most recently completed first (the Completed tab, grouped by day)
+  sort: z.enum(['due', 'created', 'priority', 'completed']).default('due'),
   ...pagination,
 });
 
@@ -61,6 +62,7 @@ export async function list(user, query) {
     due: { dueSort: 1, createdAt: -1 },
     created: { createdAt: -1 },
     priority: { priorityRank: 1, dueSort: 1, createdAt: -1 },
+    completed: { completedAt: -1, _id: -1 },
   }[query.sort];
 
   const [rows, total] = await Promise.all([

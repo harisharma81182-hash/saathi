@@ -32,7 +32,8 @@ Saathi is a chat and voice assistant connected to your own data. The AI model (G
 - Double-submit protection with `Idempotency-Key`, and duplicate reminder detection
 - Agent chat with tool calling, streamed replies, an action receipt (with Undo) for every change, and Confirm/Cancel before deleting
 - Live updates: reminders, nudges and changes appear in every open tab at once (Server-Sent Events)
-- _(coming)_ Voice mode with an animated assistant face
+- Screens for Tasks (open and completed, with a 14-day progress chart), Notes, Reminders, an Activity timeline with Undo, and Settings (profile, what Saathi remembers); a 10-second Undo bar after every change
+- _(coming)_ Voice mode
 
 ## Tech stack
 

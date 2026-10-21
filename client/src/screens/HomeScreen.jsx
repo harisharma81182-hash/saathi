@@ -1,23 +1,20 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Bell, LogOut } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { useChat } from '../hooks/useChat.js';
-import { useLiveEvents } from '../hooks/useLiveEvents.js';
+import { useLiveRefresh } from '../app/live.js';
 import { HeroFace } from '../components/HeroFace.jsx';
-import { CursorGlow } from '../components/CursorGlow.jsx';
 import { ChatPanel } from '../components/ChatPanel.jsx';
 import { TodayPanel } from '../components/TodayPanel.jsx';
-import { Toasts } from '../components/Toasts.jsx';
 
 // Home: Saathi's face and a fresh greeting on top, the chat in the middle, the Today panel on the
-// right (on phones, Chat and Aaj are two tabs). Live events keep everything up to date.
-export function HomeScreen({ user, onLogout }) {
+// right (on phones, Chat and Aaj switch with a small toggle). The app shell (app/AppShell.jsx) owns
+// the navigation, the live-updates stream and the toasts; this screen just refreshes when told.
+export function HomeScreen({ user }) {
   const chat = useChat();
   const [greeting, setGreeting] = useState(null);
   const [today, setToday] = useState(null);
   const [todayError, setTodayError] = useState(null);
-  const [toasts, setToasts] = useState([]);
   const [tab, setTab] = useState('chat');
 
   useEffect(() => {
@@ -36,34 +33,17 @@ export function HomeScreen({ user, onLogout }) {
   }, []);
   useEffect(loadToday, [loadToday]);
 
-  // Many changes can arrive at once (a study plan is 15 changes): refresh the panel once for all.
-  const refreshTimer = useRef(null);
-  const refreshSoon = useCallback(() => {
-    clearTimeout(refreshTimer.current);
-    refreshTimer.current = setTimeout(loadToday, 300);
-  }, [loadToday]);
-
-  const live = useLiveEvents({
-    changed: refreshSoon,
-    notification: (n) => {
-      setToasts((all) => [n, ...all.filter((t) => t.id !== n.id)].slice(0, 3));
-      refreshSoon();
-      if (n.kind === 'nudge' || n.kind === 'recap') chat.reload();
-      // The tab is in the background: a system notification too, if the user allowed it.
-      if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
-        new Notification(n.title, { body: n.body || undefined, icon: '/favicon.svg', tag: n.id });
-      }
-    },
-  });
+  // Something changed anywhere (Saathi, another tab, a reminder firing): refresh the panel. When
+  // Saathi wrote first (a nudge or the evening recap), its message also appears in the chat.
+  useLiveRefresh(loadToday);
+  useLiveRefresh(chat.reload, { on: 'notify' });
 
   const faceState = chat.face.state;
   const expression = chat.sending || chat.messages.length ? chat.face.expression : (greeting?.expression ?? 'happy');
 
   return (
-    <div className="ambient flex h-full flex-col">
-      <CursorGlow />
-      <TopBar user={user} live={live} onLogout={onLogout} />
-
+    <div className="flex h-full flex-col">
+      <PhoneToggle tab={tab} setTab={setTab} badge={today?.counts?.overdue} />
       <div className="flex min-h-0 flex-1">
         <main className={`min-h-0 flex-1 flex-col ${tab === 'chat' ? 'flex' : 'hidden lg:flex'}`}>
           <Hero user={user} greeting={greeting} expression={expression} state={faceState} compact={chat.messages.length > 0} />
@@ -77,8 +57,6 @@ export function HomeScreen({ user, onLogout }) {
         </aside>
       </div>
 
-      <MobileTabs tab={tab} setTab={setTab} badge={today?.counts?.overdue} />
-      <Toasts items={toasts} onDismiss={(id) => setToasts((all) => all.filter((t) => t.id !== id))} onChanged={loadToday} />
     </div>
   );
 }
@@ -117,7 +95,7 @@ function Hero({ user, greeting, expression, state, compact }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.4 }}
-                className={`font-display font-semibold tracking-tight text-balance ${compact ? 'line-clamp-1 text-lg text-muted' : 'text-2xl sm:text-3xl'}`}
+                className={`font-display font-semibold tracking-tight text-balance ${compact ? 'line-clamp-1 text-lg text-muted' : 'text-xl sm:text-3xl'}`}
               >
                 {text ?? `Hi ${user.name}, aaj kya karna hai?`}
               </motion.h1>
@@ -134,54 +112,30 @@ function Hero({ user, greeting, expression, state, compact }) {
   );
 }
 
-function TopBar({ user, live, onLogout }) {
-  const [perm, setPerm] = useState(() => ('Notification' in window ? Notification.permission : 'unsupported'));
+/** Phones only: switch between the chat and today's panel. */
+function PhoneToggle({ tab, setTab, badge }) {
   return (
-    <header className="flex items-center justify-between px-4 pb-1 pt-[max(env(safe-area-inset-top),12px)] sm:px-8">
-      <div className="flex items-center gap-2">
-        <span className="font-display text-lg font-semibold tracking-tight">Saathi</span>
-        <span
-          className={`h-1.5 w-1.5 rounded-full transition-colors ${live === 'live' ? 'bg-leaf' : 'bg-faint'}`}
-          title={live === 'live' ? 'Live: updates turant aayenge' : 'Dobara jud raha hai...'}
-        />
-      </div>
-      <div className="flex items-center gap-1">
-        {perm === 'default' && (
+    <div className="flex justify-center px-4 pb-1 lg:hidden">
+      <div className="grid grid-cols-2 rounded-full bg-surface p-1" role="tablist" aria-label="Home">
+        {[
+          ['chat', 'Chat'],
+          ['today', 'Aaj'],
+        ].map(([id, label]) => (
           <button
-            onClick={() => Notification.requestPermission().then(setPerm)}
-            className="inline-flex h-9 items-center gap-2 rounded-full px-3 text-sm text-faint transition-colors hover:bg-surface hover:text-text"
+            key={id}
+            role="tab"
+            aria-selected={tab === id}
+            onClick={() => setTab(id)}
+            className={`relative rounded-full px-6 py-1.5 text-sm font-semibold transition-colors ${tab === id ? 'text-text' : 'text-faint'}`}
           >
-            <Bell size={16} />
-            <span className="hidden sm:inline">Alerts on karo</span>
+            {tab === id && <motion.span layoutId="home-toggle" className="absolute inset-0 rounded-full bg-surface-2" transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} />}
+            <span className="relative">
+              {label}
+              {id === 'today' && badge > 0 && <span className="ml-1.5 inline-block h-1.5 w-1.5 -translate-y-1.5 rounded-full bg-vermilion" aria-label={`${badge} pending`} />}
+            </span>
           </button>
-        )}
-        <span className="hidden px-2 text-sm text-faint sm:inline">{user.name}</span>
-        <button
-          onClick={onLogout}
-          aria-label="Logout"
-          title="Logout"
-          className="grid h-9 w-9 place-items-center rounded-full text-faint transition-colors hover:bg-surface hover:text-text"
-        >
-          <LogOut size={17} />
-        </button>
+        ))}
       </div>
-    </header>
-  );
-}
-
-function MobileTabs({ tab, setTab, badge }) {
-  return (
-    <nav className="grid grid-cols-2 border-t border-line bg-ink/70 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden" aria-label="Screens">
-      {[
-        ['chat', 'Chat'],
-        ['today', 'Aaj'],
-      ].map(([id, label]) => (
-        <button key={id} onClick={() => setTab(id)} aria-current={tab === id} className={`relative py-3 font-display font-semibold transition-colors ${tab === id ? 'text-text' : 'text-faint'}`}>
-          {label}
-          {id === 'today' && badge > 0 && <span className="ml-1.5 inline-block h-1.5 w-1.5 -translate-y-2 rounded-full bg-vermilion" aria-label={`${badge} pending`} />}
-          {tab === id && <motion.span layoutId="tab-line" className="absolute inset-x-12 top-0 h-0.5 rounded-full bg-gold" transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} />}
-        </button>
-      ))}
-    </nav>
+    </div>
   );
 }

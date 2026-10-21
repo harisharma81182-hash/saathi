@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { api } from './lib/api.js';
 import { Face } from './components/Face.jsx';
 import { AuthScreen } from './screens/AuthScreen.jsx';
-import { HomeScreen } from './screens/HomeScreen.jsx';
+import { AppShell } from './app/AppShell.jsx';
 import { ForgotScreen, ResetScreen } from './screens/PasswordScreens.jsx';
 
 // The landing page carries the 3D library, so it is loaded only for visitors who are not logged in.
@@ -31,6 +31,7 @@ const PAGE = {
 // not someone is logged in (the token stays in the #fragment, never sent to any server log).
 const VIEWS = { '#login': 'login', '#signup': 'signup', '#forgot': 'forgot' };
 const authViewFromHash = () => (location.hash.startsWith('#reset=') ? 'reset' : (VIEWS[location.hash] ?? 'landing'));
+// (Logged in, #/tasks, #/notes ... pick the screen inside the app shell.)
 const resetToken = () => (location.hash.startsWith('#reset=') ? location.hash.slice('#reset='.length) : null);
 
 // Who is logged in decides the screen. The cookie is httpOnly, so the only way to know is to ask.
@@ -114,7 +115,7 @@ export function App() {
       )}
       {authView !== 'reset' && session.status === 'in' && (
         <motion.div key="home" className="h-full" {...PAGE}>
-          <HomeScreen user={session.user} onLogout={logout} />
+          <AppShell user={session.user} onLogout={logout} />
         </motion.div>
       )}
     </AnimatePresence>
