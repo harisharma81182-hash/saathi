@@ -1,6 +1,7 @@
 import { motion } from 'motion/react';
 import { RotateCw } from 'lucide-react';
 import { Face } from './Face.jsx';
+import { photoUrl } from '../lib/photos.js';
 
 // Pieces every screen after Home is built from, so they all read as one product:
 // a calm page frame with a big title, tabs, and the loading / empty / error states.
@@ -46,11 +47,25 @@ export function Tabs({ value, onChange, options, label }) {
   );
 }
 
-/** Nothing here yet: Saathi's face, one friendly line, and what to do about it. */
+/** Nothing here yet: Saathi's face in front of two galaxies (NGC 2207), one friendly line, and what to do. */
 export function EmptyState({ title, text, action, expression = 'happy' }) {
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center py-16 text-center">
-      <Face size={64} expression={expression} followCursor={false} />
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center py-12 text-center">
+      <div className="relative grid h-40 w-72 max-w-full place-items-center">
+        <picture aria-hidden>
+          <source media="(max-width: 640px)" srcSet={photoUrl('ngc2207', 'phone')} />
+          <img
+            src={photoUrl('ngc2207', 'desktop')}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="absolute inset-0 h-full w-full object-cover opacity-70 [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,black_35%,transparent_100%)]"
+          />
+        </picture>
+        <span className="relative">
+          <Face size={64} expression={expression} followCursor={false} />
+        </span>
+      </div>
       <p className="mt-5 font-display text-xl font-semibold">{title}</p>
       {text && <p className="mt-1.5 max-w-sm text-muted">{text}</p>}
       {action && <div className="mt-6">{action}</div>}

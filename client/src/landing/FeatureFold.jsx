@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from 'motion/react';
+import { SpaceBackdrop } from '../components/SpaceBackdrop.jsx';
 
 // The features as a 3D accordion: five glass panels folded in a zig-zag, in perspective. While the
 // section scrolls past (it is several screens tall, the stage stays pinned), the fold opens one
@@ -80,7 +81,8 @@ function FoldPanel({ feature, index, focus }) {
 
 function Panel({ feature }) {
   return (
-    <article className="glass flex h-full flex-col overflow-hidden rounded-[28px] bg-ink-2/85 p-6 sm:p-8">
+    <article className="glass relative isolate flex h-full flex-col overflow-hidden rounded-[28px] bg-ink-2/85 p-6 sm:p-8">
+      {feature.photo && <SpaceBackdrop photo={feature.photo} className="absolute" />}
       <header>
         <p className="flex items-center gap-2 text-sm text-faint">
           <span className="h-2 w-2 rounded-full" style={{ background: feature.color, boxShadow: `0 0 12px ${feature.color}` }} />

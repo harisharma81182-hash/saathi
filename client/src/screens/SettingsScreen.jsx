@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Bell, Check, LogOut, Plus, Trash2 } from 'lucide-react';
 import { api } from '../lib/api.js';
+import { PHOTOS } from '../lib/photos.js';
 import { EmptyState, ErrorState, ListSkeleton, ScreenFrame } from '../components/ScreenParts.jsx';
 
 // Settings: your name and timezone (Saathi uses them in every reply, and "kal 9 baje" depends on
@@ -32,6 +33,7 @@ export function SettingsScreen({ user, onUserChange, onLogout }) {
           <LogOut size={16} /> Logout karo
         </button>
       </Section>
+      <PhotoCredits />
     </ScreenFrame>
   );
 }
@@ -221,6 +223,27 @@ function Memories() {
         </AnimatePresence>
       </ul>
     </div>
+  );
+}
+
+/** One small line, opening into where every background photo comes from. */
+function PhotoCredits() {
+  return (
+    <details className="group mt-12 border-t border-line pt-6 text-xs text-faint">
+      <summary className="cursor-pointer list-none hover:text-muted">
+        Space photos: NASA, ESA/Hubble aur Chandra ke asli photos. <span className="underline underline-offset-2">Credits dekho</span>
+      </summary>
+      <ul className="mt-4 flex flex-col gap-3">
+        {Object.entries(PHOTOS).map(([id, p]) => (
+          <li key={id}>
+            <a href={p.source} target="_blank" rel="noreferrer" className="text-muted hover:text-text">
+              {p.title}
+            </a>
+            <span className="text-faint"> ({p.usedFor}). Credit: {p.credit}</span>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }
 

@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ChevronLeft, Eye, EyeOff } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { Face } from '../components/Face.jsx';
+import { SpaceBackdrop } from '../components/SpaceBackdrop.jsx';
 
 // Login and signup on one calm screen, with Saathi's face reacting to what happens.
 export function AuthScreen({ onAuthed, onBack, onForgot, initialMode = 'signup' }) {
@@ -102,9 +103,10 @@ export function AuthScreen({ onAuthed, onBack, onForgot, initialMode = 'signup' 
 export const PASSWORD_HINT = 'Kam se kam 8 characters, ek letter aur ek number.';
 
 /** The frame shared by login, signup, "Password bhool gaye?" and the reset page. */
-export function AuthShell({ onBack, busy, failed, title, subtitle, children }) {
+export function AuthShell({ onBack, busy, failed, title, subtitle, photo = 'pillars', children }) {
   return (
     <main className="ambient relative flex min-h-full items-center justify-center px-5 py-10">
+      <SpaceBackdrop photo={photo} strength={photo === 'pillars' ? 'soft' : 'strong'} position="50% 30%" />
       {onBack && (
         <button
           onClick={onBack}

@@ -6,6 +6,7 @@ import { LiveContext } from './live.js';
 import { Toasts } from '../components/Toasts.jsx';
 import { UndoToast } from '../components/UndoToast.jsx';
 import { CursorGlow } from '../components/CursorGlow.jsx';
+import { SpaceBackdrop } from '../components/SpaceBackdrop.jsx';
 import { HomeScreen } from '../screens/HomeScreen.jsx';
 import { TasksScreen } from '../screens/TasksScreen.jsx';
 import { NotesScreen } from '../screens/NotesScreen.jsx';
@@ -25,6 +26,10 @@ export const SCREENS = [
   { id: 'activity', label: 'Activity', icon: Activity },
 ];
 const ALL = [...SCREENS.map((s) => s.id), 'settings'];
+
+// The space photo behind each screen (lib/photos.js has the credits). Activity waits for its
+// photo; Reminders keeps the plain night sky on purpose.
+const BACKDROPS = { home: 'westerlund2', tasks: 'antennae', notes: 'am0500', settings: 'carina' };
 
 const screenFromHash = () => {
   const id = location.hash.replace(/^#\/?/, '');
@@ -70,6 +75,17 @@ export function AppShell({ user: initialUser, onLogout }) {
   return (
     <LiveContext.Provider value={live}>
       <div className="ambient flex h-full flex-col">
+        <AnimatePresence initial={false}>
+          <motion.div
+            key={BACKDROPS[screen] ?? 'none'}
+            className="pointer-events-none absolute inset-0 -z-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, transition: { duration: 0.9 } }}
+            exit={{ opacity: 0, transition: { duration: 0.6 } }}
+          >
+            <SpaceBackdrop photo={BACKDROPS[screen]} className="absolute" strength={screen === 'notes' ? 'soft' : 'strong'} />
+          </motion.div>
+        </AnimatePresence>
         <CursorGlow />
         <TopBar screen={screen} go={go} user={user} live={status} onLogout={onLogout} />
         <main className="relative min-h-0 flex-1">

@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { api } from './lib/api.js';
 import { Face } from './components/Face.jsx';
+import { SpaceBackdrop } from './components/SpaceBackdrop.jsx';
 import { AuthScreen } from './screens/AuthScreen.jsx';
 import { AppShell } from './app/AppShell.jsx';
 import { ForgotScreen, ResetScreen } from './screens/PasswordScreens.jsx';
@@ -81,6 +82,7 @@ export function App() {
       )}
       {authView !== 'reset' && session.status === 'loading' && (
         <motion.div key="loading" className="ambient grid h-full place-items-center" exit={{ opacity: 0 }}>
+          <SpaceBackdrop photo="antennae-hubble" strength="soft" />
           <Face state="thinking" size={96} label="Saathi is waking up" />
         </motion.div>
       )}

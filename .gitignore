@@ -21,3 +21,6 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# HD originals of the background photos (large; the app uses the WebP files in client/public/bg)
+design/bg-hd/

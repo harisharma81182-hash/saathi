@@ -30,7 +30,7 @@ export function ForgotScreen({ onBack, onLogin }) {
 
   if (sent) {
     return (
-      <AuthShell onBack={onBack} title="Inbox check karo">
+      <AuthShell photo="mysticmountain" onBack={onBack} title="Inbox check karo">
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center text-center">
           <span className="grid h-12 w-12 place-items-center rounded-full bg-leaf/15 text-leaf">
             <MailCheck size={22} />
@@ -46,7 +46,7 @@ export function ForgotScreen({ onBack, onLogin }) {
   }
 
   return (
-    <AuthShell onBack={onBack} busy={busy} failed={Boolean(error)} title="Password bhool gaye?" subtitle="Account ka email likho. Naya password set karne ka link wahan bhej denge.">
+    <AuthShell photo="mysticmountain" onBack={onBack} busy={busy} failed={Boolean(error)} title="Password bhool gaye?" subtitle="Account ka email likho. Naya password set karne ka link wahan bhej denge.">
       <form onSubmit={submit} className="flex flex-col gap-3" noValidate>
         <Field label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} error={error} autoComplete="email" autoFocus />
         <button type="submit" disabled={busy || !email.trim()} className="btn-gold btn-lg mt-3 w-full">
@@ -96,14 +96,14 @@ export function ResetScreen({ token, onLogin, onForgot }) {
 
   if (status === 'checking') {
     return (
-      <AuthShell busy title="Link check ho raha hai">
+      <AuthShell photo="mysticmountain" busy title="Link check ho raha hai">
         <div className="skeleton mx-auto h-11 w-full" />
       </AuthShell>
     );
   }
   if (status === 'invalid') {
     return (
-      <AuthShell failed title="Yeh link ab kaam nahi karta" subtitle="Link 30 minute tak aur sirf ek baar chalta hai. Naya link maango, ek minute lagega.">
+      <AuthShell photo="mysticmountain" failed title="Yeh link ab kaam nahi karta" subtitle="Link 30 minute tak aur sirf ek baar chalta hai. Naya link maango, ek minute lagega.">
         <button onClick={onForgot} className="btn-gold btn-lg w-full">
           Naya link maango
         </button>
@@ -115,7 +115,7 @@ export function ResetScreen({ token, onLogin, onForgot }) {
   }
   if (status === 'done') {
     return (
-      <AuthShell title="Password badal gaya" subtitle={message}>
+      <AuthShell photo="mysticmountain" title="Password badal gaya" subtitle={message}>
         <p className="mb-6 text-center text-sm text-faint">Baaki saare devices se bhi logout kar diya hai, safety ke liye.</p>
         <button onClick={onLogin} className="btn-gold btn-lg w-full">
           Login karo
@@ -129,7 +129,7 @@ export function ResetScreen({ token, onLogin, onForgot }) {
     setErrors((er) => ({ ...er, [field]: null }));
   };
   return (
-    <AuthShell busy={busy} failed={Boolean(message || errors.password || errors.confirm)} title="Naya password set karo" subtitle="Isse purane saare logins band ho jaayenge.">
+    <AuthShell photo="mysticmountain" busy={busy} failed={Boolean(message || errors.password || errors.confirm)} title="Naya password set karo" subtitle="Isse purane saare logins band ho jaayenge.">
       <form onSubmit={submit} className="flex flex-col gap-3" noValidate>
         <Field label="Naya password" type="password" value={form.password} onChange={set('password')} error={errors.password} hint={PASSWORD_HINT} autoComplete="new-password" autoFocus />
         <Field label="Naya password dobara" type="password" value={form.confirm} onChange={set('confirm')} error={errors.confirm} autoComplete="new-password" />

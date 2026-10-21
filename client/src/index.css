@@ -315,3 +315,27 @@ html.lenis body {
 .lenis.lenis-stopped {
   overflow: hidden;
 }
+
+/* Real space photos behind screens (components/SpaceBackdrop.jsx). A very slow zoom, and a dark
+   veil so text stays readable: darker in the middle column where the content sits. */
+.space-photo {
+  transform-origin: 50% 40%;
+  animation: space-drift 90s ease-in-out infinite alternate;
+}
+@keyframes space-drift {
+  from { transform: scale(1.02); }
+  to { transform: scale(1.12) translate3d(-1%, -1%, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .space-photo { animation: none; }
+}
+.space-veil {
+  background:
+    radial-gradient(ellipse 60% 70% at 50% 45%, rgb(7 9 20 / 0.5), transparent 100%),
+    linear-gradient(180deg, rgb(7 9 20 / 0.6) 0%, rgb(7 9 20 / 0.62) 40%, rgb(7 9 20 / 0.86) 100%);
+}
+.space-veil-soft {
+  background:
+    radial-gradient(ellipse 50% 60% at 50% 50%, rgb(7 9 20 / 0.35), transparent 100%),
+    linear-gradient(180deg, rgb(7 9 20 / 0.4) 0%, rgb(7 9 20 / 0.45) 50%, rgb(7 9 20 / 0.8) 100%);
+}

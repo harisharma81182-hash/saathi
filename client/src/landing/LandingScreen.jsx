@@ -15,7 +15,7 @@ import { Face } from '../components/Face.jsx';
 const FEATURES = [
   { id: 'tasks', name: 'Tasks', color: '#5aa8ff', title: 'Bolo, aur kaam list mein.', text: 'Normal baat ki tarah likho. Saathi task, deadline aur priority khud samajh leta hai, aur har badlaav Undo ho sakta hai.', snippet: <ChatSnippet /> },
   { id: 'reminders', name: 'Reminders', color: '#ff9d5c', title: 'Time pe, dost ki tarah yaad.', text: 'Reminder bajne par Saathi apne andaaz mein yaad dilata hai. Abhi time nahi? Ek tap mein 10 minute baad.', snippet: <ReminderSnippet /> },
-  { id: 'study-plan', name: 'Study plan', color: '#9b7bff', title: 'Exam ka plan, ek line mein.', text: '"25 ko DBMS exam hai" bolo. Topics roz ke sessions mein bant jaate hain, har session ka reminder bhi.', snippet: <StudyPlanSnippet /> },
+  { id: 'study-plan', name: 'Study plan', color: '#9b7bff', photo: 'cosmicreef', title: 'Exam ka plan, ek line mein.', text: '"25 ko DBMS exam hai" bolo. Topics roz ke sessions mein bant jaate hain, har session ka reminder bhi.', snippet: <StudyPlanSnippet /> },
   { id: 'memory', name: 'Memory', color: '#47d6c3', title: 'Tumhe yaad rakhta hai.', text: 'Classes ka time, mushkil subject, padhne ka pasandida waqt. Saathi yaad rakhta hai, aur Settings mein sab dikhta hai.', snippet: <MemorySnippet /> },
   { id: 'voice', name: 'Voice', color: '#ff6fb5', title: 'Type nahi, bas bolo.', text: 'Hindi, English ya Hinglish mein bolo. Saathi sunta hai, kaam karta hai, aur jawab bhi bolke deta hai.', snippet: <VoiceSnippet /> },
 ];
