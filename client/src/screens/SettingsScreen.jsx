@@ -231,7 +231,7 @@ function PhotoCredits() {
   return (
     <details className="group mt-12 border-t border-line pt-6 text-xs text-faint">
       <summary className="cursor-pointer list-none hover:text-muted">
-        Space photos: NASA, ESA/Hubble aur Chandra ke asli photos. <span className="underline underline-offset-2">Credits dekho</span>
+        Background photos: NASA, ESA/Hubble, Chandra aur Pexels. <span className="underline underline-offset-2">Credits dekho</span>
       </summary>
       <ul className="mt-4 flex flex-col gap-3">
         {Object.entries(PHOTOS).map(([id, p]) => (
@@ -239,7 +239,10 @@ function PhotoCredits() {
             <a href={p.source} target="_blank" rel="noreferrer" className="text-muted hover:text-text">
               {p.title}
             </a>
-            <span className="text-faint"> ({p.usedFor}). Credit: {p.credit}</span>
+            <span className="text-faint">
+              {' '}
+              ({p.usedFor}{p.match === 'similar' && ', milti-julti photo'}). Credit: {p.credit}
+            </span>
           </li>
         ))}
       </ul>

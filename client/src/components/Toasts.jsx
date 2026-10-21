@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { X } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { Face } from './Face.jsx';
+import { SpaceBackdrop } from './SpaceBackdrop.jsx';
 
 // Live notifications (a reminder fired, a nudge, the evening recap) slide in at the top right, with
 // the buttons that make sense for each: snooze a reminder, move leftovers to tomorrow.
@@ -45,8 +46,10 @@ function Toast({ n, onDismiss, onChanged }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, transition: { duration: 0.2 } }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className="glass pointer-events-auto relative w-full max-w-sm rounded-2xl bg-ink/80 p-4"
+      className="glass pointer-events-auto relative isolate w-full max-w-sm overflow-hidden rounded-2xl bg-ink/80 p-4"
     >
+      {/* Earth at night from the space station, faint behind the text */}
+      <SpaceBackdrop photo="earth-night" className="absolute" strength="soft" />
       <button onClick={onDismiss} aria-label="Band karo" className="absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-full text-faint transition-colors hover:bg-surface-2 hover:text-text">
         <X size={15} />
       </button>

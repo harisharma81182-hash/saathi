@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { api } from './lib/api.js';
 import { Face } from './components/Face.jsx';
 import { SpaceBackdrop } from './components/SpaceBackdrop.jsx';
+import { WarpFlash } from './components/WarpFlash.jsx';
 import { AuthScreen } from './screens/AuthScreen.jsx';
 import { AppShell } from './app/AppShell.jsx';
 import { ForgotScreen, ResetScreen } from './screens/PasswordScreens.jsx';
@@ -66,60 +67,64 @@ export function App() {
   };
 
   return (
-    <AnimatePresence mode="wait">
-      {authView === 'reset' && (
-        <motion.div key="reset" className="h-full" {...PAGE}>
-          <ResetScreen
-            token={resetToken()}
-            onForgot={() => go('forgot')}
-            onLogin={() => {
-              // Every session was logged out by the reset, this one included.
-              setSession({ status: 'out', user: null });
-              go('login');
-            }}
-          />
-        </motion.div>
-      )}
-      {authView !== 'reset' && session.status === 'loading' && (
-        <motion.div key="loading" className="ambient grid h-full place-items-center" exit={{ opacity: 0 }}>
-          <SpaceBackdrop photo="antennae-hubble" strength="soft" />
-          <Face state="thinking" size={96} label="Saathi is waking up" />
-        </motion.div>
-      )}
-      {authView !== 'reset' && session.status === 'offline' && (
-        <motion.div key="offline" className="ambient grid h-full place-items-center px-6 text-center">
-          <div className="flex max-w-sm flex-col items-center gap-4">
-            <Face state="error" size={96} />
-            <h1 className="font-display text-2xl font-semibold">Saathi tak pahunch nahi pa rahe</h1>
-            <p className="text-muted">{session.error?.message}</p>
-            <button className="rounded-full bg-gold px-5 py-2 font-semibold text-ink" onClick={() => window.location.reload()}>
-              Dobara try karo
-            </button>
-          </div>
-        </motion.div>
-      )}
-      {session.status === 'out' && authView === 'landing' && (
-        <motion.div key="landing" className="min-h-full" {...PAGE}>
-          <Suspense fallback={<div className="night-sky h-full" />}>
-            <LandingScreen onLogin={() => go('login')} onSignup={() => go('signup')} />
-          </Suspense>
-        </motion.div>
-      )}
-      {session.status === 'out' && authView === 'forgot' && (
-        <motion.div key="forgot" className="h-full" {...PAGE}>
-          <ForgotScreen onBack={() => go('login')} onLogin={() => go('login')} />
-        </motion.div>
-      )}
-      {session.status === 'out' && (authView === 'login' || authView === 'signup') && (
-        <motion.div key="auth" className="h-full" {...PAGE}>
-          <AuthScreen key={authView} initialMode={authView} onBack={() => go('landing')} onForgot={() => go('forgot')} onAuthed={authed} />
-        </motion.div>
-      )}
-      {authView !== 'reset' && session.status === 'in' && (
-        <motion.div key="home" className="h-full" {...PAGE}>
-          <AppShell user={session.user} onLogout={logout} />
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <>
+      <WarpFlash routeKey={session.status === 'in' ? 'app' : `${session.status}:${authView}`} />
+      <AnimatePresence mode="wait">
+        {authView === 'reset' && (
+          <motion.div key="reset" className="h-full" {...PAGE}>
+            <ResetScreen
+              token={resetToken()}
+              onForgot={() => go('forgot')}
+              onLogin={() => {
+                // Every session was logged out by the reset, this one included.
+                setSession({ status: 'out', user: null });
+                go('login');
+              }}
+            />
+          </motion.div>
+        )}
+        {authView !== 'reset' && session.status === 'loading' && (
+          <motion.div key="loading" className="ambient grid h-full place-items-center" exit={{ opacity: 0 }}>
+            <SpaceBackdrop photo="antennae-hubble" strength="soft" />
+            <Face state="thinking" size={96} label="Saathi is waking up" />
+          </motion.div>
+        )}
+        {authView !== 'reset' && session.status === 'offline' && (
+          <motion.div key="offline" className="ambient grid h-full place-items-center px-6 text-center">
+            <SpaceBackdrop photo="andromeda-visible" />
+            <div className="flex max-w-sm flex-col items-center gap-4">
+              <Face state="error" size={96} />
+              <h1 className="font-display text-2xl font-semibold">Saathi tak pahunch nahi pa rahe</h1>
+              <p className="text-muted">{session.error?.message}</p>
+              <button className="rounded-full bg-gold px-5 py-2 font-semibold text-ink" onClick={() => window.location.reload()}>
+                Dobara try karo
+              </button>
+            </div>
+          </motion.div>
+        )}
+        {session.status === 'out' && authView === 'landing' && (
+          <motion.div key="landing" className="min-h-full" {...PAGE}>
+            <Suspense fallback={<div className="night-sky h-full" />}>
+              <LandingScreen onLogin={() => go('login')} onSignup={() => go('signup')} />
+            </Suspense>
+          </motion.div>
+        )}
+        {session.status === 'out' && authView === 'forgot' && (
+          <motion.div key="forgot" className="h-full" {...PAGE}>
+            <ForgotScreen onBack={() => go('login')} onLogin={() => go('login')} />
+          </motion.div>
+        )}
+        {session.status === 'out' && (authView === 'login' || authView === 'signup') && (
+          <motion.div key="auth" className="h-full" {...PAGE}>
+            <AuthScreen key={authView} initialMode={authView} onBack={() => go('landing')} onForgot={() => go('forgot')} onAuthed={authed} />
+          </motion.div>
+        )}
+        {authView !== 'reset' && session.status === 'in' && (
+          <motion.div key="home" className="h-full" {...PAGE}>
+            <AppShell user={session.user} onLogout={logout} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

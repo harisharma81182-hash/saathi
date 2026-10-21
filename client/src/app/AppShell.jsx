@@ -27,9 +27,9 @@ export const SCREENS = [
 ];
 const ALL = [...SCREENS.map((s) => s.id), 'settings'];
 
-// The space photo behind each screen (lib/photos.js has the credits). Activity waits for its
-// photo; Reminders keeps the plain night sky on purpose.
-const BACKDROPS = { home: 'westerlund2', tasks: 'antennae', notes: 'am0500', settings: 'carina' };
+// The space photo behind each screen (lib/photos.js has the credits). Reminders keeps the plain
+// night sky on purpose (Himanshu has another idea for it).
+const BACKDROPS = { home: 'westerlund2', tasks: 'antennae', notes: 'am0500', activity: 'andromeda', settings: 'carina' };
 
 const screenFromHash = () => {
   const id = location.hash.replace(/^#\/?/, '');

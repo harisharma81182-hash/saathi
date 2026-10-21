@@ -51,21 +51,9 @@ export function Tabs({ value, onChange, options, label }) {
 export function EmptyState({ title, text, action, expression = 'happy' }) {
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center py-12 text-center">
-      <div className="relative grid h-40 w-72 max-w-full place-items-center">
-        <picture aria-hidden>
-          <source media="(max-width: 640px)" srcSet={photoUrl('ngc2207', 'phone')} />
-          <img
-            src={photoUrl('ngc2207', 'desktop')}
-            alt=""
-            loading="lazy"
-            decoding="async"
-            className="absolute inset-0 h-full w-full object-cover opacity-70 [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,black_35%,transparent_100%)]"
-          />
-        </picture>
-        <span className="relative">
-          <Face size={64} expression={expression} followCursor={false} />
-        </span>
-      </div>
+      <PhotoHalo photo="ngc2207">
+        <Face size={64} expression={expression} followCursor={false} />
+      </PhotoHalo>
       <p className="mt-5 font-display text-xl font-semibold">{title}</p>
       {text && <p className="mt-1.5 max-w-sm text-muted">{text}</p>}
       {action && <div className="mt-6">{action}</div>}
@@ -73,11 +61,32 @@ export function EmptyState({ title, text, action, expression = 'happy' }) {
   );
 }
 
-/** Loading failed: what went wrong, and a way to try again. */
+/** A space photo melting into the page around Saathi's face (empty and error states). */
+function PhotoHalo({ photo, children }) {
+  return (
+    <div className="relative grid h-40 w-72 max-w-full place-items-center">
+      <picture aria-hidden>
+        <source media="(max-width: 640px)" srcSet={photoUrl(photo, 'phone')} />
+        <img
+          src={photoUrl(photo, 'desktop')}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover opacity-70 [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,black_35%,transparent_100%)]"
+        />
+      </picture>
+      <span className="relative">{children}</span>
+    </div>
+  );
+}
+
+/** Loading failed: what went wrong (Saathi in front of Andromeda), and a way to try again. */
 export function ErrorState({ error, onRetry }) {
   return (
-    <div role="alert" className="flex flex-col items-center py-16 text-center">
-      <Face size={56} expression="sorry" followCursor={false} />
+    <div role="alert" className="flex flex-col items-center py-12 text-center">
+      <PhotoHalo photo="andromeda-visible">
+        <Face size={56} expression="sorry" followCursor={false} />
+      </PhotoHalo>
       <p className="mt-5 max-w-sm text-muted">{error?.message ?? 'Yeh load nahi ho paaya.'}</p>
       <button onClick={onRetry} className="btn-ghost mt-4 text-gold">
         <RotateCw size={15} /> Dobara load karo

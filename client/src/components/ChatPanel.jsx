@@ -4,6 +4,7 @@ import { ArrowUp, ChevronDown, RotateCw } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { when } from '../lib/format.js';
 import { Face } from './Face.jsx';
+import { SpaceBackdrop } from './SpaceBackdrop.jsx';
 import { ConfirmCard, ReceiptSlip, ToolActivity, TypingDots } from './ChatParts.jsx';
 
 // Things to try, shown while the chat is empty. Full sentences, so it is obvious they can be said as is.
@@ -119,7 +120,9 @@ function Message({ m, showTime, onUndo, onAnswer, onRetry }) {
       ) : (
         <div className="flex max-w-[94%] gap-3">
           <Face size={28} expression={m.expression ?? 'happy'} state={m.streaming && !m.text ? 'thinking' : 'idle'} followCursor={false} />
-          <div className="min-w-0 flex-1 pt-0.5">
+          <div className={`min-w-0 flex-1 ${m.origin === 'recap' ? 'relative isolate overflow-hidden rounded-2xl border border-line px-4 py-3' : 'pt-0.5'}`}>
+            {/* The evening recap sits on Earth at night, seen from the space station */}
+            {m.origin === 'recap' && <SpaceBackdrop photo="earth-night" className="absolute" />}
             {m.origin && <p className="mb-1 text-xs text-faint">{m.origin === 'recap' ? 'Aaj ka hisaab' : 'Saathi ne khud yaad kiya'}</p>}
             {m.text ? <p className="whitespace-pre-wrap">{m.text}</p> : m.streaming && !m.tools?.length ? <TypingDots /> : null}
             <ToolActivity tools={m.tools ?? []} />

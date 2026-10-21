@@ -6,12 +6,17 @@ import { photoUrl } from '../lib/photos.js';
 // The photo fades in once loaded, drifts in a very slow zoom (off with reduced motion), and sits
 // under a dark gradient so text and glass panels on top stay easy to read.
 // `strength` is how dark the overlay is: 'strong' for screens full of text, 'soft' for sparse ones.
+// `fadeEdges` melts the top and bottom into the page, for photos behind one section of a long page
+// ('top' fades only the top, for the last section).
 
-export function SpaceBackdrop({ photo, strength = 'strong', position = 'center', className = 'fixed' }) {
+export function SpaceBackdrop({ photo, strength = 'strong', position = 'center', className = 'fixed', fadeEdges = false }) {
   const [loaded, setLoaded] = useState(false);
   if (!photo) return null;
   return (
-    <div aria-hidden className={`pointer-events-none inset-0 -z-10 overflow-hidden ${className}`}>
+    <div
+      aria-hidden
+      className={`pointer-events-none inset-0 -z-10 overflow-hidden ${fadeEdges === 'top' ? '[mask-image:linear-gradient(transparent,black_30%)]' : fadeEdges ? '[mask-image:linear-gradient(transparent,black_18%,black_82%,transparent)]' : ''} ${className}`}
+    >
       <picture>
         <source media="(max-width: 640px)" srcSet={photoUrl(photo, 'phone')} type="image/webp" />
         <img

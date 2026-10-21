@@ -6,6 +6,7 @@ import { useSmoothScroll } from './useSmoothScroll.js';
 import { FeatureFold, foldScrollY } from './FeatureFold.jsx';
 import { ChatSnippet, MemorySnippet, ReminderSnippet, StudyPlanSnippet, VoiceSnippet } from './Snippets.jsx';
 import { Face } from '../components/Face.jsx';
+import { SpaceBackdrop } from '../components/SpaceBackdrop.jsx';
 
 // The landing page (before login): the Saathi Orbit scene as a full-screen hero, then sections
 // that explain Saathi while you scroll (word-by-word intro, the 3D feature fold, how it works, a
@@ -17,7 +18,7 @@ const FEATURES = [
   { id: 'reminders', name: 'Reminders', color: '#ff9d5c', title: 'Time pe, dost ki tarah yaad.', text: 'Reminder bajne par Saathi apne andaaz mein yaad dilata hai. Abhi time nahi? Ek tap mein 10 minute baad.', snippet: <ReminderSnippet /> },
   { id: 'study-plan', name: 'Study plan', color: '#9b7bff', photo: 'cosmicreef', title: 'Exam ka plan, ek line mein.', text: '"25 ko DBMS exam hai" bolo. Topics roz ke sessions mein bant jaate hain, har session ka reminder bhi.', snippet: <StudyPlanSnippet /> },
   { id: 'memory', name: 'Memory', color: '#47d6c3', title: 'Tumhe yaad rakhta hai.', text: 'Classes ka time, mushkil subject, padhne ka pasandida waqt. Saathi yaad rakhta hai, aur Settings mein sab dikhta hai.', snippet: <MemorySnippet /> },
-  { id: 'voice', name: 'Voice', color: '#ff6fb5', title: 'Type nahi, bas bolo.', text: 'Hindi, English ya Hinglish mein bolo. Saathi sunta hai, kaam karta hai, aur jawab bhi bolke deta hai.', snippet: <VoiceSnippet /> },
+  { id: 'voice', name: 'Voice', color: '#ff6fb5', photo: 'aurora', title: 'Type nahi, bas bolo.', text: 'Hindi, English ya Hinglish mein bolo. Saathi sunta hai, kaam karta hai, aur jawab bhi bolke deta hai.', snippet: <VoiceSnippet /> },
 ];
 
 export default function LandingScreen({ onLogin, onSignup }) {
@@ -33,9 +34,16 @@ export default function LandingScreen({ onLogin, onSignup }) {
     <div className="ambient min-h-full text-text">
       <Header active={foldInView ? active : -1} onFeature={goToFeature} onTop={() => scrollTo(0)} onLogin={onLogin} onSignup={onSignup} />
       <Hero onSignup={onSignup} onLogin={onLogin} onNext={() => scrollTo(introRef.current)} />
-      <Intro sectionRef={introRef} />
+      {/* Real night-sky photos behind the sections under the hero (credits in lib/photos.js) */}
+      <div className="relative isolate">
+        <SpaceBackdrop photo="milkyway" className="absolute" strength="soft" fadeEdges />
+        <Intro sectionRef={introRef} />
+      </div>
       <FeatureFold features={FEATURES} sectionRef={foldRef} onActiveChange={setActive} />
-      <HowItWorks />
+      <div className="relative isolate">
+        <SpaceBackdrop photo="milkyway-mountains" className="absolute" position="50% 75%" fadeEdges />
+        <HowItWorks />
+      </div>
       <FinalCall onSignup={onSignup} onLogin={onLogin} />
     </div>
   );
@@ -242,7 +250,8 @@ function HowItWorks() {
 
 function FinalCall({ onSignup, onLogin }) {
   return (
-    <section className="relative overflow-hidden px-4 pb-16 pt-24 sm:px-8 sm:pt-32">
+    <section className="relative isolate overflow-hidden px-4 pb-16 pt-24 sm:px-8 sm:pt-32">
+      <SpaceBackdrop photo="earth-horizon" className="absolute" position="50% 60%" fadeEdges="top" />
       <motion.div
         variants={stagger}
         initial="hidden"
