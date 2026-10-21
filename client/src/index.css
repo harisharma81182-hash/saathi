@@ -339,3 +339,23 @@ html.lenis body {
     radial-gradient(ellipse 50% 60% at 50% 50%, rgb(7 9 20 / 0.35), transparent 100%),
     linear-gradient(180deg, rgb(7 9 20 / 0.4) 0%, rgb(7 9 20 / 0.45) 50%, rgb(7 9 20 / 0.8) 100%);
 }
+
+/* Page-change flash (components/WarpFlash.jsx): star trails flare up and pull back. */
+.warp-flash {
+  opacity: 0;
+  animation: warp-flash 850ms ease-out forwards;
+}
+.warp-zoom {
+  animation: warp-zoom 850ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes warp-flash {
+  35% { opacity: 0.55; }
+  to { opacity: 0; }
+}
+@keyframes warp-zoom {
+  from { transform: scale(1.25); }
+  to { transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .warp-flash { display: none; }
+}

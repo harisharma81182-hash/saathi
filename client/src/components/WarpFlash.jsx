@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
+import { useReducedMotion } from 'motion/react';
 import { photoUrl } from '../lib/photos.js';
 
 // Page transition: when the page changes (landing, login, the app), a star-trails photo flashes
 // over the screen for a moment and pulls back, like a short jump through space. The photo is
 // fetched once the first page is shown, so the first flash is not empty. Off with reduced motion.
+// A CSS animation (index.css), not a JS one: while the old page unmounts (the landing page frees
+// its 3D scene) the browser may paint no frames for a moment; the flash is removed only when its
+// animation has really played (animationend), never by a timer that could beat it.
 
 export function WarpFlash({ routeKey }) {
   const reduce = useReducedMotion();
@@ -21,35 +24,21 @@ export function WarpFlash({ routeKey }) {
       first.current = false;
       return;
     }
-    if (reduce) return;
-    setFlash((n) => n + 1);
-    const t = setTimeout(() => setFlash(0), 900);
-    return () => clearTimeout(t);
+    if (!reduce) setFlash((n) => n + 1);
   }, [routeKey, reduce]);
 
+  if (!flash) return null;
   return (
-    <AnimatePresence>
-      {flash > 0 && (
-        <motion.div
-          key={flash}
-          aria-hidden
-          className="pointer-events-none fixed inset-0 z-[60] overflow-hidden"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: [0, 0.55, 0], transition: { duration: 0.85, times: [0, 0.35, 1], ease: 'easeOut' } }}
-          exit={{ opacity: 0 }}
-        >
-          <picture>
-            <source media="(max-width: 640px)" srcSet={photoUrl('startrails', 'phone')} />
-            <motion.img
-              src={photoUrl('startrails', 'desktop')}
-              alt=""
-              className="h-full w-full object-cover"
-              initial={{ scale: 1.25 }}
-              animate={{ scale: 1, transition: { duration: 0.85, ease: [0.22, 1, 0.36, 1] } }}
-            />
-          </picture>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <div
+      key={flash}
+      aria-hidden
+      onAnimationEnd={(e) => e.target === e.currentTarget && setFlash(0)}
+      className="warp-flash pointer-events-none fixed inset-0 z-[60] overflow-hidden"
+    >
+      <picture>
+        <source media="(max-width: 640px)" srcSet={photoUrl('startrails', 'phone')} />
+        <img src={photoUrl('startrails', 'desktop')} alt="" className="warp-zoom h-full w-full object-cover" />
+      </picture>
+    </div>
   );
 }
