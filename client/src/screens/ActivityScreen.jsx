@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { Undo2 } from 'lucide-react';
 import { api } from '../lib/api.js';
+import { useI18n } from '../lib/i18n.js';
 import { clock } from '../lib/format.js';
 import { useLiveRefresh } from '../app/live.js';
 import { Face } from '../components/Face.jsx';
@@ -14,6 +15,7 @@ import { EmptyState, ErrorState, GroupTitle, ListSkeleton, ScreenFrame } from '.
 const dayStart = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 
 export function ActivityScreen({ user }) {
+  const { t } = useI18n();
   const [items, setItems] = useState(null);
   const [error, setError] = useState(null);
 
@@ -44,7 +46,7 @@ export function ActivityScreen({ user }) {
   }, [items]);
 
   return (
-    <ScreenFrame title="Activity" description="Har badlaav, tumhara ya Saathi ka. Pichhle 10 minute ka koi bhi badlaav yahin se Undo ho sakta hai.">
+    <ScreenFrame title={t('nav.activity')} description={t('activity.desc')}>
       {error && <ErrorState error={error} onRetry={load} />}
       {!items && !error && <ListSkeleton />}
       {items?.length === 0 && <EmptyState title="Abhi tak kuch nahi badla" text="Jaise hi tum ya Saathi koi task, note ya reminder banaoge, woh yahan dikhega." />}

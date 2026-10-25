@@ -47,6 +47,8 @@ export function idempotent() {
     }
 
     // Capture the response so it can be replayed. Server errors are not stored, so a retry can succeed.
+    // The response goes out only after the record is saved: otherwise a quick second request could
+    // still find it "processing" and get a 409 even though the first one already finished.
     const originalJson = res.json.bind(res);
     res.json = (body) => {
       const status = res.statusCode;
@@ -54,8 +56,10 @@ export function idempotent() {
         status < 500
           ? IdempotencyKey.updateOne({ _id: id }, { $set: { status: 'done', responseStatus: status, responseBody: body } })
           : IdempotencyKey.deleteOne({ _id: id });
-      save.catch((err) => req.log?.warn({ err: err.message }, 'could not store idempotent response'));
-      return originalJson(body);
+      save
+        .catch((err) => req.log?.warn({ err: err.message }, 'could not store idempotent response'))
+        .finally(() => originalJson(body));
+      return res;
     };
     res.on('close', () => {
       if (!res.writableFinished) IdempotencyKey.deleteOne({ _id: id, status: 'processing' }).catch(() => {});

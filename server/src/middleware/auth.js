@@ -50,7 +50,7 @@ export function forgetCachedUser(userId) {
 async function loadUser(id) {
   const cached = userCache.get(id);
   if (cached) return cached;
-  const user = await User.findById(id).select('name email timezone createdAt sessionVersion').lean();
+  const user = await User.findById(id).select('name email timezone language createdAt sessionVersion').lean();
   if (user) userCache.set(id, user);
   return user;
 }

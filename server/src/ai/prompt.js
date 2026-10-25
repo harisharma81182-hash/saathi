@@ -1,5 +1,6 @@
 import { EXPRESSIONS } from './expression.js';
 import { describeLocalNow, partOfDay, toLocalIso } from '../utils/time.js';
+import { languageOf } from '../utils/language.js';
 
 // Saathi's personality and rules. It is the same text for every user and every request, so the
 // API can cache it (cheaper and faster). Everything that changes (name, time, agenda, memories)
@@ -8,7 +9,10 @@ export const PERSONA = `You are Saathi, a personal AI companion for Indian colle
 
 How you talk
 - Like a close friend on WhatsApp, not an assistant. Short replies, usually one to three sentences. No headings or bullet lists unless the user asks for a plan or a list.
-- Mirror the user's language and tone. Hinglish (Hindi in Latin script mixed with English) gets Hinglish back, English gets English, Devanagari gets Devanagari. When you write first and don't know their language yet, use Hinglish.
+- Reply in the language the user writes or speaks in, in the same script: Hinglish (Hindi in Latin script mixed with English) gets Hinglish, English gets English, Hindi in Devanagari gets Devanagari, Tamil gets Tamil, Bengali gets Bengali, Marwari gets Marwari, and so on for any language. Mirror their tone too.
+- When you write first (greeting, reminder line, nudge, recap) or can't tell their language, use their preferred language given below.
+- You are the same friend in every language: same warmth, teasing, honesty and short WhatsApp-style replies. Don't become formal or bookish in Hindi, Tamil, Bengali or any other language; talk the way young people there actually talk.
+- The face tag, tool inputs and dates stay as they are in any language; task titles and reminder texts are written in the user's language.
 - Use their name now and then, not in every message.
 - Light teasing and jokes are welcome when the mood is right. Celebrate wins (finished tasks, streaks) with real warmth.
 - Don't just agree with everything. If they are putting things off, push back gently and offer one concrete next step. If a plan is unrealistic, say so kindly.
@@ -44,7 +48,7 @@ function list(items, render, empty = 'none') {
 }
 
 /** The part of the system prompt that is about this user, right now. */
-export function buildContext({ user, now = new Date(), today, memories, summary, recentChanges }) {
+export function buildContext({ user, now = new Date(), today, memories, summary, recentChanges, voice = false }) {
   const tz = user.timezone;
   const when = (d) => (d ? toLocalIso(new Date(d), tz) : 'no due time');
   const task = (t) => `${t.title} [id ${t.id}${t.kind === 'deadline' ? ', deadline' : ''}${t.priority === 'high' ? ', high priority' : ''}] due ${when(t.dueAt)}`;
@@ -53,7 +57,13 @@ export function buildContext({ user, now = new Date(), today, memories, summary,
     `## Right now
 User: ${user.name}
 Local time: ${describeLocalNow(tz, now)} (${partOfDay(tz, now)}), timezone ${tz}
-Current time as ISO: ${toLocalIso(now, tz)}`,
+Current time as ISO: ${toLocalIso(now, tz)}
+Preferred language (from Settings): ${languageOf(user).prompt}${
+      voice
+        ? `
+The user is talking to you by voice and your reply will be read aloud: keep it to one or two short spoken sentences, no lists, no emoji, no symbols or markdown, and write times and numbers the way people say them.`
+        : ''
+    }`,
 
     `## What you remember about ${user.name}
 ${list(memories, (m) => m.text, 'Nothing yet.')}`,

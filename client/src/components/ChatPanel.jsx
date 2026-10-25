@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { ArrowUp, ChevronDown, RotateCw } from 'lucide-react';
+import { ArrowUp, ChevronDown, Mic, RotateCw, Square, Volume2, VolumeX } from 'lucide-react';
 import { api } from '../lib/api.js';
+import { useI18n } from '../lib/i18n.js';
 import { when } from '../lib/format.js';
 import { Face } from './Face.jsx';
 import { SpaceBackdrop } from './SpaceBackdrop.jsx';
@@ -15,7 +16,7 @@ const SUGGESTIONS = [
   'Roz raat 10 baje 20 minute reading',
 ];
 
-export function ChatPanel({ chat }) {
+export function ChatPanel({ chat, voice }) {
   const { messages, loading, loadError, sending, send, undoReceipt, answerConfirm, reload } = chat;
   const [draft, setDraft] = useState('');
   const scroller = useRef(null);
@@ -100,7 +101,7 @@ export function ChatPanel({ chat }) {
         )}
       </AnimatePresence>
 
-      <Composer inputRef={input} draft={draft} setDraft={setDraft} sending={sending} onSubmit={submit} />
+      <Composer inputRef={input} draft={draft} setDraft={setDraft} sending={sending} onSubmit={submit} voice={voice} />
     </section>
   );
 }
@@ -149,7 +150,8 @@ function Message({ m, showTime, onUndo, onAnswer, onRetry }) {
   );
 }
 
-function Composer({ inputRef, draft, setDraft, sending, onSubmit }) {
+function Composer({ inputRef, draft, setDraft, sending, onSubmit, voice }) {
+  const { t } = useI18n();
   const [hints, setHints] = useState([]);
 
   // Grow with the text, up to a few lines.
@@ -175,7 +177,8 @@ function Composer({ inputRef, draft, setDraft, sending, onSubmit }) {
     };
   }, [draft]);
 
-  const canSend = draft.trim() && !sending;
+  const listening = voice?.phase === 'listening';
+  const canSend = draft.trim() && !sending && !listening;
   return (
     <div className="px-4 pb-[max(env(safe-area-inset-bottom),16px)] pt-2 sm:px-8">
       <div className="mx-auto max-w-2xl">
@@ -211,7 +214,8 @@ function Composer({ inputRef, draft, setDraft, sending, onSubmit }) {
             id="chat-input"
             ref={inputRef}
             rows={1}
-            value={draft}
+            value={listening ? voice.interim : draft}
+            readOnly={listening}
             onChange={(e) => setDraft(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -219,9 +223,35 @@ function Composer({ inputRef, draft, setDraft, sending, onSubmit }) {
                 onSubmit();
               }
             }}
-            placeholder="Saathi ko kuch bhi bolo..."
+            placeholder={listening ? t('voice.listening') : t('chat.placeholder')}
             className="max-h-40 flex-1 resize-none bg-transparent py-2 text-text outline-none placeholder:text-faint focus-visible:outline-none"
           />
+          {voice?.canSpeak && (
+            <button
+              type="button"
+              onClick={() => voice.setSpeakerOn(!voice.speakerOn)}
+              aria-pressed={voice.speakerOn}
+              aria-label={voice.speakerOn ? t('voice.mute') : t('voice.unmute')}
+              title={voice.speakerOn ? t('voice.mute') : t('voice.unmute')}
+              className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition hover:bg-surface-2 active:scale-95 ${voice.speakerOn ? 'text-gold' : 'text-faint hover:text-text'}`}
+            >
+              {voice.speakerOn ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            </button>
+          )}
+          {/* No mic button where the browser can't do speech recognition (Firefox): typing still works. */}
+          {voice?.canListen && (listening || !draft.trim()) && (
+            <button
+              type="button"
+              onClick={voice.toggleListen}
+              disabled={sending}
+              aria-pressed={listening}
+              aria-label={listening ? t('voice.stop') : t('voice.start')}
+              title={listening ? t('voice.stop') : t('voice.start')}
+              className={`grid h-10 w-10 shrink-0 place-items-center rounded-full transition active:scale-95 disabled:opacity-40 ${listening ? 'motion-safe:animate-pulse bg-[#A77BF3] text-ink' : 'text-muted hover:bg-surface-2 hover:text-text'}`}
+            >
+              {listening ? <Square size={15} fill="currentColor" /> : <Mic size={19} />}
+            </button>
+          )}
           <button
             type="submit"
             disabled={!canSend}
@@ -231,16 +261,22 @@ function Composer({ inputRef, draft, setDraft, sending, onSubmit }) {
             <ArrowUp size={18} strokeWidth={2.4} />
           </button>
         </form>
+        {voice?.notice && (
+          <p role="status" className="mt-2 px-1 text-xs text-gold">
+            {voice.notice}
+          </p>
+        )}
       </div>
     </div>
   );
 }
 
 function EmptyChat({ onPick }) {
+  const { t } = useI18n();
   return (
     <div className="mx-auto mt-4 max-w-2xl sm:mt-8">
-      <p className="text-muted">Jo bhi karna hai, normal baat ki tarah bolo. Saathi task, reminder ya plan khud bana dega.</p>
-      <p className="mt-6 text-sm text-faint">Jaise:</p>
+      <p className="text-muted">{t('chat.intro')}</p>
+      <p className="mt-6 text-sm text-faint">{t('chat.examples')}</p>
       <ul className="mt-2 flex flex-col">
         {SUGGESTIONS.map((s) => (
           <li key={s}>

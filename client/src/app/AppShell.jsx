@@ -7,6 +7,7 @@ import { Toasts } from '../components/Toasts.jsx';
 import { UndoToast } from '../components/UndoToast.jsx';
 import { CursorGlow } from '../components/CursorGlow.jsx';
 import { SpaceBackdrop } from '../components/SpaceBackdrop.jsx';
+import { I18nProvider, useI18n } from '../lib/i18n.js';
 import { HomeScreen } from '../screens/HomeScreen.jsx';
 import { TasksScreen } from '../screens/TasksScreen.jsx';
 import { NotesScreen } from '../screens/NotesScreen.jsx';
@@ -17,6 +18,7 @@ import { SettingsScreen } from '../screens/SettingsScreen.jsx';
 // The frame around every screen after login: navigation (top bar on desktop, bottom bar on phones),
 // the one live-updates stream, notification toasts, and the 10-second Undo toast after a change.
 // Screens are picked by the URL hash (#/tasks, #/notes ...), so the browser's Back button works.
+// Labels come from lib/i18n.js in the language picked in Settings.
 
 export const SCREENS = [
   { id: 'home', label: 'Saathi', icon: MessageCircle },
@@ -73,48 +75,51 @@ export function AppShell({ user: initialUser, onLogout }) {
   const live = { ...counts, status };
   const props = { user, go };
   return (
-    <LiveContext.Provider value={live}>
-      <div className="ambient flex h-full flex-col">
-        <AnimatePresence initial={false}>
-          <motion.div
-            key={BACKDROPS[screen] ?? 'none'}
-            className="pointer-events-none absolute inset-0 -z-10"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1, transition: { duration: 0.9 } }}
-            exit={{ opacity: 0, transition: { duration: 0.6 } }}
-          >
-            <SpaceBackdrop photo={BACKDROPS[screen]} className="absolute" strength={screen === 'notes' ? 'soft' : 'strong'} />
-          </motion.div>
-        </AnimatePresence>
-        <CursorGlow />
-        <TopBar screen={screen} go={go} user={user} live={status} onLogout={onLogout} />
-        <main className="relative min-h-0 flex-1">
-          <AnimatePresence mode="wait">
+    <I18nProvider language={user.language}>
+      <LiveContext.Provider value={live}>
+        <div className="ambient flex h-full flex-col">
+          <AnimatePresence initial={false}>
             <motion.div
-              key={screen}
-              className="absolute inset-0"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } }}
-              exit={{ opacity: 0, transition: { duration: 0.15 } }}
+              key={BACKDROPS[screen] ?? 'none'}
+              className="pointer-events-none absolute inset-0 -z-10"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, transition: { duration: 0.9 } }}
+              exit={{ opacity: 0, transition: { duration: 0.6 } }}
             >
-              {screen === 'home' && <HomeScreen {...props} />}
-              {screen === 'tasks' && <TasksScreen {...props} />}
-              {screen === 'notes' && <NotesScreen {...props} />}
-              {screen === 'reminders' && <RemindersScreen {...props} />}
-              {screen === 'activity' && <ActivityScreen {...props} />}
-              {screen === 'settings' && <SettingsScreen {...props} onUserChange={setUser} onLogout={onLogout} />}
+              <SpaceBackdrop photo={BACKDROPS[screen]} className="absolute" strength={screen === 'notes' ? 'soft' : 'strong'} />
             </motion.div>
           </AnimatePresence>
-        </main>
-        <BottomNav screen={screen} go={go} />
-        <Toasts items={toasts} onDismiss={(id) => setToasts((all) => all.filter((t) => t.id !== id))} onChanged={() => setCounts((c) => ({ ...c, changes: c.changes + 1 }))} />
-        <UndoToast activity={undo} onClose={() => setUndo(null)} />
-      </div>
-    </LiveContext.Provider>
+          <CursorGlow />
+          <TopBar screen={screen} go={go} user={user} live={status} onLogout={onLogout} />
+          <main className="relative min-h-0 flex-1">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={screen}
+                className="absolute inset-0"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } }}
+                exit={{ opacity: 0, transition: { duration: 0.15 } }}
+              >
+                {screen === 'home' && <HomeScreen {...props} />}
+                {screen === 'tasks' && <TasksScreen {...props} />}
+                {screen === 'notes' && <NotesScreen {...props} />}
+                {screen === 'reminders' && <RemindersScreen {...props} />}
+                {screen === 'activity' && <ActivityScreen {...props} />}
+                {screen === 'settings' && <SettingsScreen {...props} onUserChange={setUser} onLogout={onLogout} />}
+              </motion.div>
+            </AnimatePresence>
+          </main>
+          <BottomNav screen={screen} go={go} />
+          <Toasts items={toasts} onDismiss={(id) => setToasts((all) => all.filter((t) => t.id !== id))} onChanged={() => setCounts((c) => ({ ...c, changes: c.changes + 1 }))} />
+          <UndoToast activity={undo} onClose={() => setUndo(null)} />
+        </div>
+      </LiveContext.Provider>
+    </I18nProvider>
   );
 }
 
 function TopBar({ screen, go, user, live, onLogout }) {
+  const { t } = useI18n();
   const [perm, setPerm] = useState(() => ('Notification' in window ? Notification.permission : 'unsupported'));
   return (
     <header className="relative z-20 flex items-center justify-between gap-4 px-4 pb-1 pt-[max(env(safe-area-inset-top),12px)] sm:px-8">
@@ -135,7 +140,7 @@ function TopBar({ screen, go, user, live, onLogout }) {
             className={`relative rounded-full px-3.5 py-1.5 text-sm transition-colors ${screen === s.id ? 'text-text' : 'text-faint hover:text-text'}`}
           >
             {screen === s.id && <motion.span layoutId="top-nav" className="absolute inset-0 rounded-full bg-surface-2" transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }} />}
-            <span className="relative">{s.label}</span>
+            <span className="relative">{t(`nav.${s.id}`)}</span>
           </button>
         ))}
       </nav>
@@ -152,8 +157,8 @@ function TopBar({ screen, go, user, live, onLogout }) {
         )}
         <button
           onClick={() => go('settings')}
-          aria-label="Settings"
-          title="Settings"
+          aria-label={t('nav.settings')}
+          title={t('nav.settings')}
           aria-current={screen === 'settings' ? 'page' : undefined}
           className={`inline-flex h-9 items-center gap-2 rounded-full pl-1 pr-3 text-sm transition-colors hover:bg-surface ${screen === 'settings' ? 'bg-surface-2 text-text' : 'text-faint hover:text-text'}`}
         >
@@ -170,9 +175,10 @@ function TopBar({ screen, go, user, live, onLogout }) {
 }
 
 function BottomNav({ screen, go }) {
+  const { t } = useI18n();
   return (
     <nav className="relative z-20 grid grid-cols-5 border-t border-line bg-ink/75 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:hidden" aria-label="Screens">
-      {SCREENS.map(({ id, label, icon: Icon }) => (
+      {SCREENS.map(({ id, icon: Icon }) => (
         <button
           key={id}
           onClick={() => go(id)}
@@ -181,7 +187,7 @@ function BottomNav({ screen, go }) {
         >
           {screen === id && <motion.span layoutId="bottom-nav" className="absolute inset-x-5 top-0 h-0.5 rounded-full bg-gold" transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }} />}
           <Icon size={19} strokeWidth={screen === id ? 2.2 : 1.8} />
-          {label}
+          {t(`nav.${id}`)}
         </button>
       ))}
     </nav>

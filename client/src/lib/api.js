@@ -43,7 +43,7 @@ export async function api(path, { method = 'GET', body, signal, headers } = {}) 
  * which EventSource cannot do, so the stream is read by hand). `onEvent(name, data)` is called for
  * every event: start, expression, text, reset, tool, receipt, confirm, error, done.
  */
-export async function streamChat({ message, conversationId, signal, onEvent }) {
+export async function streamChat({ message, conversationId, voice = false, signal, onEvent }) {
   let res;
   try {
     res = await fetch('/api/agent/chat', {
@@ -51,7 +51,7 @@ export async function streamChat({ message, conversationId, signal, onEvent }) {
       credentials: 'include',
       signal,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, ...(conversationId && { conversationId }) }),
+      body: JSON.stringify({ message, ...(conversationId && { conversationId }), ...(voice && { voice }) }),
     });
   } catch (err) {
     if (err.name === 'AbortError') throw err;

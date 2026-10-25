@@ -33,11 +33,17 @@ export const MAX_STEPS = 6; // model calls per turn; the last one may not use to
 const MAX_TOKENS = 4096; // reply + the model's thinking
 const HISTORY_MESSAGES = 20; // recent messages sent with every request; older ones live in the summary
 const SUMMARIZE_AFTER = 40; // unsummarised messages before the background summary job runs
+// Added to every message Saathi starts itself: the instruction is in English, so without this
+// the model may answer in English, or in a regional language written in Latin letters.
+const WRITE_IN_PREFERRED = "Write it in their preferred language given above, in that language's own script.";
+
 const OLD_MESSAGE_MS = 6 * 60 * 60 * 1000; // older user messages get a timestamp, so "kal" stays clear
 
 export const chatSchema = z.object({
   message: z.string().trim().min(1, 'Type a message first.').max(2000, 'That message is too long. Keep it under 2000 characters.'),
   conversationId: objectId.optional(),
+  // Sent by voice mode: the reply will be read aloud, so it should be short and speakable.
+  voice: z.boolean().optional(),
 });
 
 // Request settings shared by every call. Claude Haiku 5.5 thinks adaptively by default; "low"
@@ -53,13 +59,13 @@ function systemBlocks(context) {
   ];
 }
 
-async function loadContext(user, conversation, now = new Date()) {
+async function loadContext(user, conversation, now = new Date(), { voice = false } = {}) {
   const [today, memories, recentChanges] = await Promise.all([
     agenda.today(user, now),
     memory.list(user._id, { limit: 60 }),
     activity.list(user._id, { limit: 6 }),
   ]);
-  return buildContext({ user, now, today, memories, summary: conversation?.summary, recentChanges });
+  return buildContext({ user, now, today, memories, summary: conversation?.summary, recentChanges, voice });
 }
 
 /** Recent messages in the shape the API expects: alternating user / assistant, starting with user. */
@@ -90,7 +96,7 @@ async function historyMessages(user, conversation, now = new Date()) {
  * the conversation (only the user's own) and saves the user's message. Errors here become normal
  * JSON error responses.
  */
-export async function startTurn(user, { message, conversationId }) {
+export async function startTurn(user, { message, conversationId, voice = false }) {
   const provider = getProvider(); // throws a clear 503 if no API key is configured
 
   let conversation;
@@ -106,11 +112,11 @@ export async function startTurn(user, { message, conversationId }) {
 
   const userMessage = await Message.create({ userId: user._id, conversationId: conversation._id, role: 'user', text: message });
   await Conversation.updateOne({ _id: conversation._id }, { $inc: { messageCount: 1 }, $set: { lastMessageAt: userMessage.createdAt } });
-  return { user, conversation, userMessage, provider };
+  return { user, conversation, userMessage, provider, voice };
 }
 
 /** Second half: the model/tool loop, streaming events through `emit`. Never throws; failures become an "error" event. */
-export async function runTurn({ user, conversation, userMessage, provider }, { emit = () => {}, signal } = {}) {
+export async function runTurn({ user, conversation, userMessage, provider, voice = false }, { emit = () => {}, signal } = {}) {
   const gateway = getGateway();
   const ctx = { user, conversationId: conversation._id, userMessageId: userMessage._id };
   emit('start', { conversationId: String(conversation._id), userMessageId: String(userMessage._id) });
@@ -123,7 +129,7 @@ export async function runTurn({ user, conversation, userMessage, provider }, { e
   let failure = null;
 
   try {
-    const system = systemBlocks(await loadContext(user, conversation));
+    const system = systemBlocks(await loadContext(user, conversation, new Date(), { voice }));
     const messages = await historyMessages(user, conversation);
 
     for (let step = 0; step < MAX_STEPS; step++) {
@@ -330,7 +336,9 @@ const greetingCache = new TtlCache({ ttlMs: 5 * 60 * 1000, maxEntries: 10_000 })
 
 /** A fresh one- or two-line greeting for when the user opens the app. */
 export async function greeting(user, { signal } = {}) {
-  const cached = greetingCache.get(String(user._id));
+  // Keyed by language too: after switching language in Settings the next greeting is in the new one.
+  const cacheKey = `${user._id}:${user.language ?? 'hinglish'}`;
+  const cached = greetingCache.get(cacheKey);
   if (cached) return cached;
 
   const provider = getProvider();
@@ -351,7 +359,7 @@ export async function greeting(user, { signal } = {}) {
         requestParams(model, systemBlocks(context), [
           {
             role: 'user',
-            content: `(${user.name} just opened the app. Greet them in one or two short lines, the way a close friend would at this time of day. Mention the most useful thing from their day if there is one. No tools.)${recent ? `\n\nYour last messages together:\n${recent}` : ''}`,
+            content: `(${user.name} just opened the app. Greet them in one or two short lines, the way a close friend would at this time of day. Mention the most useful thing from their day if there is one. ${WRITE_IN_PREFERRED} No tools.)${recent ? `\n\nYour last messages together:\n${recent}` : ''}`,
           },
         ]),
         { signal: callSignal },
@@ -362,7 +370,7 @@ export async function greeting(user, { signal } = {}) {
   const { text, expression } = splitExpression(raw);
   if (!text) throw new AppError(503, 'AI_UNAVAILABLE', "I couldn't think of a greeting just now. Try again in a moment.");
   const out = { text, expression, generatedAt: new Date().toISOString() };
-  greetingCache.set(String(user._id), out);
+  greetingCache.set(cacheKey, out);
   return out;
 }
 
@@ -379,7 +387,7 @@ export async function proactiveMessage(user, instruction, { signal } = {}) {
   const response = await getGateway().run({
     signal,
     call: ({ model, signal: callSignal }) =>
-      provider.send(requestParams(model, systemBlocks(context), [{ role: 'user', content: `(${instruction} No tools.)` }]), { signal: callSignal }),
+      provider.send(requestParams(model, systemBlocks(context), [{ role: 'user', content: `(${instruction} ${WRITE_IN_PREFERRED} No tools.)` }]), { signal: callSignal }),
   });
   const raw = response.content.filter((b) => b.type === 'text').map((b) => b.text).join('');
   const { text, expression } = splitExpression(raw);

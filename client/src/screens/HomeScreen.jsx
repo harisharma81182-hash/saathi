@@ -4,6 +4,7 @@ import { api } from '../lib/api.js';
 import { useChat } from '../hooks/useChat.js';
 import { useLiveRefresh } from '../app/live.js';
 import { HeroFace } from '../components/HeroFace.jsx';
+import { useVoice } from '../hooks/useVoice.js';
 import { ChatPanel } from '../components/ChatPanel.jsx';
 import { TodayPanel } from '../components/TodayPanel.jsx';
 
@@ -38,7 +39,9 @@ export function HomeScreen({ user }) {
   useLiveRefresh(loadToday);
   useLiveRefresh(chat.reload, { on: 'notify' });
 
-  const faceState = chat.face.state;
+  // Mic and speaker in the chat box (hooks/useVoice.js); while either is busy, the face shows it.
+  const voice = useVoice(chat);
+  const faceState = voice.phase !== 'idle' ? voice.phase : chat.face.state;
   const expression = chat.sending || chat.messages.length ? chat.face.expression : (greeting?.expression ?? 'happy');
 
   return (
@@ -47,7 +50,7 @@ export function HomeScreen({ user }) {
       <div className="flex min-h-0 flex-1">
         <main className={`min-h-0 flex-1 flex-col ${tab === 'chat' ? 'flex' : 'hidden lg:flex'}`}>
           <Hero user={user} greeting={greeting} expression={expression} state={faceState} compact={chat.messages.length > 0} />
-          <ChatPanel chat={chat} />
+          <ChatPanel chat={{ ...chat, send: voice.send }} voice={voice} />
         </main>
         {/* The Today panel floats as a soft glass sheet over the sky, not a hard column. */}
         <aside className={`min-h-0 w-full px-3 pb-3 lg:w-[380px] lg:py-2 lg:pl-0 lg:pr-6 ${tab === 'today' ? 'block' : 'hidden lg:block'}`}>
@@ -56,7 +59,6 @@ export function HomeScreen({ user }) {
           </div>
         </aside>
       </div>
-
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Pin, PinOff, Search, Trash2 } from 'lucide-react';
 import { api } from '../lib/api.js';
+import { useI18n } from '../lib/i18n.js';
 import { when } from '../lib/format.js';
 import { useLiveRefresh } from '../app/live.js';
 import { EmptyState, ErrorState, GroupTitle, ListSkeleton, ScreenFrame } from '../components/ScreenParts.jsx';
@@ -10,6 +11,7 @@ import { EmptyState, ErrorState, GroupTitle, ListSkeleton, ScreenFrame } from '.
 // note to edit it in place. Saathi can save and search notes too ("yeh note kar lo...").
 
 export function NotesScreen() {
+  const { t } = useI18n();
   const [notes, setNotes] = useState(null);
   const [error, setError] = useState(null);
   const [q, setQ] = useState('');
@@ -34,7 +36,7 @@ export function NotesScreen() {
   const rest = notes?.filter((n) => !n.pinned) ?? [];
 
   return (
-    <ScreenFrame title="Notes" description="Jo yaad rakhna hai, yahan likh do. Saathi bhi chat se notes bana aur dhoondh sakta hai.">
+    <ScreenFrame title={t('nav.notes')} description={t('notes.desc')}>
       <div className="mt-6">
         <Composer onSaved={load} />
       </div>

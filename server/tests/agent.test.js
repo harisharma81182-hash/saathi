@@ -149,6 +149,41 @@ describe('Step 3: agent', { skip: !hasTestDb && 'MONGODB_URI_TEST not set' }, ()
     assert.equal(provider.calls.length, 0);
   });
 
+  it('uses the language picked in Settings and keeps voice replies short and speakable', async () => {
+    // Default: Hinglish, and nothing about voice for typed messages.
+    assert.equal((await me.agent.get('/api/auth/me')).body.user.language, 'hinglish');
+    let provider = useProvider([say('[face:happy] Hey!')]);
+    await chat(me, 'hi');
+    let context = provider.calls[0].system[1].text;
+    assert.match(context, /Preferred language \(from Settings\): Hinglish/);
+    assert.doesNotMatch(context, /read aloud/);
+    assert.match(provider.calls[0].system[0].text, /Reply in the language the user writes or speaks in/, 'the persona mirrors any language');
+
+    // Unknown languages are refused with a clear message; nothing changes.
+    const bad = await me.agent.patch('/api/auth/me').send({ language: 'klingon' });
+    assert.equal(bad.status, 400);
+    assert.equal((await me.agent.get('/api/auth/me')).body.user.language, 'hinglish');
+
+    // Tamil, by voice: the model is told both, at once (the user cache is cleared on update).
+    const res = await me.agent.patch('/api/auth/me').send({ language: 'ta' });
+    assert.equal(res.status, 200);
+    assert.equal(res.body.user.language, 'ta');
+    provider = useProvider([say('[face:happy] வணக்கம்!')]);
+    const reply = await chat(me, 'vanakkam', { voice: true });
+    assert.equal(replyText(reply), 'வணக்கம்!');
+    context = provider.calls[0].system[1].text;
+    assert.match(context, /Preferred language \(from Settings\): Tamil in Tamil script/);
+    assert.match(context, /talking to you by voice and your reply will be read aloud/);
+
+    // Marwari is marked beta and falls back to simple Hindi words when unsure.
+    await me.agent.patch('/api/auth/me').send({ language: 'mwr' });
+    provider = useProvider([say('[face:happy] Ram Ram sa!')]);
+    await chat(me, 'ram ram');
+    assert.match(provider.calls[0].system[1].text, /Marwari \(Rajasthani\) in Devanagari script.*beta/s);
+
+    await me.agent.patch('/api/auth/me').send({ language: 'hinglish' });
+  });
+
   it('creates a task and a linked reminder through tools, with streamed text, face and receipts', async () => {
     const remindAt = daysFromNow(1, 9);
     const provider = useProvider([
@@ -503,6 +538,13 @@ describe('Step 3: agent', { skip: !hasTestDb && 'MONGODB_URI_TEST not set' }, ()
     await other.agent.get('/api/agent/greeting');
     assert.equal(provider.calls.length, 1);
     assert.equal(provider.calls[0].tools, undefined, 'the greeting does not use tools');
+
+    // A new language in Settings gets a new greeting in that language, not the cached one.
+    await other.agent.patch('/api/auth/me').send({ language: 'hi' });
+    const hindi = useProvider([say('[face:happy] नमस्ते! आज क्या करना है?')]);
+    assert.equal((await other.agent.get('/api/agent/greeting')).body.text, 'नमस्ते! आज क्या करना है?');
+    assert.match(hindi.calls[0].system[1].text, /Preferred language \(from Settings\): Hindi in Devanagari/);
+    await other.agent.patch('/api/auth/me').send({ language: 'hinglish' });
   });
 
   it('summarises older messages in the background and sends the summary instead', async () => {

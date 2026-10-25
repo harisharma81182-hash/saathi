@@ -16,6 +16,10 @@ process.env.ANTHROPIC_API_KEY = '';
 process.env.GEMINI_API_KEY = '';
 // Per-model AI limits are tested on their own gateway; elsewhere they would make tests depend on each other.
 process.env.AI_MODEL_LIMITS = '';
+// The overload guard answers 503 when the event loop lags over 200 ms. On a slow laptop (other
+// programs running, password hashing) that can trip in the middle of a test run and fail unrelated
+// tests at random, so tests run with a much higher limit.
+process.env.OVERLOAD_MAX_LAG_MS = '5000';
 
 export async function setupDb() {
   const { connectDB } = await import('../src/db/connect.js');

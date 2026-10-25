@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { User } from '../models/User.js';
 import { AppError } from '../utils/AppError.js';
 import { isValidTimezone } from '../utils/timezone.js';
+import { LANGUAGE_IDS } from '../utils/language.js';
 import { hashPassword, verifyPassword, needsRehash, burnPasswordCheck } from '../security/password.js';
 import { forgetCachedUser } from '../middleware/auth.js';
 import * as quota from './quota.service.js';
@@ -37,6 +38,7 @@ export const updateProfileSchema = z
   .object({
     name: z.string().trim().min(1).max(60).optional(),
     timezone: z.string().refine(isValidTimezone, 'Unknown timezone.').optional(),
+    language: z.enum(LANGUAGE_IDS, { error: `Pick one of: ${LANGUAGE_IDS.join(', ')}.` }).optional(),
   })
   .refine((v) => Object.keys(v).length > 0, 'Nothing to update.');
 
@@ -93,7 +95,7 @@ export async function login({ email, password }) {
 export async function updateProfile(userId, changes) {
   const { matchedCount } = await User.updateOne({ _id: userId }, { $set: changes }, { runValidators: true });
   if (!matchedCount) throw AppError.notFound('Account not found.');
-  const user = await User.findById(userId).select('name email timezone createdAt').lean();
+  const user = await User.findById(userId).select('name email timezone language createdAt').lean();
   forgetCachedUser(userId);
   return user;
 }

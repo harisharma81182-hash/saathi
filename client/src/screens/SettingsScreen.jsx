@@ -2,11 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Bell, Check, LogOut, Plus, Trash2 } from 'lucide-react';
 import { api } from '../lib/api.js';
+import { LANGUAGES, useI18n } from '../lib/i18n.js';
 import { PHOTOS } from '../lib/photos.js';
 import { EmptyState, ErrorState, ListSkeleton, ScreenFrame } from '../components/ScreenParts.jsx';
 
 // Settings: your name and timezone (Saathi uses them in every reply, and "kal 9 baje" depends on
-// the timezone), what Saathi remembers about you (see, add, forget), notifications and logout.
+// the timezone), your language (Bhasha), what Saathi remembers about you (see, add, forget),
+// notifications and logout.
 
 const KINDS = {
   fact: 'Baat',
@@ -17,18 +19,22 @@ const KINDS = {
 };
 
 export function SettingsScreen({ user, onUserChange, onLogout }) {
+  const { t } = useI18n();
   return (
-    <ScreenFrame title="Settings" description="Tumhari jaankari, aur Saathi ko tumhare baare mein kya yaad hai.">
-      <Section title="Profile" text="Saathi tumhe isi naam se bulata hai. Timezone se pata chalta hai ki tumhare liye 'kal 9 baje' kab hai.">
+    <ScreenFrame title={t('nav.settings')} description={t('settings.desc')}>
+      <Section title={t('settings.profile')} text="Saathi tumhe isi naam se bulata hai. Timezone se pata chalta hai ki tumhare liye 'kal 9 baje' kab hai.">
         <Profile user={user} onUserChange={onUserChange} />
       </Section>
-      <Section title="Saathi ko kya yaad hai" text="Yeh baatein Saathi har jawab mein yaad rakhta hai. Jo galat ya purani ho, hata do.">
+      <Section title={t('lang.title')} text={t('lang.text')}>
+        <LanguagePicker user={user} onUserChange={onUserChange} />
+      </Section>
+      <Section title={t('settings.memory')} text="Yeh baatein Saathi har jawab mein yaad rakhta hai. Jo galat ya purani ho, hata do.">
         <Memories />
       </Section>
-      <Section title="Notifications" text="Tab band ho tab bhi reminder ka popup aaye, iske liye browser se permission chahiye.">
+      <Section title={t('settings.notifications')} text="Tab band ho tab bhi reminder ka popup aaye, iske liye browser se permission chahiye.">
         <NotificationSetting />
       </Section>
-      <Section title="Account" text={`${user.email} se login ho.`}>
+      <Section title={t('settings.account')} text={`${user.email} se login ho.`}>
         <button onClick={onLogout} className="btn-ghost -ml-3 text-vermilion">
           <LogOut size={16} /> Logout karo
         </button>
@@ -124,6 +130,64 @@ function Profile({ user, onUserChange }) {
         </button>
       </div>
     </form>
+  );
+}
+
+/** Six languages as one radio group; picking one saves at once and the whole app follows. */
+function LanguagePicker({ user, onUserChange }) {
+  const { t } = useI18n();
+  const [saving, setSaving] = useState(null);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function pick(id) {
+    if (id === user.language || saving) return;
+    setSaving(id);
+    setSaved(false);
+    setError(null);
+    try {
+      const { user: updated } = await api('/auth/me', { method: 'PATCH', body: { language: id } });
+      onUserChange(updated);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setError(err.details?.[0]?.message ?? err.message);
+    } finally {
+      setSaving(null);
+    }
+  }
+
+  return (
+    <div>
+      <div role="radiogroup" aria-label={t('lang.title')} className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {LANGUAGES.map((l) => {
+          const on = (user.language ?? 'hinglish') === l.id;
+          return (
+            <button
+              key={l.id}
+              role="radio"
+              aria-checked={on}
+              lang={l.html}
+              onClick={() => pick(l.id)}
+              disabled={Boolean(saving)}
+              className={`flex flex-col items-start rounded-2xl px-4 py-3 text-left transition ${on ? 'bg-surface-2 ring-1 ring-gold/60' : 'bg-surface hover:bg-surface-2'} ${saving === l.id ? 'opacity-60' : ''}`}
+            >
+              <span className="flex items-center gap-2 font-display text-lg font-semibold">
+                {l.native}
+                {on && <Check size={15} className="text-gold" />}
+              </span>
+              <span className="text-xs text-faint">
+                {l.name}
+                {l.beta && <span className="ml-1.5 rounded-full border border-line px-1.5 py-px text-[10px]">beta</span>}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-3 min-h-5 text-sm" aria-live="polite">
+        {error ? <span className="text-vermilion">{error}</span> : saved && <span className="text-leaf">{t('lang.saved')}</span>}
+      </p>
+    </div>
   );
 }
 

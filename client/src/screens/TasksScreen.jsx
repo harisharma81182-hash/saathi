@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { Check, Pencil, Repeat, Search, Trash2 } from 'lucide-react';
 import { api } from '../lib/api.js';
+import { useI18n } from '../lib/i18n.js';
 import { clock, lateBy, when } from '../lib/format.js';
 import { useLiveRefresh } from '../app/live.js';
 import { QuickAdd } from '../components/QuickAdd.jsx';
@@ -55,6 +56,7 @@ function groupDone(tasks) {
 }
 
 export function TasksScreen() {
+  const { t } = useI18n();
   const [tab, setTab] = useState('open');
   const [q, setQ] = useState('');
   const [data, setData] = useState({ open: null, done: null, progress: null });
@@ -86,7 +88,7 @@ export function TasksScreen() {
   const loading = !data.open && !error;
 
   return (
-    <ScreenFrame title="Tasks" description="Saare kaam ek jagah. Ho jaaye to nishaan lagao, Saathi hisaab rakhta hai.">
+    <ScreenFrame title={t('nav.tasks')} description={t('tasks.desc')}>
       <div className="mt-6">
         <QuickAdd onSaved={load} />
       </div>

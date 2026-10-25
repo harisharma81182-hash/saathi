@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { AlarmClock, X } from 'lucide-react';
 import { api } from '../lib/api.js';
+import { useI18n } from '../lib/i18n.js';
 import { clock, when } from '../lib/format.js';
 import { useLiveRefresh } from '../app/live.js';
 import { EmptyState, ErrorState, GroupTitle, ListSkeleton, ScreenFrame, Tabs } from '../components/ScreenParts.jsx';
@@ -34,6 +35,7 @@ function tomorrowMorning() {
 }
 
 export function RemindersScreen() {
+  const { t } = useI18n();
   const [tab, setTab] = useState('scheduled');
   const [lists, setLists] = useState({});
   const [error, setError] = useState(null);
@@ -58,7 +60,7 @@ export function RemindersScreen() {
   const groups = useMemo(() => (list ? byDay(list) : []), [list]);
 
   return (
-    <ScreenFrame title="Reminders" description="Saathi time pe yaad dilayega. Kaam abhi nahi ho sakta? Thoda aage kar do.">
+    <ScreenFrame title={t('nav.reminders')} description={t('reminders.desc')}>
       <div className="mt-6">
         <NewReminder onSaved={load} />
       </div>
