@@ -8,3 +8,5 @@ docs
 **/tests
 **/loadtest
 **/coverage
+design
+client/dist

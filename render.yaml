@@ -24,9 +24,32 @@ services:
         sync: false
       - key: JWT_SECRET
         generateValue: true
-      - key: ANTHROPIC_API_KEY
+      # AI: Gemini free tier (key from aistudio.google.com). Claude stays possible with AI_PROVIDER=anthropic.
+      - key: AI_PROVIDER
+        value: gemini
+      - key: GEMINI_API_KEY
         sync: false
+      - key: GEMINI_MODELS
+        value: gemini-3.5-flash-lite,gemini-3.1-flash-lite,gemini-3.8-flash
+      - key: AI_MODEL_LIMITS
+        value: gemini-3.5-flash-lite=13/480,gemini-3.1-flash-lite=13/480,gemini-3.8-flash=4/18
+      # The app's own address, e.g. https://saathi.onrender.com (frontend and API are on the same one).
       - key: CLIENT_ORIGIN
+        sync: false
+      - key: APP_URL
+        sync: false
+      # Optional: email for "Password bhool gaye?" (without it the reset link only goes to the logs).
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "465"
+      - key: SMTP_SECURE
+        value: "true"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
         sync: false
 
 # ---- Stage 1: scale web and worker separately (paid plans) ----
@@ -54,5 +77,5 @@ services:
 #        sync: false
 #      - key: JWT_SECRET
 #        sync: false
-#      - key: ANTHROPIC_API_KEY
+#      - key: GEMINI_API_KEY
 #        sync: false

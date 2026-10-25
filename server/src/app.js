@@ -1,4 +1,6 @@
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import express from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -18,7 +20,14 @@ import { agentRouter } from './routes/agent.routes.js';
 import { notFound, errorHandler } from './middleware/errors.js';
 import { createOverloadGuard } from './middleware/overload.js';
 
-export function createApp({ overloadGuard = createOverloadGuard({ maxLagMs: env.OVERLOAD_MAX_LAG_MS }) } = {}) {
+// The built frontend (client/dist). In production one server sends both the app and the API from
+// the same address, so the login cookie and requests just work (no CORS, no third-party cookies).
+const CLIENT_DIST = fileURLToPath(new URL('../../client/dist/', import.meta.url));
+
+export function createApp({
+  overloadGuard = createOverloadGuard({ maxLagMs: env.OVERLOAD_MAX_LAG_MS }),
+  clientDist = env.NODE_ENV === 'test' ? null : CLIENT_DIST,
+} = {}) {
   const app = express();
 
   app.disable('x-powered-by');
@@ -83,6 +92,25 @@ export function createApp({ overloadGuard = createOverloadGuard({ maxLagMs: env.
   app.use('/api/agent', agentRouter);
 
   app.use('/api', notFound);
+
+  if (clientDist && fs.existsSync(`${clientDist}index.html`)) {
+    // Files with a content hash in the name (assets/app-3f9c.js) never change: cache them for a year.
+    // index.html is always checked again, so a new deploy shows up on the next page load.
+    app.use(
+      express.static(clientDist, {
+        index: false,
+        setHeaders: (res, file) => {
+          if (/[\\/]assets[\\/]/.test(file)) res.set('Cache-Control', 'public, max-age=31536000, immutable');
+        },
+      }),
+    );
+    app.use((req, res, next) => {
+      if (req.method !== 'GET' || req.path.startsWith('/api')) return next();
+      res.set('Cache-Control', 'no-cache');
+      res.sendFile(`${clientDist}index.html`);
+    });
+  }
+
   app.use(errorHandler);
 
   return app;
