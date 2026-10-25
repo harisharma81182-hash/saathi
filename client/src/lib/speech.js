@@ -1,7 +1,6 @@
 // Voice for Saathi, using the browser's own Web Speech API (no extra service, no cost):
 //   listen()      speech to text, in the chosen language (SpeechRecognition)
 //   speak()       text to speech, with the best local voice for the reply's language (speechSynthesis)
-//   micLevel()    how loud the mic is right now, so the orb can pulse while listening (Web Audio)
 // Edge has the best Indian voices (Hindi, Tamil, Bengali, Indian English); Chrome works too.
 // Firefox has no speech recognition, so voice mode shows a clear message there.
 
@@ -129,44 +128,3 @@ export async function speak(text, { lang }) {
 }
 
 export const stopSpeaking = () => canSpeak && speechSynthesis.cancel();
-
-// ---- mic level -----------------------------------------------------------------------------
-
-/**
- * Calls onLevel(0..1) about 30 times a second with the mic's loudness. Returns stop().
- * Optional: if the mic can't be opened, the orb just doesn't pulse.
- */
-export async function micLevel(onLevel) {
-  let stream;
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
-  } catch {
-    return () => {};
-  }
-  const ctx = new AudioContext();
-  const analyser = ctx.createAnalyser();
-  analyser.fftSize = 512;
-  ctx.createMediaStreamSource(stream).connect(analyser);
-  const data = new Uint8Array(analyser.fftSize);
-  let frame;
-  let last = 0;
-  const tick = (t) => {
-    frame = requestAnimationFrame(tick);
-    if (t - last < 33) return;
-    last = t;
-    analyser.getByteTimeDomainData(data);
-    let sum = 0;
-    for (const v of data) sum += ((v - 128) / 128) ** 2;
-    onLevel(Math.min(1, Math.sqrt(sum / data.length) * 4));
-  };
-  frame = requestAnimationFrame(tick);
-  let stopped = false;
-  return () => {
-    if (stopped) return; // safe to call twice (end of listening, and closing voice mode)
-    stopped = true;
-    cancelAnimationFrame(frame);
-    stream.getTracks().forEach((tr) => tr.stop());
-    ctx.close().catch(() => {});
-    onLevel(0);
-  };
-}
