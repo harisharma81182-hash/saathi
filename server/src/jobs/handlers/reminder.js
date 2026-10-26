@@ -32,9 +32,12 @@ export async function fireReminder({ reminderId, remindAt }, { writeLine = write
   const already = await Notification.exists({ dedupeKey });
   const line = already ? null : await writeLine(reminder);
 
+  // The linked task gives the notification its "Ho gaya" button; study-plan sessions get the study look.
+  const task = reminder.taskId ? await Task.findOne({ _id: reminder.taskId, deletedAt: null }, { status: 1, tags: 1 }).lean() : null;
   await notifications.create({
     userId: reminder.userId,
     kind: 'reminder',
+    data: task ? { taskId: String(task._id), study: task.tags?.includes('study-plan') || undefined } : null,
     title: reminder.text,
     body: line?.text ?? '',
     expression: line?.expression ?? null,

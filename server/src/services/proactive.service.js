@@ -10,17 +10,21 @@ import { formatLocal } from '../utils/time.js';
 import * as notifications from './notification.service.js';
 import * as tasks from './task.service.js';
 import { proactiveMessage, postProactiveMessage } from './agent.service.js';
+import { countdown, inMorningWindow, morning } from './alerts.service.js';
 
 // Saathi speaking first. A scan runs every 30 minutes (jobs/periodic.js) and, for each user who
 // used the app in the last week, looks at their local time:
+//
+//    7:00 to  8:59  morning: "Aaj ka din" and exam/deadline countdowns (services/alerts.service.js);
+//                   these go out even without the AI, as plain text
 //
 //   10:00 to 20:59  nudge: overdue tasks get a friendly push ("lab file ka kya hua?"), at most once
 //                   per task per day and at most MAX_NUDGES_PER_DAY messages a day; never at night
 //   21:00 to 22:29  recap: a short summary of the day, once a day, only if they were active today,
 //                   with a button to move leftovers to tomorrow
 //
-// Every message is written by the AI with the user's context. If the AI is unavailable the message
-// is simply not sent (it is a nice-to-have, unlike a reminder), and the next scan tries again.
+// Nudges and recaps are written by the AI with the user's context. If the AI is unavailable they are
+// simply not sent (a nice-to-have, unlike a reminder), and the next scan tries again.
 
 const log = logger.child({ component: 'proactive' });
 
@@ -43,16 +47,20 @@ async function activeUserIds(now) {
 }
 
 export async function runScan({ now = new Date() } = {}) {
-  if (!aiConfigured()) return { skipped: 'AI is not configured' };
+  const ai = aiConfigured();
   const ids = await activeUserIds(now);
   const users = await User.find({ _id: { $in: ids } }).lean();
-  const out = { users: users.length, nudges: 0, recaps: 0 };
+  const out = { users: users.length, mornings: 0, countdowns: 0, nudges: 0, recaps: 0 };
   for (const user of users) {
     // One user's problem (AI busy, bad data) must not stop the scan for everyone else.
     try {
       const local = DateTime.fromJSDate(now, { zone: user.timezone });
-      if (local.hour >= NUDGE_HOURS.from && local.hour < NUDGE_HOURS.to && (await nudge(user, now))) out.nudges++;
-      if (inRecapWindow(local) && (await recap(user, now))) out.recaps++;
+      if (inMorningWindow(local)) {
+        if (await morning(user, now)) out.mornings++;
+        if (await countdown(user, now)) out.countdowns++;
+      }
+      if (ai && local.hour >= NUDGE_HOURS.from && local.hour < NUDGE_HOURS.to && (await nudge(user, now))) out.nudges++;
+      if (ai && inRecapWindow(local) && (await recap(user, now))) out.recaps++;
     } catch (err) {
       log.warn({ userId: String(user._id), err: err.message }, 'proactive message skipped');
     }

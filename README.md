@@ -36,14 +36,22 @@ Saathi is a chat and voice assistant connected to your own data. The AI model (G
 - Tasks with due dates, priority, tags and deadline countdowns; habits (daily or weekly) with streaks; quick add from one sentence
 - Reminders that fire exactly once, with snooze; a friendly line written by Saathi at fire time (plain text if the AI is down, never late)
 - Today panel, a 14-day progress chart, an activity timeline with Undo, notes with search and pins
-- Live updates in every open tab (Server-Sent Events) and browser notifications
+- Live updates in every open tab (Server-Sent Events)
+
+**Notifications everywhere, in Saathi's voice**
+- Push notifications on phones and computers (Chrome, Edge, Android, iPhone after "Add to Home Screen"), even with the app closed: Web Push with a service worker and VAPID keys; every device of a user is registered and expired ones are removed automatically
+- Always on, no setting: the browser asks on your first tap after login. If you say no (or on an iPhone not added to the Home Screen), notifications still reach you in the app, and the important ones (reminders, tasks due, the morning plan) by email
+- For everything that matters: reminders, a task due in an hour and due now, overdue nudges, the morning "Aaj ka din", the evening recap, exam countdowns (3 days, 1 day, today), study sessions, streak and weekly milestones, and what Saathi did from the chat if you closed the app
+- Every message written fresh by the AI in your language (a plain line if the AI is down, never late), with its own emoji, Saathi's icon, a space photo on Android/Chrome, and buttons: "Ho gaya ✅", "10 min baad 😴", "Kholo" (opens the right screen)
+- No spam: quiet hours 11 PM to 7 AM (only reminders ring), several tasks at once become one notification, at most 2 nudges a day, emails only for the important kinds and at most 10 a day
+- Installable app (PWA) with its own icon
 
 **Built properly**
 - Secure accounts: scrypt password hashing, JWT in an httpOnly cookie, brute-force limits per IP and per account, a single-use emailed reset link that logs out every session
 - Error handling everywhere: invalid input gets field-level messages, failed AI calls fall back to the next model or a friendly message, duplicates are caught (`Idempotency-Key`, similar-task check), other users' data is never visible (404, not 403)
 - Loading skeletons, empty states with a next step, and error states with a retry on every screen
 - Ready to scale: stateless instances, a MongoDB job queue, shared quotas, health checks and graceful shutdown ([docs/SCALING.md](docs/SCALING.md))
-- 123 automated tests (unit and integration)
+- 131 automated tests (unit and integration)
 
 ## Screenshots
 
@@ -170,7 +178,8 @@ Set in `server/.env` locally, or in the Render dashboard.
 | `PROCESS_ROLE` | no | `all` (default: API + worker in one process), `web` or `worker` |
 | `CLIENT_ORIGIN` | no | The app's address, e.g. `https://saathi.onrender.com` (default `http://localhost:5173`) |
 | `APP_URL` | no | Address used in email links (default `CLIENT_ORIGIN`) |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | for email | SMTP for password reset links (a Gmail App Password works). Without `SMTP_HOST` the link is written to the server log |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | for push | Web Push key pair (`npx web-push generate-vapid-keys`) and a contact (`mailto:...` or your https address). Without them notifications still arrive in the app and by email |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | for email | SMTP for password reset links and the email copy of important notifications (a Gmail App Password works). Without `SMTP_HOST` the email is written to the server log |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_FALLBACK_MODEL` | for Claude | Only with `AI_PROVIDER=anthropic` |
 | `JWT_EXPIRES_IN`, `PORT`, `MONGO_MAX_POOL`, `LOG_LEVEL` | no | Login lifetime (7d), port (4000), DB connections per instance (10), log level (info) |
 | `AI_REQUEST_TIMEOUT_MS`, `AI_TOTAL_TIMEOUT_MS`, `AI_USER_PER_MINUTE`, `AI_USER_PER_DAY`, `AI_MAX_CONCURRENCY`, `AI_MAX_QUEUE` | no | AI timeouts (20 s / 28 s), per-user limits (20 per minute, 300 per day) and per-instance limits |
@@ -207,6 +216,9 @@ Set in `server/.env` locally, or in the Render dashboard.
 | GET | `/api/me/progress` | yes | Completions per day (14 days), this week vs last, streak |
 | GET | `/api/me/hints?q=` | yes | Open tasks related to what the user is typing |
 | GET | `/api/me/notifications` | yes | Notifications (`unread=true`), with unread count |
+| GET | `/api/push/key` | yes | The public VAPID key for subscribing this device |
+| POST | `/api/push/subscribe`, `/unsubscribe` | yes | Register this device for push `{ endpoint, keys: { p256dh, auth }, device? }` / forget it `{ endpoint }` |
+| POST | `/api/push/action` | yes | A notification button `{ notificationId, action: done / snooze / open }` |
 | POST | `/api/me/notifications/:id/read`, `/read-all` | yes | Mark read |
 | GET | `/api/me/activity` | yes | Timeline of changes, each with `canUndo` |
 | POST | `/api/me/activity/:id/undo` | yes | Undo one change |
@@ -238,11 +250,10 @@ The free plan sleeps after 15 minutes without visits; reminders that fall due wh
 - Upload a syllabus or PDF and turn it into a study plan
 - Web search for explanations and quick facts
 - Shared tasks and study groups with friends
-- Installable app (PWA) with push notifications
 
 ## AI usage
 
-This project was built with help from Claude (Anthropic) for code generation, debugging and documentation, as allowed by the project guidelines. Every workflow is tested (123 automated tests plus live checks with the real AI), and the code is understood and maintained by the author. Inside the app, the AI (Gemini) only proposes actions; the server validates and executes them, and every change can be undone.
+This project was built with help from Claude (Anthropic) for code generation, debugging and documentation, as allowed by the project guidelines. Every workflow is tested (131 automated tests plus live checks with the real AI), and the code is understood and maintained by the author. Inside the app, the AI (Gemini) only proposes actions; the server validates and executes them, and every change can be undone.
 
 ## Credits
 

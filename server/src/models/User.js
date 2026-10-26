@@ -10,6 +10,9 @@ const userSchema = new mongoose.Schema(
     passwordHash: { type: String, required: true, select: false },
     // IANA timezone such as "Asia/Kolkata". The agent uses it to understand "kal 5 baje".
     timezone: { type: String, default: 'Asia/Kolkata' },
+    // Saathi is open in a tab until about this time (kept fresh by the live-updates stream). Used to
+    // skip the email copy of a notification the user is already seeing in the app.
+    onlineUntil: { type: Date, default: null },
     // Preferred language from Settings ("Bhasha"), see utils/language.js.
     language: { type: String, enum: LANGUAGE_IDS, default: DEFAULT_LANGUAGE },
     // Goes up when the password is reset. Login tokens carry the number they were issued with, so

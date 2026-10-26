@@ -2,6 +2,8 @@ import { registerHandler } from '../worker.js';
 import { fireReminder } from './reminder.js';
 import { summarize } from './summarize.js';
 import { runScan } from '../../services/proactive.service.js';
+import { deliver } from '../../services/delivery.service.js';
+import { checkAchievement, dueScan } from '../../services/alerts.service.js';
 import { ensurePeriodicJobs } from '../periodic.js';
 
 // Every background job type and the function that runs it.
@@ -13,4 +15,13 @@ export function registerAllHandlers() {
     await ensurePeriodicJobs(new Date(slot));
     return runScan();
   });
+  // Every 5 minutes: tasks due in about an hour, and tasks due now.
+  registerHandler('alerts.scan', async ({ slot }) => {
+    await ensurePeriodicJobs(new Date(slot));
+    return dueScan();
+  });
+  // Push and email for one notification (services/delivery.service.js).
+  registerHandler('notification.deliver', ({ notificationId }) => deliver(notificationId));
+  // A task was completed: maybe a streak or weekly milestone to celebrate.
+  registerHandler('achievement.check', ({ userId }) => checkAchievement(userId));
 }

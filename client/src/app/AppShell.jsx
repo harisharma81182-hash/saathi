@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Activity, Bell, BellRing, CheckSquare, LogOut, MessageCircle, NotebookPen, Settings } from 'lucide-react';
+import { Activity, BellRing, CheckSquare, LogOut, MessageCircle, NotebookPen, Settings } from 'lucide-react';
 import { useLiveEvents } from '../hooks/useLiveEvents.js';
 import { LiveContext } from './live.js';
 import { Toasts } from '../components/Toasts.jsx';
@@ -8,6 +8,8 @@ import { UndoToast } from '../components/UndoToast.jsx';
 import { CursorGlow } from '../components/CursorGlow.jsx';
 import { SpaceBackdrop } from '../components/SpaceBackdrop.jsx';
 import { I18nProvider, useI18n } from '../lib/i18n.js';
+import { setupPush } from '../lib/push.js';
+import { IosGuide } from '../components/IosGuide.jsx';
 import { HomeScreen } from '../screens/HomeScreen.jsx';
 import { TasksScreen } from '../screens/TasksScreen.jsx';
 import { NotesScreen } from '../screens/NotesScreen.jsx';
@@ -56,6 +58,9 @@ export function AppShell({ user: initialUser, onLogout }) {
     setScreen(id);
   }, []);
 
+  // Notifications on this device: always on, the browser asks on the first tap (lib/push.js).
+  useEffect(() => setupPush(), []);
+
   const status = useLiveEvents({
     changed: (a) => {
       setCounts((c) => ({ ...c, changes: c.changes + 1 }));
@@ -65,11 +70,8 @@ export function AppShell({ user: initialUser, onLogout }) {
     },
     notification: (n) => {
       setCounts((c) => ({ changes: c.changes + 1, notices: c.notices + 1 }));
+      // In the app: a card. Outside it (tab in the background or closed): the push from the server.
       setToasts((all) => [n, ...all.filter((t) => t.id !== n.id)].slice(0, 3));
-      // The tab is in the background: a system notification too, if the user allowed it.
-      if (document.hidden && 'Notification' in window && Notification.permission === 'granted') {
-        new Notification(n.title, { body: n.body || undefined, icon: '/favicon.svg', tag: n.id });
-      }
     },
   });
 
@@ -111,7 +113,8 @@ export function AppShell({ user: initialUser, onLogout }) {
             </AnimatePresence>
           </main>
           <BottomNav screen={screen} go={go} />
-          <Toasts items={toasts} onDismiss={(id) => setToasts((all) => all.filter((t) => t.id !== id))} onChanged={() => setCounts((c) => ({ ...c, changes: c.changes + 1 }))} />
+          <Toasts items={toasts} onDismiss={(id) => setToasts((all) => all.filter((t) => t.id !== id))} onChanged={() => setCounts((c) => ({ ...c, changes: c.changes + 1 }))} go={go} />
+          <IosGuide />
           <UndoToast activity={undo} onClose={() => setUndo(null)} />
         </div>
       </LiveContext.Provider>
@@ -121,7 +124,6 @@ export function AppShell({ user: initialUser, onLogout }) {
 
 function TopBar({ screen, go, user, live, onLogout }) {
   const { t } = useI18n();
-  const [perm, setPerm] = useState(() => ('Notification' in window ? Notification.permission : 'unsupported'));
   return (
     <header className="relative z-20 flex items-center justify-between gap-4 px-4 pb-1 pt-[max(env(safe-area-inset-top),12px)] sm:px-8">
       <button onClick={() => go('home')} className="flex items-center gap-2 rounded-lg" aria-label="Saathi, Home">
@@ -147,15 +149,6 @@ function TopBar({ screen, go, user, live, onLogout }) {
       </nav>
 
       <div className="flex items-center gap-1">
-        {perm === 'default' && (
-          <button
-            onClick={() => Notification.requestPermission().then(setPerm)}
-            className="inline-flex h-9 items-center gap-2 rounded-full px-3 text-sm text-faint transition-colors hover:bg-surface hover:text-text"
-          >
-            <Bell size={16} />
-            <span className="hidden sm:inline">Alerts on karo</span>
-          </button>
-        )}
         <button
           onClick={() => go('settings')}
           aria-label={t('nav.settings')}

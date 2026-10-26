@@ -5,6 +5,7 @@ import { idParams } from '../utils/schemas.js';
 import { publicMemory } from '../models/Memory.js';
 import { openSse } from '../utils/sse.js';
 import * as agent from '../services/agent.service.js';
+import * as alerts from '../services/alerts.service.js';
 import * as memory from '../services/memory.service.js';
 
 export const agentRouter = Router();
@@ -37,10 +38,24 @@ agentRouter.post('/chat', validate({ body: agent.chatSchema }), async (req, res)
     if (!res.writableFinished) controller.abort(new Error('client went away'));
   });
 
+  // Remember what was done, so a user who closed the app mid-reply still learns about it.
+  const receipts = [];
+  let replyText = '';
+  const emit = (event, data) => {
+    if (event === 'receipt') receipts.push(data);
+    if (event === 'done') replyText = data.message?.text ?? '';
+    send(event, data);
+  };
+
   try {
-    await agent.runTurn(turn, { emit: send, signal: controller.signal });
+    await agent.runTurn(turn, { emit, signal: controller.signal });
   } finally {
     close();
+  }
+  if (controller.signal.aborted && receipts.length) {
+    await alerts
+      .confirmAgentWork(req.user._id, { replyText, receipts, messageId: String(turn.userMessage._id), appClosed: true })
+      .catch((err) => req.log.warn({ err: err.message }, 'agent confirmation not sent'));
   }
 });
 

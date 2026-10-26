@@ -27,6 +27,10 @@ const taskSchema = new mongoose.Schema(
     nextId: { type: mongoose.Schema.Types.ObjectId, default: null },
     // Local date ("2026-10-18") Saathi last nudged about this task, so it nudges at most once a day.
     nudgedOn: { type: String, default: null },
+    // When the "due in an hour" and "due now" notifications went out (claimed atomically by the
+    // alerts scan, so each is sent once). Cleared when the due time changes.
+    alertedSoonAt: { type: Date, default: null },
+    alertedDueAt: { type: Date, default: null },
     // Who made the change: the user directly, or the agent on their behalf.
     source: { type: String, enum: ['user', 'agent'], default: 'user' },
     // Soft delete, so a delete can be undone. Deleted items are hidden everywhere.
@@ -51,17 +55,22 @@ function sortKeys(src) {
 
 taskSchema.pre('save', function syncSortKeys() {
   Object.assign(this, sortKeys({ dueAt: this.dueAt, priority: this.priority }));
+  // A new due time gets its own "due soon" / "due now" notifications.
+  if (!this.isNew && this.isModified('dueAt')) Object.assign(this, { alertedSoonAt: null, alertedDueAt: null });
 });
 
 // Updates that bypass save() (e.g. Undo restoring old values) keep the sort keys in sync too.
 taskSchema.pre(['findOneAndUpdate', 'updateOne', 'updateMany'], function syncSortKeysOnUpdate() {
   const update = this.getUpdate();
   if (update?.$set) Object.assign(update.$set, sortKeys(update.$set));
+  if (update?.$set && 'dueAt' in update.$set && !('alertedSoonAt' in update.$set)) Object.assign(update.$set, { alertedSoonAt: null, alertedDueAt: null });
 });
 
 // Every query is "this user's tasks", usually filtered by status and sorted by due date.
 taskSchema.index({ userId: 1, deletedAt: 1, status: 1, dueSort: 1 });
 taskSchema.index({ userId: 1, deletedAt: 1, status: 1, dueAt: 1 });
+// The 5-minute alerts scan: open tasks of all users due around now.
+taskSchema.index({ status: 1, dueAt: 1 });
 // Weekly progress: tasks completed per day.
 taskSchema.index({ userId: 1, completedAt: 1 });
 // One occurrence per habit per due time, even if two requests complete the same task at once.

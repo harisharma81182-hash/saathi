@@ -1,11 +1,13 @@
 import mongoose from 'mongoose';
 
-// Something Saathi wants to tell the user: a reminder firing, a nudge about an overdue task.
-// Stored, so it is never lost even if the user was offline; delivered live when they are online.
+// Something Saathi wants to tell the user: a reminder firing, a nudge about an overdue task, the
+// morning plan... Stored, so it is never lost; shown live in the app, and also sent as a push
+// notification and/or an email (see services/delivery.service.js).
+export const NOTIFICATION_KINDS = ['reminder', 'due_soon', 'due_now', 'nudge', 'morning', 'recap', 'countdown', 'achievement', 'agent', 'system'];
 const notificationSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    kind: { type: String, enum: ['reminder', 'nudge', 'recap', 'system'], required: true },
+    kind: { type: String, enum: NOTIFICATION_KINDS, required: true },
     title: { type: String, required: true, maxlength: 200 },
     body: { type: String, default: '', maxlength: 1000 },
     // Saathi's face for this notification (the AI picks it with the text); null = default.
@@ -17,6 +19,8 @@ const notificationSchema = new mongoose.Schema(
     readAt: { type: Date, default: null },
     // One notification per event, even if the job that creates it runs twice.
     dedupeKey: { type: String },
+    // How it went out: devices reached by push, whether an email was sent, or why not.
+    delivery: { type: mongoose.Schema.Types.Mixed, default: null },
   },
   { timestamps: true },
 );

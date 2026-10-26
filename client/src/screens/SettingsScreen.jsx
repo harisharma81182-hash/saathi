@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Bell, Check, LogOut, Plus, Trash2 } from 'lucide-react';
+import { Check, LogOut, Plus, Trash2 } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { LANGUAGES, useI18n } from '../lib/i18n.js';
 import { PHOTOS } from '../lib/photos.js';
 import { EmptyState, ErrorState, ListSkeleton, ScreenFrame } from '../components/ScreenParts.jsx';
 
 // Settings: your name and timezone (Saathi uses them in every reply, and "kal 9 baje" depends on
-// the timezone), your language (Bhasha), what Saathi remembers about you (see, add, forget),
-// notifications and logout.
+// the timezone), your language (Bhasha), what Saathi remembers about you (see, add, forget) and
+// logout. Notifications have no setting: they are always on (lib/push.js).
 
 const KINDS = {
   fact: 'Baat',
@@ -30,9 +30,6 @@ export function SettingsScreen({ user, onUserChange, onLogout }) {
       </Section>
       <Section title={t('settings.memory')} text="Yeh baatein Saathi har jawab mein yaad rakhta hai. Jo galat ya purani ho, hata do.">
         <Memories />
-      </Section>
-      <Section title={t('settings.notifications')} text="Tab band ho tab bhi reminder ka popup aaye, iske liye browser se permission chahiye.">
-        <NotificationSetting />
       </Section>
       <Section title={t('settings.account')} text={`${user.email} se login ho.`}>
         <button onClick={onLogout} className="btn-ghost -ml-3 text-vermilion">
@@ -311,24 +308,5 @@ function PhotoCredits() {
         ))}
       </ul>
     </details>
-  );
-}
-
-function NotificationSetting() {
-  const supported = 'Notification' in window;
-  const [perm, setPerm] = useState(supported ? Notification.permission : 'unsupported');
-  if (!supported) return <p className="text-muted">Is browser mein notifications nahi chalte. Microsoft Edge ya Chrome try karo.</p>;
-  if (perm === 'granted') {
-    return (
-      <p className="inline-flex items-center gap-2 text-muted">
-        <Check size={16} className="text-leaf" /> On hain. Reminders tab band hone par bhi aayenge.
-      </p>
-    );
-  }
-  if (perm === 'denied') return <p className="text-muted">Browser ne notifications block kiye hain. Address bar ke lock icon se "Notifications: Allow" karo, phir page reload karo.</p>;
-  return (
-    <button onClick={() => Notification.requestPermission().then(setPerm)} className="btn-gold">
-      <Bell size={15} /> Notifications on karo
-    </button>
   );
 }

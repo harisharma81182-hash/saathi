@@ -5,6 +5,7 @@ import { isoDateTime, tags, pagination, escapeRegex } from '../utils/schemas.js'
 import { dayRange } from '../utils/time.js';
 import * as activity from './activity.service.js';
 import * as habits from './habit.service.js';
+import { enqueue } from '../jobs/queue.js';
 import mongoose from 'mongoose';
 
 const nullableDate = z.union([isoDateTime, z.null()]);
@@ -154,6 +155,8 @@ export async function complete(userId, id, { actor = 'user' } = {}) {
     },
   });
   done.$locals.next = await habits.scheduleNext(userId, done, { actor });
+  // A streak or weekly milestone may deserve a small celebration (checked in the background).
+  await enqueue('achievement.check', { userId: String(userId) }, { maxAttempts: 2, dedupeKey: `achievement:${done._id}:${done.completedAt.getTime()}` }).catch(() => {});
   return done;
 }
 

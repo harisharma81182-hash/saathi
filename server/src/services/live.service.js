@@ -1,5 +1,6 @@
 import { Notification, publicNotification } from '../models/Notification.js';
 import { Activity, publicActivity } from '../models/Activity.js';
+import { User } from '../models/User.js';
 import { logger } from '../lib/logger.js';
 import { AppError } from '../utils/AppError.js';
 import { TtlCache } from '../utils/ttlCache.js';
@@ -25,6 +26,13 @@ export const POLL_MS = 2000;
 // looks back a bit further than the previous one; the sent-cache removes the duplicates.
 const OVERLAP_MS = 10_000;
 export const MAX_CONNECTIONS_PER_USER = 5;
+// Presence: while a tab is connected, User.onlineUntil is pushed forward every PRESENCE_MS (shared
+// across instances through MongoDB). The delivery service skips emails for users who are online.
+export const PRESENCE_MS = 20_000;
+const PRESENCE_TTL_MS = 45_000;
+
+/** True if Saathi is open in one of the user's tabs right now (on any instance). */
+export const isOnline = (user, now = new Date()) => Boolean(user?.onlineUntil && new Date(user.onlineUntil) > now);
 
 export function createLiveHub({ pollMs = POLL_MS, maxPerUser = MAX_CONNECTIONS_PER_USER, maxTotal = 5000 } = {}) {
   const connections = new Map(); // userId -> Set of { send, close }
@@ -33,6 +41,12 @@ export function createLiveHub({ pollMs = POLL_MS, maxPerUser = MAX_CONNECTIONS_P
   let cursor = new Date();
   let timer = null;
   let polling = false;
+  let lastPresence = 0;
+
+  function markPresence(ids, until) {
+    if (!ids.length) return;
+    User.updateMany({ _id: { $in: ids } }, { $set: { onlineUntil: until } }).catch((err) => log.warn({ err: err.message }, 'presence not saved'));
+  }
 
   function deliver(userId, event, key, data) {
     const subs = connections.get(String(userId));
@@ -64,6 +78,10 @@ export function createLiveHub({ pollMs = POLL_MS, maxPerUser = MAX_CONNECTIONS_P
       for (const n of notifications) onNotification(n);
       for (const a of activities) onActivity(a);
       cursor = now;
+      if (now - lastPresence >= PRESENCE_MS) {
+        lastPresence = now.getTime();
+        markPresence(userIds, new Date(now.getTime() + PRESENCE_TTL_MS));
+      }
     } catch (err) {
       // The database blipped: keep the old cursor so nothing is missed, and try again next time.
       log.warn({ err: err.message }, 'live poll failed');
@@ -100,10 +118,15 @@ export function createLiveHub({ pollMs = POLL_MS, maxPerUser = MAX_CONNECTIONS_P
     connections.set(key, subs);
     total++;
     start();
+    if (subs.size === 1) markPresence([key], new Date(Date.now() + PRESENCE_TTL_MS));
     return () => {
       if (!subs.delete(conn)) return;
       total--;
-      if (subs.size === 0) connections.delete(key);
+      if (subs.size === 0) {
+        connections.delete(key);
+        // Last tab closed here: offline at once, so the email copy of the next reminder is not skipped.
+        markPresence([key], new Date());
+      }
     };
   }
 

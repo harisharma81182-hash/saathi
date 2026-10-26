@@ -38,7 +38,15 @@ services:
         sync: false
       - key: APP_URL
         sync: false
-      # Optional: email for "Password bhool gaye?" (without it the reset link only goes to the logs).
+      # Notifications on phones and computers (Web Push). Same key pair as in server/.env.
+      - key: VAPID_PUBLIC_KEY
+        sync: false
+      - key: VAPID_PRIVATE_KEY
+        sync: false
+      - key: VAPID_SUBJECT
+        sync: false
+      # Email: password reset links, and the email copy of important notifications when push can't
+      # reach the user (without it, those only go to the logs).
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT

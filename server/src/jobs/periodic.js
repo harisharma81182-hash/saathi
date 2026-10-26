@@ -7,7 +7,8 @@ import { logger } from '../lib/logger.js';
 // and each worker also calls ensurePeriodicJobs() now and then, so a failed run never ends the chain.
 
 export const PERIODIC_JOBS = {
-  'proactive.scan': 30 * 60_000, // nudges and the evening recap (see services/proactive.service.js)
+  'proactive.scan': 30 * 60_000, // morning plan, countdowns, nudges, evening recap (services/proactive.service.js)
+  'alerts.scan': 5 * 60_000, // tasks due in about an hour, and due now (services/alerts.service.js)
 };
 
 /** The start of the next slot after `now`. */

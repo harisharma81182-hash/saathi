@@ -20,6 +20,11 @@ process.env.AI_MODEL_LIMITS = '';
 // programs running, password hashing) that can trip in the middle of a test run and fail unrelated
 // tests at random, so tests run with a much higher limit.
 process.env.OVERLOAD_MAX_LAG_MS = '5000';
+// Push is "configured" with fake keys; tests replace the sender, so nothing reaches a real push service.
+process.env.VAPID_PUBLIC_KEY = 'test-public-key';
+process.env.VAPID_PRIVATE_KEY = 'test-private-key';
+// No real email from tests either (they collect mail in an outbox).
+process.env.SMTP_HOST = '';
 
 export async function setupDb() {
   const { connectDB } = await import('../src/db/connect.js');

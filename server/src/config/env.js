@@ -94,6 +94,13 @@ const schema = z.object({
   MAIL_FROM: z.string().optional(),
   // Where the app lives, for links in emails (defaults to CLIENT_ORIGIN).
   APP_URL: z.string().optional(),
+
+  // Web Push: notifications on phones and computers even when Saathi's tab is closed. Make a key
+  // pair once with: npx web-push generate-vapid-keys. Without them, notifications still arrive
+  // in the app and (for the important ones) by email.
+  VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  VAPID_SUBJECT: z.string().default('mailto:saathi@example.com'),
 });
 
 const parsed = schema.safeParse(process.env);

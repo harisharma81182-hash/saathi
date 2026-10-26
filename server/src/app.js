@@ -17,6 +17,7 @@ import { notesRouter } from './routes/notes.routes.js';
 import { remindersRouter } from './routes/reminders.routes.js';
 import { meRouter } from './routes/me.routes.js';
 import { agentRouter } from './routes/agent.routes.js';
+import { pushRouter } from './routes/push.routes.js';
 import { notFound, errorHandler } from './middleware/errors.js';
 import { createOverloadGuard } from './middleware/overload.js';
 
@@ -90,6 +91,7 @@ export function createApp({
   app.use('/api/reminders', remindersRouter);
   app.use('/api/me', meRouter);
   app.use('/api/agent', agentRouter);
+  app.use('/api/push', pushRouter);
 
   app.use('/api', notFound);
 
