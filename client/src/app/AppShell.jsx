@@ -29,9 +29,10 @@ export const SCREENS = [
 ];
 const ALL = [...SCREENS.map((s) => s.id), 'settings'];
 
-// The space photo behind each screen (lib/photos.js has the credits). Reminders keeps the plain
-// night sky on purpose (Himanshu has another idea for it).
-const BACKDROPS = { home: 'westerlund2', tasks: 'antennae', notes: 'am0500', activity: 'andromeda', settings: 'carina' };
+// The space photo behind each screen (lib/photos.js has the credits). Reminders gets the black hole:
+// it is mostly black, so it sits under the lighter veil and stays visible above the list.
+const BACKDROPS = { home: 'westerlund2', tasks: 'antennae', reminders: 'blackhole', notes: 'am0500', activity: 'andromeda', settings: 'carina' };
+const SOFT_VEIL = ['notes', 'reminders'];
 
 const screenFromHash = () => {
   const id = location.hash.replace(/^#\/?/, '');
@@ -86,7 +87,7 @@ export function AppShell({ user: initialUser, onLogout }) {
               animate={{ opacity: 1, transition: { duration: 0.9 } }}
               exit={{ opacity: 0, transition: { duration: 0.6 } }}
             >
-              <SpaceBackdrop photo={BACKDROPS[screen]} className="absolute" strength={screen === 'notes' ? 'soft' : 'strong'} />
+              <SpaceBackdrop photo={BACKDROPS[screen]} className="absolute" strength={SOFT_VEIL.includes(screen) ? 'soft' : 'strong'} />
             </motion.div>
           </AnimatePresence>
           <CursorGlow />

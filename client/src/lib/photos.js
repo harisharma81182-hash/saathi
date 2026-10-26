@@ -33,6 +33,13 @@ export const PHOTOS = {
     usedFor: 'Tasks',
     match: 'exact',
   },
+  blackhole: {
+    title: 'Black hole accretion disk visualization (2019, frame 1 of the 360 orbit, placed on a wider black background)',
+    credit: "NASA's Goddard Space Flight Center / Jeremy Schnittman",
+    source: 'https://svs.gsfc.nasa.gov/13326',
+    usedFor: 'Reminders',
+    match: 'exact',
+  },
   am0500: {
     title: 'AM 0500-620',
     credit: 'NASA, ESA, the Hubble Heritage Team (STScI/AURA)-ESA/Hubble Collaboration and W. Keel (University of Alabama, Tuscaloosa)',

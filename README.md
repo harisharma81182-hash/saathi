@@ -54,7 +54,7 @@ Saathi is a chat and voice assistant connected to your own data. The AI model (G
 | ![Tasks grouped by when they are due](docs/screenshots/tasks.webp) | ![Completed tasks with the 14-day progress chart](docs/screenshots/tasks-completed.webp) |
 | Tasks grouped by when they are due | Completed tasks and the 14-day progress chart |
 | ![Reminders with snooze](docs/screenshots/reminders.webp) | ![Activity timeline with Undo](docs/screenshots/activity.webp) |
-| Reminders with snooze and cancel | Every change, yours or Saathi's, with Undo |
+| Reminders with snooze and cancel, over NASA's black hole visualization | Every change, yours or Saathi's, with Undo |
 | ![Notes with pinned notes first](docs/screenshots/notes.webp) | ![Settings: language picker](docs/screenshots/settings-language.webp) |
 | Notes | Settings: language, profile and what Saathi remembers |
 

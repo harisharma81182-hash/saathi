@@ -7,7 +7,7 @@ and lives in `client/public/bg/` as `<name>-desktop.webp` (1920 px) and `<name>-
 
 Licences:
 - ESA/Hubble and ESA images: [Creative Commons Attribution 4.0](https://esahubble.org/copyright/), free to use with the credit shown.
-- NASA images: public domain, not copyrighted ([NASA media guidelines](https://www.nasa.gov/nasa-brand-center/images-and-media/)); credit "NASA".
+- NASA images and visualizations: generally not copyrighted ([NASA media guidelines](https://www.nasa.gov/nasa-brand-center/images-and-media/)); the credit line given by NASA is shown. Using them does not mean NASA endorses Saathi.
 - Pexels photos: the [Pexels licence](https://www.pexels.com/license/), free to use, credit given to the photographer anyway.
 
 "Exact" means the same photo as Himanshu's reference screenshot. "Similar" means the exact original
@@ -21,6 +21,7 @@ Git, too large); the app only loads the small WebP files.
 | `pillars` | Exact | New view of the Pillars of Creation (visible) | NASA, ESA/Hubble and the Hubble Heritage Team | [esahubble.org/images/heic1501a](https://esahubble.org/images/heic1501a/) | Login and signup |
 | `mysticmountain` | Exact | Hubble captures view of "Mystic Mountain" | NASA, ESA, M. Livio and the Hubble 20th Anniversary Team (STScI) | [esahubble.org/images/heic1007a](https://esahubble.org/images/heic1007a/) | Password bhool gaye, reset |
 | `antennae` | Exact | A Galactic spectacle (Antennae galaxies: Chandra X-ray, Hubble optical, Spitzer infrared) | NASA, ESA, SAO, CXC, JPL-Caltech, and STScI. Acknowledgment: G. Fabbiano and Z. Wang (Harvard-Smithsonian CfA, USA), and B. Whitmore (STScI) | [esahubble.org/images/opo1025a](https://esahubble.org/images/opo1025a/) (also [chandra.harvard.edu/photo/2010/antennae](https://chandra.harvard.edu/photo/2010/antennae/)) | Tasks |
+| `blackhole` | Chosen | Black hole accretion disk visualization (2019), frame 1 of the 360-degree orbit, unlabelled 3840 x 3840 frame, placed on a wider black background | NASA's Goddard Space Flight Center / Jeremy Schnittman | [svs.gsfc.nasa.gov/13326](https://svs.gsfc.nasa.gov/13326) | Reminders |
 | `am0500` | Exact | AM 0500-620 | NASA, ESA, the Hubble Heritage Team (STScI/AURA)-ESA/Hubble Collaboration and W. Keel (University of Alabama, Tuscaloosa) | [esahubble.org/images/heic0810bv](https://esahubble.org/images/heic0810bv/) | Notes |
 | `andromeda` | Similar | Cool Andromeda (Herschel PACS and SPIRE, far infrared), turned 40 degrees and cropped to landscape like the reference | ESA/Herschel/PACS & SPIRE Consortium, O. Krause, HSC, H. Linz | [sci.esa.int/web/herschel/-/57934-cool-andromeda](https://sci.esa.int/web/herschel/-/57934-cool-andromeda) | Activity |
 | `carina` | Exact | Star birth in the extreme (Carina Nebula) | NASA, ESA, N. Smith (University of California, Berkeley), and The Hubble Heritage Team (STScI/AURA) | [esahubble.org/images/heic0707a](https://esahubble.org/images/heic0707a/) | Settings |
@@ -35,4 +36,4 @@ Git, too large); the app only loads the small WebP files.
 | `earth-horizon` | Similar | Earth's horizon at sunset, from the International Space Station (iss068e022267) | NASA | [images.nasa.gov/details/iss068e022267](https://images.nasa.gov/details/iss068e022267) | Last landing section, behind "Account banao" |
 | `earth-night` | Similar | The Nile and its delta at night, from the International Space Station (iss030e112822) | NASA | [images.nasa.gov/details/iss030e112822](https://images.nasa.gov/details/iss030e112822) | Notifications and the evening recap |
 
-Reminders has no photo on purpose (Himanshu has another idea for that screen).
+Reminders uses the black hole (chosen by Himanshu: "like Gargantua"). It is a scientific visualization by NASA, not an image from any film.
