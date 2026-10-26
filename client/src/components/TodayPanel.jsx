@@ -35,6 +35,7 @@ export function TodayPanel({ today, error, onRetry, onChanged }) {
         <h2 className="font-display text-xl font-semibold">Aaj</h2>
         <p className="text-sm text-faint">
           {counts.doneToday > 0 && <span className="text-leaf">{counts.doneToday} ho gaye · </span>}
+          {today.focus?.todayMinutes > 0 && <span className="text-gold">{today.focus.todayMinutes} min focus · </span>}
           {counts.openTasks} baaki
         </p>
       </header>

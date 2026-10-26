@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 // Something Saathi wants to tell the user: a reminder firing, a nudge about an overdue task, the
 // morning plan... Stored, so it is never lost; shown live in the app, and also sent as a push
 // notification and/or an email (see services/delivery.service.js).
-export const NOTIFICATION_KINDS = ['reminder', 'due_soon', 'due_now', 'nudge', 'morning', 'recap', 'countdown', 'achievement', 'agent', 'system'];
+export const NOTIFICATION_KINDS = ['reminder', 'due_soon', 'due_now', 'nudge', 'morning', 'recap', 'countdown', 'timer', 'achievement', 'agent', 'system'];
 const notificationSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

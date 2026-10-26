@@ -360,3 +360,16 @@ html.lenis body {
 @media (prefers-reduced-motion: reduce) {
   .warp-flash { display: none; }
 }
+
+/* Focus timer: the ring flashes full when the work is done (components/FocusRing.jsx). */
+.ring-flash {
+  animation: ring-flash 1.6s ease-out;
+}
+@keyframes ring-flash {
+  0% { filter: brightness(1); }
+  25% { filter: brightness(1.8) drop-shadow(0 0 18px rgb(242 165 65 / 0.9)); }
+  100% { filter: brightness(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ring-flash { animation: none; }
+}

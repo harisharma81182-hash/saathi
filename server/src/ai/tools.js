@@ -13,6 +13,8 @@ import * as activity from '../services/activity.service.js';
 import * as agenda from '../services/agenda.service.js';
 import * as memory from '../services/memory.service.js';
 import * as planner from '../services/planner.service.js';
+import * as focus from '../services/focus.service.js';
+import { MAX_FOCUS_MINUTES } from '../models/FocusSession.js';
 
 // Saathi's tools: the things the agent can actually do in the user's account.
 //
@@ -267,7 +269,7 @@ export const TOOLS = [
     description: 'Undo the most recent change to a task, note or reminder (by you or the user), for "undo that" or "galti ho gayi". Works for about 10 minutes after the change.',
     input: z.object({}),
     async run({ user }) {
-      const last = await Activity.findOne({ userId: user._id, undoneAt: null }).sort({ createdAt: -1 }).lean();
+      const last = await Activity.findOne({ userId: user._id, undoneAt: null, entityType: { $ne: 'focus' } }).sort({ createdAt: -1 }).lean();
       if (!last) return { data: { undone: false, reason: 'There is nothing recent to undo.' } };
       const { activity: undone } = await activity.undo(user._id, last._id);
       return { data: { undone: true, change: undone.summary }, summary: `Undid: ${undone.summary}` };
@@ -311,6 +313,23 @@ export const TOOLS = [
     async run({ user }, data) {
       const plan = await planner.setDayPlan(user, data);
       return { data: { saved: true, plan }, summary: `Planned your day: ${plan.slots.length} slots` };
+    },
+  },
+  {
+    name: 'start_focus_timer',
+    description:
+      'Start a focus timer for a task or any activity, e.g. "ye kaam 2 ghante 30 minute mein khatam karna hai", "25 min padhai ka timer lagao". Any length from 1 minute to 12 hours: convert hours to minutes (2 h 30 min = 150). Use task_id when it is about one of their tasks (find it with list_tasks if needed), otherwise a short label. The timer shows at the top of every screen and notifies them when time is up. Only one timer runs at a time; replace: true stops a running one first (only if they asked for a new timer).',
+    input: z.object({
+      minutes: z.number().int().min(1).max(MAX_FOCUS_MINUTES).describe('Length in minutes, e.g. 150 for 2 hours 30 minutes.'),
+      task_id: objectId.optional().describe('The task this timer is for, if any.'),
+      label: z.string().trim().min(1).max(120).optional().describe('What it is for, if not a task, e.g. "DBMS revision".'),
+      replace: z.boolean().optional(),
+    }),
+    async run({ user }, { minutes, task_id, label, replace }) {
+      const f = await focus.start(user, { minutes, taskId: task_id, label: label ?? (task_id ? undefined : 'Focus') }, { actor: 'agent', replace: Boolean(replace) });
+      const h = Math.floor(minutes / 60);
+      const length = h ? `${h}h${minutes % 60 ? ` ${minutes % 60}m` : ''}` : `${minutes} min`;
+      return { data: { started: true, label: f.label, minutes, endsAt: f.endsAt }, summary: `Focus timer: ${length} for "${f.label}"` };
     },
   },
 ];

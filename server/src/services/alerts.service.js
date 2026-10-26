@@ -13,6 +13,7 @@ import * as reminders from './reminder.service.js';
 import * as agenda from './agenda.service.js';
 import { proactiveMessage } from './agent.service.js';
 import { isOnline } from './live.service.js';
+import * as focus from './focus.service.js';
 
 // The notifications that are not reminders or nudges:
 //
@@ -275,7 +276,16 @@ export async function runAction(user, notificationId, action) {
   const n = await Notification.findOne({ _id: notificationId, userId: user._id });
   if (!n) throw AppError.notFound('Notification not found.');
   let message = null;
-  if (action === 'done') {
+  if (n.kind === 'timer' && (action === 'done' || action === 'more')) {
+    const id = n.data?.sessionId;
+    if (action === 'done') {
+      const result = await focus.finish(user, id, { done: true }).catch((err) => (err.status === 409 ? null : Promise.reject(err)));
+      message = result?.message ?? (english(user) ? 'Great work, done!' : 'Kamaal kar diya, ho gaya!');
+    } else {
+      await focus.extend(user, id, { minutes: 10 });
+      message = english(user) ? '10 more minutes. You got this!' : '10 min aur, chal kar le!';
+    }
+  } else if (action === 'done') {
     const ids = taskIdsOf(n);
     if (!ids.length) throw AppError.badRequest('This notification is not about a task.');
     for (const id of ids) await tasks.complete(user._id, id);

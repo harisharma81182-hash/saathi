@@ -11,6 +11,8 @@ export const STYLES = {
   morning: { emoji: '☀️', path: '/', photo: 'earth-horizon', email: true },
   recap: { emoji: '🌙', path: '/', photo: 'earth-night' },
   countdown: { emoji: '📅', path: '/#/tasks', photo: 'pillars' },
+  // The user started the timer for this moment, so it rings in quiet hours too (never emailed).
+  timer: { emoji: '⏱️', path: '/#focus', photo: 'cosmicreef', quietHoursOk: true },
   achievement: { emoji: '🏆', path: '/#/tasks', photo: 'westerlund2' },
   agent: { emoji: '💬', path: '/', photo: 'milkyway-mountains' },
   system: { emoji: '🔔', path: '/', photo: 'milkyway' },
@@ -22,13 +24,16 @@ export function styleOf(notification) {
   return STYLES[notification.kind] ?? STYLES.system;
 }
 
-// Quiet hours, in the user's own time: only reminders (which the user set for that time) go out.
+// Quiet hours, in the user's own time: only reminders and timers (set by the user for that time) go out.
 export const QUIET_HOURS = { from: 23, to: 7 };
 export const inQuietHours = (localHour) => localHour >= QUIET_HOURS.from || localHour < QUIET_HOURS.to;
 
 /** Buttons on the notification. Most devices show at most two; opening is the click itself. */
 export function actionsFor(notification) {
   const oneTask = notification.refType === 'task' || notification.data?.taskIds?.length === 1 || notification.data?.taskId;
+  if (notification.kind === 'timer') {
+    return [{ action: 'done', title: 'Ho gaya ✅' }, { action: 'more', title: '10 min aur ⏳' }];
+  }
   if (notification.kind === 'reminder') {
     return notification.data?.taskId
       ? [{ action: 'done', title: 'Ho gaya ✅' }, { action: 'snooze', title: '10 min baad 😴' }]

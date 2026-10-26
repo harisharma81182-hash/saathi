@@ -8,6 +8,7 @@ import { publicTask } from '../models/Task.js';
 import { publicNote } from '../models/Note.js';
 import { publicReminder } from '../models/Reminder.js';
 import * as agenda from '../services/agenda.service.js';
+import * as focus from '../services/focus.service.js';
 import * as notifications from '../services/notification.service.js';
 import * as activity from '../services/activity.service.js';
 import { getLiveHub } from '../services/live.service.js';
@@ -52,11 +53,13 @@ meRouter.post('/leftovers/move-to-tomorrow', async (req, res) => {
 });
 
 meRouter.get('/today', async (req, res) => {
-  res.json(await agenda.today(req.user));
+  const [today, focusStats] = await Promise.all([agenda.today(req.user), focus.stats(req.user)]);
+  res.json({ ...today, focus: focusStats });
 });
 
 meRouter.get('/progress', async (req, res) => {
-  res.json(await agenda.weeklyProgress(req.user));
+  const [progress, focusStats] = await Promise.all([agenda.weeklyProgress(req.user), focus.stats(req.user)]);
+  res.json({ ...progress, focus: focusStats });
 });
 
 meRouter.get('/hints', validate({ query: agenda.hintsSchema }), async (req, res) => {

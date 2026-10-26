@@ -50,6 +50,15 @@ export function ProgressChart({ progress }) {
             </span>
           </dd>
         </div>
+        {progress.focus && (
+          <div>
+            <dt className="text-sm text-faint">Focus</dt>
+            <dd className="mt-0.5 flex items-baseline gap-2">
+              <span className="font-display text-3xl font-semibold tabular-nums">{progress.focus.todayMinutes}</span>
+              <span className="text-sm text-muted">min aaj, {Math.floor(progress.focus.weekMinutes / 60) ? `${Math.floor(progress.focus.weekMinutes / 60)}h ` : ''}{progress.focus.weekMinutes % 60}m is hafte</span>
+            </dd>
+          </div>
+        )}
       </dl>
 
       {/* Plot */}

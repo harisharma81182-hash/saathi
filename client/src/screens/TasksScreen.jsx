@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Check, Pencil, Repeat, Search, Trash2 } from 'lucide-react';
+import { Check, Pencil, Repeat, Search, Timer, Trash2 } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { useI18n } from '../lib/i18n.js';
 import { clock, lateBy, when } from '../lib/format.js';
 import { useLiveRefresh } from '../app/live.js';
+import { useFocus } from '../app/focus.js';
 import { QuickAdd } from '../components/QuickAdd.jsx';
 import { ProgressChart } from '../components/ProgressChart.jsx';
 import { EmptyState, ErrorState, GroupTitle, ListSkeleton, ScreenFrame, Tabs } from '../components/ScreenParts.jsx';
@@ -169,6 +170,8 @@ export function TasksScreen() {
 }
 
 function TaskItem({ task, group, done = false, onChanged }) {
+  const focus = useFocus();
+  const timer = () => focus.openStart({ taskId: task.id, label: task.title });
   const [state, setState] = useState('idle'); // idle | busy | ticked
   const [editing, setEditing] = useState(false);
   const [error, setError] = useState(null);
@@ -254,6 +257,9 @@ function TaskItem({ task, group, done = false, onChanged }) {
         {meta && <span className={`shrink-0 text-sm tabular-nums ${group === 'pending' ? 'text-vermilion' : 'text-faint'}`}>{meta}</span>}
         {!done && (
           <div className="hidden shrink-0 items-center opacity-0 transition-opacity group-focus-within:opacity-100 group-hover:opacity-100 lg:flex">
+            <button onClick={timer} aria-label={`"${task.title}" par timer lagao`} title="Timer lagao" className="grid h-8 w-8 place-items-center rounded-full text-faint transition-colors hover:bg-surface hover:text-gold">
+              <Timer size={15} />
+            </button>
             <button onClick={() => setEditing((v) => !v)} aria-label={`"${task.title}" badlo`} aria-expanded={editing} className="grid h-8 w-8 place-items-center rounded-full text-faint transition-colors hover:bg-surface hover:text-text">
               <Pencil size={15} />
             </button>
@@ -264,7 +270,7 @@ function TaskItem({ task, group, done = false, onChanged }) {
         )}
       </div>
       {error && <p className="-mt-1 pb-2 pl-8 text-sm text-vermilion">{error}</p>}
-      <AnimatePresence>{editing && <TaskEditor task={task} onClose={() => setEditing(false)} onSaved={onChanged} onDelete={remove} />}</AnimatePresence>
+      <AnimatePresence>{editing && <TaskEditor task={task} onClose={() => setEditing(false)} onSaved={onChanged} onDelete={remove} onTimer={timer} />}</AnimatePresence>
     </motion.li>
   );
 }
@@ -277,7 +283,7 @@ const toInput = (iso) => {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
 
-function TaskEditor({ task, onClose, onSaved, onDelete }) {
+function TaskEditor({ task, onClose, onSaved, onDelete, onTimer }) {
   const [form, setForm] = useState({ title: task.title, due: toInput(task.dueAt), priority: task.priority });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
@@ -361,7 +367,10 @@ function TaskEditor({ task, onClose, onSaved, onDelete }) {
           <button type="button" onClick={onClose} className="btn-ghost text-faint">
             Rehne do
           </button>
-          <button type="button" onClick={onDelete} className="btn-ghost ml-auto text-faint hover:!text-vermilion">
+          <button type="button" onClick={onTimer} className="btn-ghost ml-auto text-gold">
+            <Timer size={15} /> Timer lagao
+          </button>
+          <button type="button" onClick={onDelete} className="btn-ghost text-faint hover:!text-vermilion">
             <Trash2 size={15} /> Delete
           </button>
         </div>

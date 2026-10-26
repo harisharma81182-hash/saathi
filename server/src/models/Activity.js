@@ -9,7 +9,8 @@ const activitySchema = new mongoose.Schema(
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     actor: { type: String, enum: ['user', 'agent'], required: true },
     action: { type: String, required: true }, // e.g. "task.created", "reminder.snoozed"
-    entityType: { type: String, enum: ['task', 'note', 'reminder'], required: true },
+    // 'focus' entries (a finished focus timer) are shown in the timeline but cannot be undone.
+    entityType: { type: String, enum: ['task', 'note', 'reminder', 'focus'], required: true },
     entityId: { type: mongoose.Schema.Types.ObjectId, required: true },
     summary: { type: String, required: true, maxlength: 300 },
     before: { type: mongoose.Schema.Types.Mixed, default: null },
@@ -34,7 +35,7 @@ export function publicActivity(a, { undoWindowMs }) {
     summary: a.summary,
     createdAt: a.createdAt,
     undoneAt: a.undoneAt,
-    canUndo: !a.undoneAt && Date.now() - new Date(a.createdAt).getTime() < undoWindowMs,
+    canUndo: a.entityType !== 'focus' && !a.undoneAt && Date.now() - new Date(a.createdAt).getTime() < undoWindowMs,
   };
 }
 

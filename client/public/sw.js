@@ -58,7 +58,7 @@ self.addEventListener('notificationclick', (event) => {
   const action = event.action;
   event.notification.close();
 
-  if ((action === 'done' || action === 'snooze') && notificationId) {
+  if ((action === 'done' || action === 'snooze' || action === 'more') && notificationId) {
     event.waitUntil(
       (async () => {
         try {
@@ -71,7 +71,7 @@ self.addEventListener('notificationclick', (event) => {
           if (!res.ok) throw new Error(String(res.status));
           const { message } = await res.json();
           // A small, quiet confirmation, so the tap clearly worked.
-          await self.registration.showNotification(action === 'done' ? '✅ Saathi' : '😴 Saathi', {
+          await self.registration.showNotification(action === 'done' ? '✅ Saathi' : action === 'more' ? '⏱️ Saathi' : '😴 Saathi', {
             body: message || '',
             icon: '/icons/icon-192.png',
             badge: '/icons/badge-96.png',

@@ -27,7 +27,7 @@ pushRouter.post('/unsubscribe', validate({ body: z.object({ endpoint: z.string()
   res.json({ removed: await push.unsubscribe(req.userId, req.valid.body.endpoint) });
 });
 
-const actionSchema = z.object({ notificationId: objectId, action: z.enum(['done', 'snooze', 'open']) });
+const actionSchema = z.object({ notificationId: objectId, action: z.enum(['done', 'snooze', 'more', 'open']) });
 pushRouter.post('/action', validate({ body: actionSchema }), async (req, res) => {
   res.json(await alerts.runAction(req.user, req.valid.body.notificationId, req.valid.body.action));
 });

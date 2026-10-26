@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { Activity, BellRing, CheckSquare, LogOut, MessageCircle, NotebookPen, Settings } from 'lucide-react';
+import { Activity, BellRing, CheckSquare, LogOut, MessageCircle, NotebookPen, Settings, Timer } from 'lucide-react';
 import { useLiveEvents } from '../hooks/useLiveEvents.js';
 import { LiveContext } from './live.js';
 import { Toasts } from '../components/Toasts.jsx';
@@ -10,6 +10,11 @@ import { SpaceBackdrop } from '../components/SpaceBackdrop.jsx';
 import { I18nProvider, useI18n } from '../lib/i18n.js';
 import { setupPush } from '../lib/push.js';
 import { IosGuide } from '../components/IosGuide.jsx';
+import { FocusContext, useFocus, useFocusState } from './focus.js';
+import { FocusBar } from '../components/FocusBar.jsx';
+import { FocusView } from '../components/FocusView.jsx';
+import { FocusStart } from '../components/FocusStart.jsx';
+import { chime } from '../lib/chime.js';
 import { HomeScreen } from '../screens/HomeScreen.jsx';
 import { TasksScreen } from '../screens/TasksScreen.jsx';
 import { NotesScreen } from '../screens/NotesScreen.jsx';
@@ -38,7 +43,7 @@ const SOFT_VEIL = ['notes', 'reminders'];
 
 const screenFromHash = () => {
   const id = location.hash.replace(/^#\/?/, '');
-  return ALL.includes(id) ? id : 'home';
+  return ALL.includes(id) ? id : 'home'; // "#focus" (from a timer notification) opens Home + the timer
 };
 
 export function AppShell({ user: initialUser, onLogout }) {
@@ -47,6 +52,27 @@ export function AppShell({ user: initialUser, onLogout }) {
   const [counts, setCounts] = useState({ changes: 0, notices: 0 });
   const [toasts, setToasts] = useState([]);
   const [undo, setUndo] = useState(null);
+  const focus = useFocusState();
+  const focusRef = useRef(focus);
+  focusRef.current = focus;
+
+  // Opened from a timer notification (#focus): show the big timer.
+  useEffect(() => {
+    if (location.hash === '#focus') {
+      focusRef.current.openBig();
+      history.replaceState(null, '', location.pathname);
+    }
+  }, []);
+
+  // The timer ran out while Saathi is open: a soft chime and the big view asking "Ho gaya?".
+  const wasTimeUp = useRef(false);
+  useEffect(() => {
+    if (focus.timeUp && !wasTimeUp.current) {
+      if (document.visibilityState === 'visible') chime();
+      focusRef.current.openBig();
+    }
+    wasTimeUp.current = focus.timeUp;
+  }, [focus.timeUp]);
 
   useEffect(() => {
     const onHash = () => setScreen(screenFromHash());
@@ -70,6 +96,11 @@ export function AppShell({ user: initialUser, onLogout }) {
     },
     notification: (n) => {
       setCounts((c) => ({ changes: c.changes + 1, notices: c.notices + 1 }));
+      // The timer's own notification: the big timer view says it already (no second card).
+      if (n.kind === 'timer') {
+        focusRef.current.reload();
+        return;
+      }
       // In the app: a card. Outside it (tab in the background or closed): the push from the server.
       setToasts((all) => [n, ...all.filter((t) => t.id !== n.id)].slice(0, 3));
     },
@@ -79,46 +110,68 @@ export function AppShell({ user: initialUser, onLogout }) {
   const props = { user, go };
   return (
     <I18nProvider language={user.language}>
-      <LiveContext.Provider value={live}>
-        <div className="ambient flex h-full flex-col">
-          <AnimatePresence initial={false}>
-            <motion.div
-              key={BACKDROPS[screen] ?? 'none'}
-              className="pointer-events-none absolute inset-0 -z-10"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1, transition: { duration: 0.9 } }}
-              exit={{ opacity: 0, transition: { duration: 0.6 } }}
-            >
-              <SpaceBackdrop photo={BACKDROPS[screen]} className="absolute" strength={SOFT_VEIL.includes(screen) ? 'soft' : 'strong'} />
-            </motion.div>
-          </AnimatePresence>
-          <CursorGlow />
-          <TopBar screen={screen} go={go} user={user} live={status} onLogout={onLogout} />
-          <main className="relative min-h-0 flex-1">
-            <AnimatePresence mode="wait">
+      <FocusContext.Provider value={focus}>
+        <LiveContext.Provider value={live}>
+          <div className="ambient flex h-full flex-col">
+            <AnimatePresence initial={false}>
               <motion.div
-                key={screen}
-                className="absolute inset-0"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } }}
-                exit={{ opacity: 0, transition: { duration: 0.15 } }}
+                key={BACKDROPS[screen] ?? 'none'}
+                className="pointer-events-none absolute inset-0 -z-10"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, transition: { duration: 0.9 } }}
+                exit={{ opacity: 0, transition: { duration: 0.6 } }}
               >
-                {screen === 'home' && <HomeScreen {...props} />}
-                {screen === 'tasks' && <TasksScreen {...props} />}
-                {screen === 'notes' && <NotesScreen {...props} />}
-                {screen === 'reminders' && <RemindersScreen {...props} />}
-                {screen === 'activity' && <ActivityScreen {...props} />}
-                {screen === 'settings' && <SettingsScreen {...props} onUserChange={setUser} onLogout={onLogout} />}
+                <SpaceBackdrop photo={BACKDROPS[screen]} className="absolute" strength={SOFT_VEIL.includes(screen) ? 'soft' : 'strong'} />
               </motion.div>
             </AnimatePresence>
-          </main>
-          <BottomNav screen={screen} go={go} />
-          <Toasts items={toasts} onDismiss={(id) => setToasts((all) => all.filter((t) => t.id !== id))} onChanged={() => setCounts((c) => ({ ...c, changes: c.changes + 1 }))} go={go} />
-          <IosGuide />
-          <UndoToast activity={undo} onClose={() => setUndo(null)} />
-        </div>
-      </LiveContext.Provider>
+            <CursorGlow />
+            <TopBar screen={screen} go={go} user={user} live={status} onLogout={onLogout} />
+            <FocusBar />
+            <main className="relative min-h-0 flex-1">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={screen}
+                  className="absolute inset-0"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } }}
+                  exit={{ opacity: 0, transition: { duration: 0.15 } }}
+                >
+                  {screen === 'home' && <HomeScreen {...props} />}
+                  {screen === 'tasks' && <TasksScreen {...props} />}
+                  {screen === 'notes' && <NotesScreen {...props} />}
+                  {screen === 'reminders' && <RemindersScreen {...props} />}
+                  {screen === 'activity' && <ActivityScreen {...props} />}
+                  {screen === 'settings' && <SettingsScreen {...props} onUserChange={setUser} onLogout={onLogout} />}
+                </motion.div>
+              </AnimatePresence>
+            </main>
+            <BottomNav screen={screen} go={go} />
+            <Toasts items={toasts} onDismiss={(id) => setToasts((all) => all.filter((t) => t.id !== id))} onChanged={() => setCounts((c) => ({ ...c, changes: c.changes + 1 }))} go={go} />
+            <IosGuide />
+            <UndoToast activity={undo} onClose={() => setUndo(null)} />
+            <FocusView user={user} />
+            <FocusStart />
+          </div>
+        </LiveContext.Provider>
+      </FocusContext.Provider>
     </I18nProvider>
+  );
+}
+
+/** Timer in the top bar: start one, or open the running one. */
+function FocusButton() {
+  const f = useFocus();
+  const label = f.focus ? 'Timer dekho' : 'Timer lagao';
+  return (
+    <button
+      onClick={() => (f.focus ? f.openBig() : f.openStart())}
+      aria-label={label}
+      title={label}
+      className={`inline-flex h-9 items-center gap-2 rounded-full px-3 text-sm transition-colors hover:bg-surface ${f.focus ? 'text-gold' : 'text-faint hover:text-text'}`}
+    >
+      <Timer size={17} />
+      <span className="hidden sm:inline">{f.focus ? 'Focus' : 'Timer'}</span>
+    </button>
   );
 }
 
@@ -149,6 +202,7 @@ function TopBar({ screen, go, user, live, onLogout }) {
       </nav>
 
       <div className="flex items-center gap-1">
+        <FocusButton />
         <button
           onClick={() => go('settings')}
           aria-label={t('nav.settings')}

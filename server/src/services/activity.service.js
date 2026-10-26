@@ -74,6 +74,7 @@ export async function undo(userId, activityId) {
   const activity = await Activity.findOne({ _id: activityId, userId });
   if (!activity) throw AppError.notFound('That change was not found.');
   if (activity.undoneAt) throw AppError.conflict('That change was already undone.');
+  if (!ENTITIES[activity.entityType]) throw AppError.badRequest('A finished focus session cannot be undone.');
   if (Date.now() - activity.createdAt.getTime() > UNDO_WINDOW_MS) {
     throw AppError.conflict('That change is too old to undo. Edit the item directly instead.');
   }
