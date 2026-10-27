@@ -76,8 +76,9 @@ export async function login({ email, password }) {
 
   const user = await User.findOne({ email }).select('+passwordHash');
   // Same work and same message for "no such email" and "wrong password", so accounts cannot be discovered.
-  const ok = user ? await verifyPassword(password, user.passwordHash) : await burnPasswordCheck(password);
-  if (!user || !ok) throw AppError.unauthorized('Email or password is incorrect.');
+  // An account made with Google has no password: it gets the same answer as a wrong one.
+  const ok = user?.passwordHash ? await verifyPassword(password, user.passwordHash) : await burnPasswordCheck(password);
+  if (!user || !ok) throw AppError.unauthorized('Email or password is incorrect. Signed up with Google? Use the Google button.');
 
   // A successful login does not use up one of the allowed failures.
   await quota.undo(lockKey, window).catch(() => {});

@@ -7,7 +7,17 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     // Only the password hash is stored, never the password itself.
     // select: false means it is never returned by a query unless asked for explicitly.
-    passwordHash: { type: String, required: true, select: false },
+    // An account made with "Continue with Google" has no password until one is set with a reset link.
+    passwordHash: {
+      type: String,
+      select: false,
+      required: function () {
+        return !this.googleId;
+      },
+    },
+    // Google's stable account id ("sub" in the ID token), set on the first Google sign-in.
+    // sparse: only accounts that have one are in the unique index.
+    googleId: { type: String, unique: true, sparse: true },
     // IANA timezone such as "Asia/Kolkata". The agent uses it to understand "kal 5 baje".
     timezone: { type: String, default: 'Asia/Kolkata' },
     // Saathi is open in a tab until about this time (kept fresh by the live-updates stream). Used to

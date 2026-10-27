@@ -66,7 +66,20 @@ export function createApp({
   );
 
   app.use(overloadGuard.middleware);
-  app.use(helmet());
+  // Helmet's defaults, plus Google's sign-in script and its button frame ("Continue with Google").
+  // The opener policy allows the Google sign-in popup to report back to this page.
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          'script-src': ["'self'", 'https://accounts.google.com/gsi/client'],
+          'frame-src': ["'self'", 'https://accounts.google.com/gsi/'],
+          'connect-src': ["'self'", 'https://accounts.google.com/gsi/'],
+        },
+      },
+      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+    }),
+  );
   app.use(cors({ origin: env.CLIENT_ORIGIN, credentials: true }));
   app.use(express.json({ limit: '100kb' }));
   app.use(cookieParser());

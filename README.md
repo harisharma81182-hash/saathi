@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white" alt="MongoDB Atlas">
   <img src="https://img.shields.io/badge/AI-Google%20Gemini-8E75B2?logo=googlegemini&logoColor=white" alt="Google Gemini">
   <img src="https://img.shields.io/badge/Deployed%20on-Render-46E3B7?logo=render&logoColor=white" alt="Deployed on Render">
-  <img src="https://img.shields.io/badge/tests-135%20passing-2EA44F" alt="135 tests passing">
+  <img src="https://img.shields.io/badge/tests-146%20passing-2EA44F" alt="146 tests passing">
 </p>
 
 **Your AI friend who gets things done.** Tell Saathi, by typing or speaking, *"kal subah 9 baje lab file submit karni hai, yaad dila dena"*, and it creates the task and the reminder in your account, reminds you on time in a friendly voice, and remembers what matters to you. It talks like a close friend, in your language.
@@ -167,7 +167,7 @@ One Docker image runs as `web`, `worker` or `all` (`PROCESS_ROLE`). Everything s
 The big fix: password hashing moved from pure-JavaScript bcrypt (which froze the event loop) to Node's built-in `scrypt` on the thread pool, plus a 30-second user cache and a right-sized connection pool.
 
 **Security**
-- Secure accounts: scrypt password hashing, JWT in an httpOnly cookie, brute-force limits per IP and per account, a single-use emailed reset link that logs out every session
+- Secure accounts: scrypt password hashing, JWT in an httpOnly cookie, brute-force limits per IP and per account, a single-use emailed reset link that logs out every session, and "Continue with Google" (Google's signed ID token is checked on the server; an existing account with the same verified email is joined, not duplicated)
 - Every query is scoped to the logged-in user; other users' data is never visible (404, not 403)
 - No secrets in Git: everything comes from environment variables, validated at startup
 
@@ -178,7 +178,7 @@ The big fix: password hashing moved from pure-JavaScript bcrypt (which froze the
 - Ready to scale: stateless instances, a MongoDB job queue, shared quotas, health checks and graceful shutdown ([docs/SCALING.md](docs/SCALING.md))
 
 **Quality**
-- 135 automated tests (unit and integration) with `node:test` and supertest, against a real MongoDB; the AI is replaced by a fake provider, so tests are free and repeatable
+- 146 automated tests (unit and integration) with `node:test` and supertest, against a real MongoDB; the AI is replaced by a fake provider, so tests are free and repeatable
 
 ## 🧰 Tech stack
 
@@ -250,6 +250,7 @@ Set in `server/.env` locally, or in the Render dashboard.
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | for push | Web Push key pair (`npx web-push generate-vapid-keys`) and a contact (`mailto:...` or your https address). Without them notifications still arrive in the app and by email |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | for email | SMTP for password reset links and the email copy of important notifications (a Gmail App Password works). Without `SMTP_HOST` the email is written to the server log |
 | `BREVO_API_KEY` | for email on Render's free plan | Sends the same emails through Brevo's HTTPS API (free, 300 a day) instead of SMTP, because Render's free plan blocks the SMTP ports. `MAIL_FROM` must be a sender verified in Brevo |
+| `GOOGLE_CLIENT_ID` | optional | OAuth Web Client ID for "Continue with Google" (public, not a secret). Without it the Google button is hidden |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_FALLBACK_MODEL` | for Claude | Only with `AI_PROVIDER=anthropic` |
 | `JWT_EXPIRES_IN`, `PORT`, `MONGO_MAX_POOL`, `LOG_LEVEL` | no | Login lifetime (7d), port (4000), DB connections per instance (10), log level (info) |
 | `AI_REQUEST_TIMEOUT_MS`, `AI_TOTAL_TIMEOUT_MS`, `AI_USER_PER_MINUTE`, `AI_USER_PER_DAY`, `AI_MAX_CONCURRENCY`, `AI_MAX_QUEUE` | no | AI timeouts (20 s / 28 s), per-user limits (20 per minute, 300 per day) and per-instance limits |
@@ -268,6 +269,8 @@ Set in `server/.env` locally, or in the Render dashboard.
 | GET | `/api/health/ready` | no | Ready for traffic: database reachable and not shutting down |
 | POST | `/api/auth/signup` | no | Create an account `{ name, email, password, timezone? }` |
 | POST | `/api/auth/login` | no | Log in `{ email, password }` |
+| GET | `/api/auth/config` | no | `{ googleClientId }` for the login page (null hides the Google button) |
+| POST | `/api/auth/google` | no | `{ credential }`: Google ID token. Logs in, joins an account with the same verified email, or creates one (201) |
 | POST | `/api/auth/logout` | no | Clear the session cookie |
 | POST | `/api/auth/forgot-password` | no | `{ email }`: emails a reset link (30 minutes, single use, only a hash stored). Always the same answer, so it never reveals which emails have accounts |
 | POST | `/api/auth/reset-password/check` | no | `{ token }`: is this link still usable? |
@@ -348,7 +351,7 @@ The free plan sleeps after 15 minutes without visits; reminders that fall due wh
 - 🌐 More languages for the app and voice: Marathi, Gujarati, Punjabi, Telugu, Kannada, Malayalam, Odia, Urdu, Bhojpuri and more, and every screen fully translated (today the navigation, titles, chat and settings are translated; the rest is in Hinglish)
 - 🙋 "Apni bhasha maango": a button in Settings to ask for a missing language, so the most requested ones come first
 - ✅ Marwari out of beta, checked with native speakers
-- 🔑 "Continue with Google" sign-in, and later Facebook and Instagram sign-in, next to email and password
+- 🔑 Facebook and Instagram sign-in, next to email, password and Google
 - 📅 Google Calendar sync (classes and exams in, Saathi's reminders out)
 - 💬 Saathi on WhatsApp and Telegram
 - 📄 Upload a syllabus or PDF and turn it into a study plan
@@ -357,7 +360,7 @@ The free plan sleeps after 15 minutes without visits; reminders that fall due wh
 
 ## 🤝 AI usage
 
-This project was built with help from Claude (Anthropic) for code generation, debugging and documentation, as allowed by the project guidelines. Every workflow is tested (135 automated tests plus live checks with the real AI), and the code is understood and maintained by the author. Inside the app, the AI (Gemini) only proposes actions; the server validates and executes them, and every change can be undone.
+This project was built with help from Claude (Anthropic) for code generation, debugging and documentation, as allowed by the project guidelines. Every workflow is tested (146 automated tests plus live checks with the real AI), and the code is understood and maintained by the author. Inside the app, the AI (Gemini) only proposes actions; the server validates and executes them, and every change can be undone.
 
 ## 🙏 Credits and author
 

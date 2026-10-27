@@ -62,6 +62,9 @@ services:
       # Free plan: the SMTP ports are blocked, so emails go through Brevo's HTTP API instead.
       - key: BREVO_API_KEY
         sync: false
+      # "Continue with Google": the OAuth Web Client ID (public). Empty = no Google button.
+      - key: GOOGLE_CLIENT_ID
+        sync: false
 
 # ---- Stage 1: scale web and worker separately (paid plans) ----
 # Change the web service above to:

@@ -5,6 +5,8 @@ import { requireAuth, signToken, setAuthCookie, clearAuthCookie } from '../middl
 import { publicUser } from '../models/User.js';
 import * as auth from '../services/auth.service.js';
 import * as reset from '../services/passwordReset.service.js';
+import * as google from '../services/google.service.js';
+import { env } from '../config/env.js';
 
 export const authRouter = Router();
 
@@ -33,6 +35,18 @@ authRouter.post('/login', authLimiter, validate({ body: auth.loginSchema }), asy
   const user = await auth.login(req.valid.body);
   setAuthCookie(res, signToken(user));
   res.json({ user: publicUser(user) });
+});
+
+// What the login page needs to know: the Google client id (public), or null to hide the button.
+authRouter.get('/config', (_req, res) => {
+  res.json({ googleClientId: google.googleConfigured() ? env.GOOGLE_CLIENT_ID : null });
+});
+
+// "Continue with Google": logs in, links an existing account with the same email, or creates one.
+authRouter.post('/google', authLimiter, validate({ body: google.googleSchema }), async (req, res) => {
+  const { user, created } = await google.signInWithGoogle(req.valid.body);
+  setAuthCookie(res, signToken(user));
+  res.status(created ? 201 : 200).json({ user: publicUser(user), created });
 });
 
 // "Password bhool gaye?" Always the same answer, whether or not the email has an account.

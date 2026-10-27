@@ -4,6 +4,7 @@ import { ChevronLeft, Eye, EyeOff } from 'lucide-react';
 import { api } from '../lib/api.js';
 import { Face } from '../components/Face.jsx';
 import { SpaceBackdrop } from '../components/SpaceBackdrop.jsx';
+import { GoogleButton } from '../components/GoogleButton.jsx';
 
 // The email of the last login on THIS device (never the password), so the login form starts filled.
 // Only this browser's storage: other people's emails are never suggested.
@@ -85,6 +86,14 @@ export function AuthScreen({ onAuthed, onBack, onForgot, initialMode = 'signup' 
             </button>
           ))}
         </div>
+
+        <GoogleButton
+          mode={mode}
+          onAuthed={(user) => {
+            rememberEmail(user.email);
+            onAuthed(user);
+          }}
+        />
 
         <form onSubmit={submit} className="flex flex-col gap-3" noValidate>
           {/* Autofill: the browser suggests only what is saved on this device (never other users' emails).

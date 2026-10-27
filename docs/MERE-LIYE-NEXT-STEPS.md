@@ -70,6 +70,21 @@ Render ka free plan SMTP ports (25, 465, 587) block karta hai, isliye Gmail SMTP
 4. Render → Environment → `BREVO_API_KEY` mein paste karo. `MAIL_FROM` mein wahi verified Gmail ho. **Save Changes.**
 5. Deploy ke baad app mein "Password bhool gaye?" try karo. Email spam folder mein bhi dekh lena.
 
+### "Continue with Google" ke liye Client ID
+
+1. https://console.cloud.google.com kholo, apne Gmail se login karo.
+2. Upar project list → **New Project** → naam `Saathi` → **Create** → wahi project select karo.
+3. Menu → **APIs & Services** → **OAuth consent screen** (ya **Google Auth Platform**) → **Get started**: app name `Saathi`, support email tumhara Gmail, audience **External**, contact email → **Create**.
+4. **Audience** mein status **In production** kar do (**Publish app**). Warna sirf "test users" login kar payenge.
+5. **Clients** (ya **Credentials** → **Create credentials** → **OAuth client ID**) → type **Web application** → naam `Saathi web`.
+6. **Authorized JavaScript origins** mein do add karo:
+   - `https://saathi-ksk8.onrender.com`
+   - `http://localhost:5173`
+   (Redirect URIs khaali chhod do.)
+7. **Create** → **Client ID** copy karo (`...apps.googleusercontent.com` wala). Client secret ki zaroorat **nahi** hai.
+8. Render → Environment → `GOOGLE_CLIENT_ID` mein paste → **Save Changes**. Laptop par bhi chahiye toh `server\.env` mein `GOOGLE_CLIENT_ID=...` daalo.
+9. Deploy ke baad login page par "Continue with Google" dikhega. Origin badalne ke baad Google ko 5 minute lag sakte hain.
+
 ## 4. UptimeRobot (server ko jagaye rakhne ke liye)
 
 1. https://uptimerobot.com par free account banao.
