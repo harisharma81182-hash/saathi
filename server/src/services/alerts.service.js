@@ -288,7 +288,16 @@ export async function runAction(user, notificationId, action) {
   } else if (action === 'done') {
     const ids = taskIdsOf(n);
     if (!ids.length) throw AppError.badRequest('This notification is not about a task.');
-    for (const id of ids) await tasks.complete(user._id, id);
+    // A task deleted since the notification was sent is skipped, so the others still get done.
+    let done = 0;
+    for (const id of ids) {
+      const ok = await tasks.complete(user._id, id).then(
+        () => true,
+        (err) => (err.status === 404 ? false : Promise.reject(err)),
+      );
+      if (ok) done++;
+    }
+    if (!done) throw AppError.notFound('Yeh kaam ab list mein nahi hai (delete ho chuka hai).');
     message = ids.length === 1 ? (english(user) ? 'Marked done!' : 'Ho gaya, shabash!') : english(user) ? `${ids.length} tasks done!` : `${ids.length} kaam done!`;
   } else if (action === 'snooze') {
     if (n.refType !== 'reminder') throw AppError.badRequest('Only reminders can be snoozed.');

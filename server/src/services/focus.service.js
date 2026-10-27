@@ -123,9 +123,12 @@ export async function resume(user, id, { now = new Date() } = {}) {
 /** "+5 min" while running or paused, or "10 min aur" after the time ran out. */
 export async function extend(user, id, { minutes }, { now = new Date() } = {}) {
   const s = await activeOrFail(user._id, id);
+  // The whole session stays within the 12-hour limit, however often "+5 min" is pressed.
+  if (s.plannedMs + minutes * MIN > MAX_MINUTES * MIN) throw AppError.badRequest('A timer can be at most 12 hours in total.');
   s.plannedMs += minutes * MIN;
   if (s.status === 'paused') s.remainingMs += minutes * MIN;
-  else if (s.status === 'running') s.endsAt = new Date(s.endsAt.getTime() + minutes * MIN);
+  // (If the end already passed and the "time up" job has not run yet, count from now.)
+  else if (s.status === 'running') s.endsAt = new Date(Math.max(s.endsAt.getTime(), now.getTime()) + minutes * MIN);
   else {
     s.status = 'running';
     s.runningSince = now;

@@ -25,6 +25,30 @@ describe('focus timer', { skip: !hasTestDb && 'MONGODB_URI_TEST not set' }, () =
   });
   after(teardownDb);
 
+  it('"+5 min" can never take a timer past 12 hours in total', async () => {
+    const me = await newUser();
+    const f = (await me.agent.post('/api/focus').send({ minutes: 715, label: 'Long study' })).body.focus;
+    const ok = await me.agent.post(`/api/focus/${f.id}/extend`).send({ minutes: 5 });
+    assert.equal(ok.status, 200);
+    const tooLong = await me.agent.post(`/api/focus/${f.id}/extend`).send({ minutes: 5 });
+    assert.equal(tooLong.status, 400);
+    await me.agent.post(`/api/focus/${f.id}/cancel`);
+  });
+
+  it('"Ho gaya" on a notification skips a task deleted since, and still completes the others', async () => {
+    const me = await newUser();
+    const a = (await me.agent.post('/api/tasks').send({ title: 'Task A' })).body.task;
+    const b = (await me.agent.post('/api/tasks').send({ title: 'Task B' })).body.task;
+    await me.agent.delete(`/api/tasks/${a.id}`);
+    const both = await Notification.create({ userId: me.doc._id, kind: 'due_now', title: 'Do kaam', data: { taskIds: [a.id, b.id] } });
+    const res = await me.agent.post('/api/push/action').send({ notificationId: String(both._id), action: 'done' });
+    assert.equal(res.status, 200);
+    assert.equal((await Task.findById(b.id).lean()).status, 'done');
+    const onlyGone = await Notification.create({ userId: me.doc._id, kind: 'due_now', title: 'Ek kaam', data: { taskIds: [a.id] } });
+    const gone = await me.agent.post('/api/push/action').send({ notificationId: String(onlyGone._id), action: 'done' });
+    assert.equal(gone.status, 404);
+  });
+
   it('runs a custom-length timer on a task: one at a time, pause, resume, +5 min, then done', async () => {
     const me = await newUser();
     const task = (await me.agent.post('/api/tasks').send({ title: 'DBMS assignment' })).body.task;
