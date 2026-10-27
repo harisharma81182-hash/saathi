@@ -13,7 +13,7 @@
 <img src="https://img.shields.io/badge/MongoDB-Atlas-F2A541?style=for-the-badge&labelColor=1B2148&logo=mongodb&logoColor=F6C46F" alt="MongoDB Atlas">
 <img src="https://img.shields.io/badge/AI-Google%20Gemini-F2A541?style=for-the-badge&labelColor=1B2148&logo=googlegemini&logoColor=F6C46F" alt="AI: Google Gemini">
 <img src="https://img.shields.io/badge/Deployed-Render-F2A541?style=for-the-badge&labelColor=1B2148&logo=render&logoColor=F6C46F" alt="Deployed on Render">
-<img src="https://img.shields.io/badge/Tests-148%20passing-F2A541?style=for-the-badge&labelColor=1B2148" alt="148 tests passing">
+<img src="https://img.shields.io/badge/Tests-150%20passing-F2A541?style=for-the-badge&labelColor=1B2148" alt="150 tests passing">
 
 <br><br>
 
@@ -42,11 +42,51 @@ It reminds you on time, remembers what matters to you, and talks like a close fr
 
 <table>
   <tr>
-    <td valign="top"><a href="#why-saathi">Why Saathi</a><br><a href="#features">Features</a><br><a href="#try-it-in-60-seconds">Try it in 60 seconds</a><br><a href="#screenshots">Screenshots</a><br><a href="#faq">FAQ</a></td>
+    <td valign="top"><a href="#for-evaluators"><b>For evaluators</b></a><br><a href="#why-saathi">Why Saathi</a><br><a href="#features">Features</a><br><a href="#try-it-in-60-seconds">Try it in 60 seconds</a><br><a href="#screenshots">Screenshots</a><br><a href="#faq">FAQ</a></td>
     <td valign="top"><a href="#architecture">Architecture</a><br><a href="#engineering-highlights">Engineering highlights</a><br><a href="#tech-stack">Tech stack</a><br><a href="#getting-started">Getting started</a><br><a href="#environment-variables">Environment variables</a></td>
     <td valign="top"><a href="#api">API</a><br><a href="#project-structure">Project structure</a><br><a href="#deployment">Deployment</a><br><a href="#roadmap">Roadmap</a><br><a href="#ai-usage">AI usage, credits and author</a></td>
   </tr>
 </table>
+
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
+
+<a name="for-evaluators"></a>
+## <img src="docs/readme/icons/check.svg" width="34" height="34" align="top" alt=""> For evaluators
+
+Where to find the evidence for each part of the rubric. Every link goes to the real code, test or document.
+
+| Area | Weight | What to look at | Evidence |
+|---|---|---|---|
+| **Problem** | 10% | A real, everyday problem for students, solved by acting on their data instead of chatting about it | [Why Saathi](#why-saathi), [Try it in 60 seconds](#try-it-in-60-seconds) |
+| **Core implementation** | 25% | An AI agent with 18 tools that run through the same validated services as the screens; reminders fired exactly once by a worker; study plans, habits, focus timer, notifications | [agent.service.js](server/src/services/agent.service.js), [ai/tools.js](server/src/ai/tools.js), [jobs/handlers/reminder.js](server/src/jobs/handlers/reminder.js), [habit.service.js](server/src/services/habit.service.js), [focus.service.js](server/src/services/focus.service.js), [agent.test.js](server/tests/agent.test.js) |
+| **Engineering** | 20% | Atomic job queue with locks and dedupe keys, AI gateway with model chain, quotas, retries and circuit breaker, idempotency keys, undo log, load-tested and fixed | [jobs/queue.js](server/src/jobs/queue.js), [ai/gateway.js](server/src/ai/gateway.js), [middleware/idempotency.js](server/src/middleware/idempotency.js), [activity.service.js](server/src/services/activity.service.js), [docs/SCALING.md](docs/SCALING.md), [scaling.test.js](server/tests/scaling.test.js), [resilience.test.js](server/tests/resilience.test.js) |
+| **Architecture** | 15% | Thin routes → services → models; one image with web / worker roles; every decision with its trade-off | [Architecture](#architecture), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [Project structure](#project-structure) |
+| **UX & reliability** | 10% | Loading, empty and error states on every screen; receipts with Undo; works when the AI is down; push with email fallback; phone layout | [ScreenParts.jsx](client/src/components/ScreenParts.jsx), [UndoToast.jsx](client/src/components/UndoToast.jsx), [delivery.service.js](server/src/services/delivery.service.js), [Screenshots](#screenshots), [notifications.test.js](server/tests/notifications.test.js) |
+| **Code quality** | 10% | zod validation, one error shape, user-scoped queries (404 for others' data), 150 automated tests, a written bug hunt | [middleware/validate.js](server/src/middleware/validate.js), [utils/AppError.js](server/src/utils/AppError.js), [server/tests](server/tests), [docs/BUG-REPORT.md](docs/BUG-REPORT.md) |
+| **Deployment & docs** | 10% | Live on Render from `render.yaml` and a Dockerfile, health checks, env validation, this README | [Live app](https://saathi-ksk8.onrender.com), [render.yaml](render.yaml), [Dockerfile](Dockerfile), [config/env.js](server/src/config/env.js), [Deployment](#deployment) |
+
+<details open>
+<summary><b>Feature checklist</b></summary>
+
+| Feature | Works end to end | Tested in |
+|---|---|---|
+| Sign up, log in, log out, httpOnly cookie, brute-force limits | ✅ | [auth.test.js](server/tests/auth.test.js), [scaling.test.js](server/tests/scaling.test.js) |
+| "Password bhool gaye?" reset link (30 min, single use, logs out everywhere) | ✅ (email needs `BREVO_API_KEY` on Render) | [passwordReset.test.js](server/tests/passwordReset.test.js), [mail.test.js](server/tests/mail.test.js) |
+| "Continue with Google" | ✅ (needs `GOOGLE_CLIENT_ID`) | [google.test.js](server/tests/google.test.js) |
+| Chat agent with 18 tools, receipts, Undo, Confirm before delete | ✅ | [agent.test.js](server/tests/agent.test.js) |
+| Tasks, notes, reminders with snooze, activity log with Undo, Idempotency-Key | ✅ | [features.test.js](server/tests/features.test.js) |
+| Habits with streaks (next occurrence created exactly once) | ✅ | [habits.test.js](server/tests/habits.test.js) |
+| Study plan, plan my day, quick add | ✅ | [agent.test.js](server/tests/agent.test.js), [proactive.test.js](server/tests/proactive.test.js) |
+| Nudges, evening recap, morning plan, countdowns | ✅ | [proactive.test.js](server/tests/proactive.test.js), [notifications.test.js](server/tests/notifications.test.js) |
+| Live updates (SSE) across tabs | ✅ | [live.test.js](server/tests/live.test.js) |
+| Push notifications with buttons, quiet hours, email fallback | ✅ (real push checked by hand in browsers) | [notifications.test.js](server/tests/notifications.test.js) |
+| Focus timer: any length, pause, +5 min, time-up job, celebration | ✅ | [focus.test.js](server/tests/focus.test.js) |
+| AI down, slow or out of quota: model chain, timeouts, friendly message | ✅ | [resilience.test.js](server/tests/resilience.test.js), [gemini.test.js](server/tests/gemini.test.js) |
+| Job queue: one claim per job, lock heartbeat, retries, dead letter | ✅ | [scaling.test.js](server/tests/scaling.test.js) |
+| Voice input and spoken replies (Edge, Chrome) | ✅ (checked by hand; no automated browser test) | [lib/speech.js](client/src/lib/speech.js) |
+| Six languages | ✅ | [agent.test.js](server/tests/agent.test.js) |
+
+</details>
 
 <p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
 
@@ -246,7 +286,7 @@ One Docker image runs as `web`, `worker` or `all` (`PROCESS_ROLE`). Everything s
 ## <img src="docs/readme/icons/engineering.svg" width="34" height="34" align="top" alt=""> Engineering highlights
 
 <p align="center">
-  <img src="docs/readme/stats.svg" alt="5,135 requests per second for health checks while logins run (was 21); 148 automated tests; 18 agent tools; 6 languages" width="720">
+  <img src="docs/readme/stats.svg" alt="5,135 requests per second for health checks while logins run (was 21); 150 automated tests; 18 agent tools; 6 languages" width="720">
 </p>
 
 **Measured, then fixed.** Load-tested with `autocannon` on a 2-core machine (the load generator shared the same cores, so absolute numbers are pessimistic; the before/after comparison is what matters). From [docs/SCALING.md](docs/SCALING.md):
@@ -283,7 +323,7 @@ The big fix: password hashing moved from pure-JavaScript bcrypt (which froze the
     <td colspan="2" valign="top">
       <img src="docs/readme/icons/check.svg" width="32" height="32" alt=""> <b>Quality</b>
       <ul>
-        <li>148 automated tests (unit and integration) with <code>node:test</code> and supertest, against a real MongoDB; the AI is replaced by a fake provider, so tests are free and repeatable</li>
+        <li>150 automated tests (unit and integration) with <code>node:test</code> and supertest, against a real MongoDB; the AI is replaced by a fake provider, so tests are free and repeatable</li>
         <li>A written bug hunt before submission, with what was fixed and what was not: <a href="docs/BUG-REPORT.md">docs/BUG-REPORT.md</a></li>
       </ul>
     </td>
@@ -558,7 +598,7 @@ Saathi replies in the language you write or speak. Settings offers Hinglish, Eng
 <a name="ai-usage"></a>
 ## <img src="docs/readme/icons/ai.svg" width="34" height="34" align="top" alt=""> AI usage
 
-This project was built with help from Claude (Anthropic) for code generation, debugging and documentation, as allowed by the project guidelines. Every workflow is tested (148 automated tests plus live checks with the real AI), and the code is understood and maintained by the author. Inside the app, the AI (Gemini) only proposes actions; the server validates and executes them, and every change can be undone.
+This project was built with help from Claude (Anthropic) for code generation, debugging and documentation, as allowed by the project guidelines. Every workflow is tested (150 automated tests plus live checks with the real AI), and the code is understood and maintained by the author. Inside the app, the AI (Gemini) only proposes actions; the server validates and executes them, and every change can be undone.
 
 <a name="credits-and-author"></a>
 ## <img src="docs/readme/icons/credits.svg" width="34" height="34" align="top" alt=""> Credits and author
