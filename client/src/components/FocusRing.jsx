@@ -19,13 +19,13 @@ export function FocusRing({ size = 280, stroke = 10, fraction = 1, glow = true, 
   const uid = useId().replace(/:/g, '');
   const full = detail === 'full';
   const cx = size / 2;
-  // Room outside the arc for the outer orbit (full) or just the planet's glow (mini).
-  const r = full ? cx - stroke * 2 - 8 : cx - stroke / 2 - 2;
+  // Small, faint hour numbers sit OUTSIDE the orbit (full); the mini version only needs room for the planet's glow.
+  const fontSize = Math.max(10, Math.round(size / 28));
+  const r = full ? cx - stroke / 2 - fontSize * 2 - 6 : cx - stroke / 2 - 2;
   const c = TAU * r;
   const f = Math.max(0, Math.min(1, fraction));
   const ease = reduce ? 'none' : '1s linear';
-  const fontSize = Math.max(11, Math.round(size / 24));
-  const numberR = r - stroke / 2 - fontSize - 8;
+  const numberR = r + stroke / 2 + fontSize + 3;
 
   return (
     <div className="relative grid place-items-center" style={{ width: size, height: size }}>
@@ -62,8 +62,11 @@ export function FocusRing({ size = 280, stroke = 10, fraction = 1, glow = true, 
                 <circle cx={cx} cy={-22} r="1.8" fill="#E879B9" opacity="0.6" />
               </g>
             </g>
-            {/* outer orbit for depth */}
-            <circle cx={cx} cy={cx} r={r + stroke + 8} fill="none" stroke="rgb(255 227 168 / 0.07)" strokeWidth="1" strokeDasharray="1 5" />
+            {/* tiny stars between the hour numbers, outside the orbit */}
+            {Array.from({ length: 12 }, (_, i) => {
+              const p = at(cx, numberR, clock((i + 0.5) / 12));
+              return <circle key={i} cx={p.x} cy={p.y} r={i % 2 ? 0.9 : 1.3} fill="rgb(255 243 220 / 0.5)" />;
+            })}
           </>
         )}
 
@@ -81,7 +84,7 @@ export function FocusRing({ size = 280, stroke = 10, fraction = 1, glow = true, 
               const p2 = at(cx, r - stroke / 2 - 7, a);
               return <line key={i} x1={p1.x} y1={p1.y} x2={p2.x} y2={p2.y} stroke="rgb(255 248 235 / 0.16)" strokeWidth="1" strokeLinecap="round" />;
             })}
-            {/* hour numbers like a clock */}
+            {/* hour numbers like a clock, small and faint, outside the orbit */}
             {Array.from({ length: 12 }, (_, i) => {
               const p = at(cx, numberR, clock(i / 12));
               const quarter = i % 3 === 0;
@@ -94,8 +97,8 @@ export function FocusRing({ size = 280, stroke = 10, fraction = 1, glow = true, 
                   dominantBaseline="central"
                   fontFamily="'Baloo 2', sans-serif"
                   fontWeight={quarter ? 600 : 500}
-                  fontSize={quarter ? fontSize + 1 : fontSize}
-                  fill={quarter ? 'rgb(255 227 168 / 0.85)' : 'rgb(245 239 230 / 0.45)'}
+                  fontSize={fontSize}
+                  fill={quarter ? 'rgb(255 227 168 / 0.7)' : 'rgb(245 239 230 / 0.38)'}
                 >
                   {i === 0 ? 12 : i}
                 </text>
