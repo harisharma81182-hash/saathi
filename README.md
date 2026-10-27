@@ -13,7 +13,7 @@
   <img src="https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white" alt="MongoDB Atlas">
   <img src="https://img.shields.io/badge/AI-Google%20Gemini-8E75B2?logo=googlegemini&logoColor=white" alt="Google Gemini">
   <img src="https://img.shields.io/badge/Deployed%20on-Render-46E3B7?logo=render&logoColor=white" alt="Deployed on Render">
-  <img src="https://img.shields.io/badge/tests-146%20passing-2EA44F" alt="146 tests passing">
+  <img src="https://img.shields.io/badge/tests-148%20passing-2EA44F" alt="148 tests passing">
 </p>
 
 **Your AI friend who gets things done.** Tell Saathi, by typing or speaking, *"kal subah 9 baje lab file submit karni hai, yaad dila dena"*, and it creates the task and the reminder in your account, reminds you on time in a friendly voice, and remembers what matters to you. It talks like a close friend, in your language.
@@ -178,7 +178,7 @@ The big fix: password hashing moved from pure-JavaScript bcrypt (which froze the
 - Ready to scale: stateless instances, a MongoDB job queue, shared quotas, health checks and graceful shutdown ([docs/SCALING.md](docs/SCALING.md))
 
 **Quality**
-- 146 automated tests (unit and integration) with `node:test` and supertest, against a real MongoDB; the AI is replaced by a fake provider, so tests are free and repeatable
+- 148 automated tests (unit and integration) with `node:test` and supertest, against a real MongoDB; the AI is replaced by a fake provider, so tests are free and repeatable
 
 ## 🧰 Tech stack
 
@@ -360,7 +360,7 @@ The free plan sleeps after 15 minutes without visits; reminders that fall due wh
 
 ## 🤝 AI usage
 
-This project was built with help from Claude (Anthropic) for code generation, debugging and documentation, as allowed by the project guidelines. Every workflow is tested (146 automated tests plus live checks with the real AI), and the code is understood and maintained by the author. Inside the app, the AI (Gemini) only proposes actions; the server validates and executes them, and every change can be undone.
+This project was built with help from Claude (Anthropic) for code generation, debugging and documentation, as allowed by the project guidelines. Every workflow is tested (148 automated tests plus live checks with the real AI), and the code is understood and maintained by the author. Inside the app, the AI (Gemini) only proposes actions; the server validates and executes them, and every change can be undone.
 
 ## 🙏 Credits and author
 
