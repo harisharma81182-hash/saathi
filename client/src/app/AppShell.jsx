@@ -148,7 +148,7 @@ export function AppShell({ user: initialUser, onLogout }) {
             <BottomNav screen={screen} go={go} />
             <Toasts items={toasts} onDismiss={(id) => setToasts((all) => all.filter((t) => t.id !== id))} onChanged={() => setCounts((c) => ({ ...c, changes: c.changes + 1 }))} go={go} />
             <IosGuide />
-            <UndoToast activity={undo} onClose={() => setUndo(null)} />
+            <UndoToast activity={undo} onClose={() => setUndo(null)} top={screen === 'home'} />
             <FocusView user={user} />
             <FocusStart />
           </div>

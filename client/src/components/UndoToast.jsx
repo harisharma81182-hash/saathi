@@ -8,7 +8,7 @@ import { api } from '../lib/api.js';
 // receipts with Undo in the chat instead.)
 const SHOW_MS = 10_000;
 
-export function UndoToast({ activity, onClose }) {
+export function UndoToast({ activity, onClose, top = false }) {
   const reduce = useReducedMotion();
   const [state, setState] = useState('idle'); // idle | undoing | done | error
   const [error, setError] = useState(null);
@@ -34,15 +34,16 @@ export function UndoToast({ activity, onClose }) {
   }
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+76px)] z-50 flex justify-center px-4 lg:bottom-8">
+    // On Home the chat box sits at the bottom, so the bar goes under the header instead of covering it.
+    <div className={`pointer-events-none fixed inset-x-0 z-50 flex justify-center px-4 ${top ? 'top-[calc(env(safe-area-inset-top)+64px)]' : 'bottom-[calc(env(safe-area-inset-bottom)+76px)] lg:bottom-8'}`}>
       <AnimatePresence>
         {activity && (
           <motion.div
             key={activity.id}
             role="status"
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: top ? -12 : 12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8, transition: { duration: 0.2 } }}
+            exit={{ opacity: 0, y: top ? -8 : 8, transition: { duration: 0.2 } }}
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="glass pointer-events-auto relative flex max-w-md items-center gap-3 overflow-hidden rounded-full bg-ink/80 py-2 pl-5 pr-2 text-sm"
           >
