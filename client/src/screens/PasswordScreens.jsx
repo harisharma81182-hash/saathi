@@ -2,14 +2,14 @@ import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { MailCheck } from 'lucide-react';
 import { api } from '../lib/api.js';
-import { AuthShell, Field, PASSWORD_HINT } from './AuthScreen.jsx';
+import { AuthShell, Field, PASSWORD_HINT, lastEmail } from './AuthScreen.jsx';
 
 // "Password bhool gaye?" in two screens:
 //  ForgotScreen  enter your email; the answer is the same whether or not it has an account
 //  ResetScreen   opened from the emailed link (#reset=...): choose a new password, twice
 
 export function ForgotScreen({ onBack, onLogin }) {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(lastEmail);
   const [error, setError] = useState(null);
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(null);

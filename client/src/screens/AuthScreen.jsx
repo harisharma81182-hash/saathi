@@ -5,10 +5,28 @@ import { api } from '../lib/api.js';
 import { Face } from '../components/Face.jsx';
 import { SpaceBackdrop } from '../components/SpaceBackdrop.jsx';
 
+// The email of the last login on THIS device (never the password), so the login form starts filled.
+// Only this browser's storage: other people's emails are never suggested.
+const LAST_EMAIL_KEY = 'saathi.lastEmail';
+export function lastEmail() {
+  try {
+    return localStorage.getItem(LAST_EMAIL_KEY) ?? '';
+  } catch {
+    return '';
+  }
+}
+export function rememberEmail(email) {
+  try {
+    if (email) localStorage.setItem(LAST_EMAIL_KEY, email);
+  } catch {
+    // Private mode or blocked storage: the form simply starts empty next time.
+  }
+}
+
 // Login and signup on one calm screen, with Saathi's face reacting to what happens.
 export function AuthScreen({ onAuthed, onBack, onForgot, initialMode = 'signup' }) {
   const [mode, setMode] = useState(initialMode);
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState(() => ({ name: '', email: initialMode === 'login' ? lastEmail() : '', password: '' }));
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -29,6 +47,7 @@ export function AuthScreen({ onAuthed, onBack, onForgot, initialMode = 'signup' 
           ? { ...form, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }
           : { email: form.email, password: form.password };
       const { user } = await api(`/auth/${mode === 'signup' ? 'signup' : 'login'}`, { method: 'POST', body });
+      rememberEmail(user.email);
       onAuthed(user);
     } catch (err) {
       // Field errors go under their field; anything else above the button.
@@ -55,6 +74,7 @@ export function AuthScreen({ onAuthed, onBack, onForgot, initialMode = 'signup' 
               aria-selected={mode === m}
               onClick={() => {
                 setMode(m);
+                if (m === 'login') setForm((f) => (f.email ? f : { ...f, email: lastEmail() }));
                 setErrors({});
                 setMessage(null);
               }}
