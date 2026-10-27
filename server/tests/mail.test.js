@@ -1,9 +1,9 @@
 // Email sending without a database or a real mail service: fetch is replaced, so nothing leaves the laptop.
 import './helpers.js';
-import { test, afterEach } from 'node:test';
+import { test, afterEach, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { env } from '../src/config/env.js';
-import { sendMail, mailConfigured } from '../src/services/mail.service.js';
+import { sendMail, mailConfigured, mailStatus } from '../src/services/mail.service.js';
 
 const realFetch = globalThis.fetch;
 afterEach(() => {
@@ -40,4 +40,28 @@ test('a refusal from Brevo (e.g. sender not verified) is an error with the reaso
   env.MAIL_FROM = 'saathi@example.com';
   globalThis.fetch = async () => new Response('{"message":"Sender not valid"}', { status: 400 });
   await assert.rejects(sendMail({ to: 'him@example.com', subject: 'Reset', text: 'link' }), /400.*Sender not valid/);
+});
+
+test('Brevo without MAIL_FROM fails with a clear message, and the startup line says what to fix', async () => {
+  env.BREVO_API_KEY = 'test-key';
+  const savedUser = env.SMTP_USER;
+  env.SMTP_USER = undefined; // the sender falls back to SMTP_USER, so clear it for this test
+  after(() => {
+    env.SMTP_USER = savedUser;
+  });
+  let called = false;
+  globalThis.fetch = async () => {
+    called = true;
+    return new Response('{}', { status: 201 });
+  };
+  assert.match(mailStatus(), /MAIL_FROM is empty/);
+  await assert.rejects(sendMail({ to: 'him@example.com', subject: 'Reset', text: 'link' }), /MAIL_FROM is not set/);
+  assert.equal(called, false);
+  env.MAIL_FROM = 'saathi@example.com';
+  assert.match(mailStatus(), /Brevo API, sender saathi@example.com/);
+  assert.doesNotMatch(mailStatus(), /test-key/);
+});
+
+test('without any email settings the startup line says reset links only go to the log', () => {
+  assert.match(mailStatus(), /not set up/);
 });

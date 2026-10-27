@@ -7,6 +7,7 @@ import { startWorker } from './jobs/worker.js';
 import { registerAllHandlers } from './jobs/handlers/index.js';
 import { getLiveHub } from './services/live.service.js';
 import { startPeriodicJobs } from './jobs/periodic.js';
+import { mailStatus } from './services/mail.service.js';
 
 // One codebase, three ways to run it (PROCESS_ROLE):
 //   web    -> serves HTTP. Stateless, so any number of copies can run behind a load balancer.
@@ -15,6 +16,7 @@ import { startPeriodicJobs } from './jobs/periodic.js';
 
 async function main() {
   await connectDB(env.MONGODB_URI, { maxPoolSize: env.MONGO_MAX_POOL });
+  logger.info(mailStatus());
 
   let server = null;
   if (runsWeb) {

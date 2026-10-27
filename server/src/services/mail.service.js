@@ -15,6 +15,21 @@ let testOutbox = null;
 
 export const mailConfigured = () => Boolean(env.BREVO_API_KEY || env.SMTP_HOST);
 
+/** How email goes out, in one line for the startup log (never shows a key). */
+export function mailStatus() {
+  if (env.BREVO_API_KEY) {
+    const sender = env.MAIL_FROM ?? env.SMTP_USER;
+    return sender
+      ? `email: Brevo API, sender ${sender}`
+      : 'email: Brevo API is set but MAIL_FROM is empty. Set MAIL_FROM to the sender you verified in Brevo, or no email will be sent';
+  }
+  if (env.SMTP_HOST) return `email: SMTP ${env.SMTP_HOST}:${env.SMTP_PORT} (on Render's free plan SMTP is blocked: set BREVO_API_KEY instead)`;
+  return 'email: not set up (no BREVO_API_KEY or SMTP_HOST), so reset links are only written to this log';
+}
+
+// Network errors that mean "could not reach the mail server at all" (Render's free plan blocks SMTP ports).
+const UNREACHABLE = new Set(['ETIMEDOUT', 'ECONNECTION', 'ESOCKET', 'ECONNREFUSED', 'ENETUNREACH', 'EHOSTUNREACH']);
+
 function getTransport() {
   transport ??= nodemailer.createTransport({
     host: env.SMTP_HOST,
@@ -64,11 +79,20 @@ export async function sendMail({ to, subject, text, html }) {
   }
   const from = env.MAIL_FROM ?? env.SMTP_USER;
   if (env.BREVO_API_KEY) {
+    if (!from) throw new Error('MAIL_FROM is not set: Brevo needs the sender email you verified in Brevo.');
     const messageId = await sendWithBrevo({ from, to, subject, text, html });
     log.info({ to, messageId, via: 'brevo' }, 'email sent');
     return { sent: true };
   }
-  const info = await getTransport().sendMail({ from: `Saathi <${from}>`, to, subject, text, html });
+  let info;
+  try {
+    info = await getTransport().sendMail({ from: `Saathi <${from}>`, to, subject, text, html });
+  } catch (err) {
+    if (UNREACHABLE.has(err.code)) {
+      throw new Error(`SMTP server not reachable (${err.code}). Render's free plan blocks SMTP ports: set BREVO_API_KEY and MAIL_FROM instead.`);
+    }
+    throw err;
+  }
   log.info({ to, messageId: info.messageId, via: 'smtp' }, 'email sent');
   return { sent: true };
 }
