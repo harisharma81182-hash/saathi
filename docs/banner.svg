@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="400" viewBox="0 0 1280 400" role="img" aria-label="Saathi: your AI friend who gets things done">
+  <defs>
+    <radialGradient id="sky" cx="30%" cy="40%" r="90%">
+      <stop offset="0" stop-color="#1E2452"/>
+      <stop offset="0.55" stop-color="#0C1026"/>
+      <stop offset="1" stop-color="#070914"/>
+    </radialGradient>
+    <radialGradient id="orb" cx="40%" cy="35%" r="70%">
+      <stop offset="0" stop-color="#FFE3A8"/>
+      <stop offset="0.55" stop-color="#F2A541"/>
+      <stop offset="1" stop-color="#B8641A"/>
+    </radialGradient>
+    <radialGradient id="glow">
+      <stop offset="0.35" stop-color="#F2A541" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#F2A541" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="haze" cx="80%" cy="20%" r="60%">
+      <stop offset="0" stop-color="#6A4BC4" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#6A4BC4" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#FFE3A8"/>
+      <stop offset="1" stop-color="#F2A541"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1280" height="400" rx="28" fill="url(#sky)"/>
+  <rect width="1280" height="400" rx="28" fill="url(#haze)"/>
+
+  <!-- stars -->
+  <g fill="#FFF3DC">
+    <circle cx="80" cy="60" r="1.6" opacity=".8"/><circle cx="190" cy="330" r="1.2" opacity=".6"/>
+    <circle cx="420" cy="48" r="1.4" opacity=".7"/><circle cx="520" cy="350" r="1" opacity=".5"/>
+    <circle cx="640" cy="90" r="1.8" opacity=".8"/><circle cx="760" cy="40" r="1.1" opacity=".6"/>
+    <circle cx="880" cy="360" r="1.5" opacity=".7"/><circle cx="1010" cy="70" r="1.2" opacity=".6"/>
+    <circle cx="1150" cy="330" r="1.7" opacity=".8"/><circle cx="1220" cy="140" r="1.1" opacity=".5"/>
+    <circle cx="300" cy="200" r="0.9" opacity=".5"/><circle cx="1100" cy="210" r="1" opacity=".5"/>
+    <circle cx="700" cy="300" r="1.2" opacity=".6"/><circle cx="40" cy="250" r="1" opacity=".5"/>
+  </g>
+
+  <!-- orbits around the face -->
+  <g fill="none" stroke-width="1.4">
+    <ellipse cx="250" cy="200" rx="190" ry="62" stroke="#5AA8FF" stroke-opacity=".35" transform="rotate(-12 250 200)"/>
+    <ellipse cx="250" cy="200" rx="150" ry="46" stroke="#9B7BFF" stroke-opacity=".35" transform="rotate(14 250 200)"/>
+    <ellipse cx="250" cy="200" rx="225" ry="78" stroke="#47D6C3" stroke-opacity=".25" transform="rotate(4 250 200)"/>
+  </g>
+  <circle cx="433" cy="160" r="7" fill="#5AA8FF"/>
+  <circle cx="110" cy="240" r="6" fill="#9B7BFF"/>
+  <circle cx="470" cy="226" r="5" fill="#47D6C3"/>
+
+  <!-- Saathi's face -->
+  <circle cx="250" cy="200" r="118" fill="url(#glow)"/>
+  <circle cx="250" cy="200" r="78" fill="url(#orb)"/>
+  <ellipse cx="228" cy="192" rx="8.5" ry="12.5" fill="#2A1A0A"/>
+  <ellipse cx="272" cy="192" rx="8.5" ry="12.5" fill="#2A1A0A"/>
+  <path d="M227 223 C239 236 261 236 273 223" stroke="#2A1A0A" stroke-width="7" fill="none" stroke-linecap="round"/>
+
+  <!-- words -->
+  <text x="560" y="182" font-family="'Baloo 2','Segoe UI',Arial,sans-serif" font-size="108" font-weight="700" fill="#F5EFE6">Saathi</text>
+  <text x="564" y="236" font-family="'Segoe UI',Arial,sans-serif" font-size="30" fill="url(#gold)">Your AI friend who gets things done</text>
+  <text x="564" y="282" font-family="'Segoe UI',Arial,sans-serif" font-size="21" fill="#A9A3BE">Tasks · reminders · study plans · focus timer</text>
+  <text x="564" y="314" font-family="'Segoe UI',Arial,sans-serif" font-size="21" fill="#A9A3BE">By chat or voice, in your language</text>
+</svg>
