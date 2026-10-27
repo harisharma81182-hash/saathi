@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="904" height="304" viewBox="0 0 904 304" role="img" aria-label="5,135 requests per second for health checks while logins run (was 21); 154 automated tests; 18 agent tools; 6 languages">
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="304" viewBox="0 0 904 304" role="img" aria-label="5,135 requests per second for health checks while logins run (was 21); 155 automated tests; 18 agent tools; 6 languages">
   <defs>
     <linearGradient id="card" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1B2148"/><stop offset="1" stop-color="#0B0E22"/></linearGradient>
     <linearGradient id="num" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE3A8"/><stop offset="1" stop-color="#F2A541"/></linearGradient>
@@ -15,7 +15,7 @@
     <rect width="436" height="136" rx="22" fill="url(#card)" stroke="#F2A541" stroke-opacity="0.35" stroke-width="1.5"/>
     <circle cx="402" cy="34" r="5" fill="#F6C46F" opacity="0.85"/>
     <circle cx="402" cy="34" r="12" fill="none" stroke="#F6C46F" stroke-opacity="0.25"/>
-    <text x="28" y="62" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="800" fill="url(#num)">154</text>
+    <text x="28" y="62" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="800" fill="url(#num)">155</text>
     <text x="30" y="92" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="600" fill="#F5EFE6">automated tests</text>
     <text x="30" y="116" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#A9A3BE">node:test + supertest, real MongoDB</text>
   </g>

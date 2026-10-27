@@ -90,6 +90,15 @@ describe('google sign-in', { skip: !hasTestDb && 'MONGODB_URI_TEST not set' }, (
     assert.equal(empty.status, 400);
   });
 
+  it('checks the nonce: the token must carry the value this browser sent to Google', async () => {
+    const nonce = 'n-1234567890abcdef';
+    const ok = await request(app).post('/api/auth/google').send({ credential: token(person({ nonce })), nonce });
+    assert.equal(ok.status, 200);
+    const copied = await request(app).post('/api/auth/google').send({ credential: token(person({ nonce: 'someone-elses-nonce-123' })), nonce });
+    assert.equal(copied.status, 401);
+    assert.equal(copied.headers['set-cookie'], undefined);
+  });
+
   it('without GOOGLE_CLIENT_ID the button is hidden (null) and the endpoint answers 404', async () => {
     const saved = env.GOOGLE_CLIENT_ID;
     env.GOOGLE_CLIENT_ID = '';

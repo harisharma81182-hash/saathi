@@ -13,7 +13,7 @@
 <img src="https://img.shields.io/badge/MongoDB-Atlas-F2A541?style=for-the-badge&labelColor=1B2148&logo=mongodb&logoColor=F6C46F" alt="MongoDB Atlas">
 <img src="https://img.shields.io/badge/AI-Google%20Gemini-F2A541?style=for-the-badge&labelColor=1B2148&logo=googlegemini&logoColor=F6C46F" alt="AI: Google Gemini">
 <img src="https://img.shields.io/badge/Deployed-Render-F2A541?style=for-the-badge&labelColor=1B2148&logo=render&logoColor=F6C46F" alt="Deployed on Render">
-<img src="https://img.shields.io/badge/Tests-154%20passing-F2A541?style=for-the-badge&labelColor=1B2148" alt="154 tests passing">
+<img src="https://img.shields.io/badge/Tests-155%20passing-F2A541?style=for-the-badge&labelColor=1B2148" alt="155 tests passing">
 
 <br><br>
 
@@ -62,7 +62,7 @@ Where to find the evidence for each part of the rubric. Every link goes to the r
 | **Engineering** | 20% | Atomic job queue with locks and dedupe keys, AI gateway with model chain, quotas, retries and circuit breaker, idempotency keys, undo log, load-tested and fixed | [jobs/queue.js](server/src/jobs/queue.js), [ai/gateway.js](server/src/ai/gateway.js), [middleware/idempotency.js](server/src/middleware/idempotency.js), [activity.service.js](server/src/services/activity.service.js), [docs/SCALING.md](docs/SCALING.md), [scaling.test.js](server/tests/scaling.test.js), [resilience.test.js](server/tests/resilience.test.js) |
 | **Architecture** | 15% | Thin routes → services → models; one image with web / worker roles; every decision with its trade-off | [Architecture](#architecture), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [Project structure](#project-structure) |
 | **UX & reliability** | 10% | Loading, empty and error states on every screen; receipts with Undo; works when the AI is down; push with email fallback; phone layout | [ScreenParts.jsx](client/src/components/ScreenParts.jsx), [UndoToast.jsx](client/src/components/UndoToast.jsx), [delivery.service.js](server/src/services/delivery.service.js), [Screenshots](#screenshots), [notifications.test.js](server/tests/notifications.test.js) |
-| **Code quality** | 10% | zod validation, one error shape, user-scoped queries (404 for others' data), 154 automated tests, a written bug hunt | [middleware/validate.js](server/src/middleware/validate.js), [utils/AppError.js](server/src/utils/AppError.js), [server/tests](server/tests), [docs/BUG-REPORT.md](docs/BUG-REPORT.md) |
+| **Code quality** | 10% | zod validation, one error shape, user-scoped queries (404 for others' data), 155 automated tests, a written bug hunt | [middleware/validate.js](server/src/middleware/validate.js), [utils/AppError.js](server/src/utils/AppError.js), [server/tests](server/tests), [docs/BUG-REPORT.md](docs/BUG-REPORT.md) |
 | **Deployment & docs** | 10% | Live on Render from `render.yaml` and a Dockerfile, health checks, env validation, this README | [Live app](https://saathi-ksk8.onrender.com), [render.yaml](render.yaml), [Dockerfile](Dockerfile), [config/env.js](server/src/config/env.js), [Deployment](#deployment) |
 
 <details open>
@@ -286,7 +286,7 @@ One Docker image runs as `web`, `worker` or `all` (`PROCESS_ROLE`). Everything s
 ## <img src="docs/readme/icons/engineering.svg" width="34" height="34" align="top" alt=""> Engineering highlights
 
 <p align="center">
-  <img src="docs/readme/stats.svg" alt="5,135 requests per second for health checks while logins run (was 21); 154 automated tests; 18 agent tools; 6 languages" width="720">
+  <img src="docs/readme/stats.svg" alt="5,135 requests per second for health checks while logins run (was 21); 155 automated tests; 18 agent tools; 6 languages" width="720">
 </p>
 
 **Measured, then fixed.** Load-tested with `autocannon` on a 2-core machine (the load generator shared the same cores, so absolute numbers are pessimistic; the before/after comparison is what matters). From [docs/SCALING.md](docs/SCALING.md):
@@ -323,7 +323,7 @@ The big fix: password hashing moved from pure-JavaScript bcrypt (which froze the
     <td colspan="2" valign="top">
       <img src="docs/readme/icons/check.svg" width="32" height="32" alt=""> <b>Quality</b>
       <ul>
-        <li>154 automated tests (unit and integration) with <code>node:test</code> and supertest, against a real MongoDB; the AI is replaced by a fake provider, so tests are free and repeatable</li>
+        <li>155 automated tests (unit and integration) with <code>node:test</code> and supertest, against a real MongoDB; the AI is replaced by a fake provider, so tests are free and repeatable</li>
         <li>A written bug hunt before submission, with what was fixed and what was not: <a href="docs/BUG-REPORT.md">docs/BUG-REPORT.md</a></li>
       </ul>
     </td>
@@ -414,7 +414,7 @@ Set in `server/.env` locally, or in the Render dashboard. **Required:** `MONGODB
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | for email | SMTP for password reset links and the email copy of important notifications (a Gmail App Password works). Without `SMTP_HOST` the email is written to the server log |
 | `RESEND_API_KEY` | for email on Render's free plan | Sends email through Resend's HTTPS API (used first when set), because Render's free plan blocks the SMTP ports. Sender `onboarding@resend.dev` until you verify your own domain in Resend (then set `MAIL_FROM` to an address on it); until then mail reaches only the Resend account owner |
 | `BREVO_API_KEY` | for email on Render's free plan | Sends the same emails through Brevo's HTTPS API (free, 300 a day) instead of SMTP, because Render's free plan blocks the SMTP ports. `MAIL_FROM` must be a sender verified in Brevo |
-| `GOOGLE_CLIENT_ID` | optional | OAuth Web Client ID for "Continue with Google" (public, not a secret). Without it the Google button is hidden |
+| `GOOGLE_CLIENT_ID` | optional | OAuth Web Client ID for "Continue with Google" (public, not a secret). In Google Cloud add your address as an Authorized JavaScript origin and, with a trailing slash, as an Authorized redirect URI. Without it the Google button is hidden |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_FALLBACK_MODEL` | for Claude | Only with `AI_PROVIDER=anthropic` |
 | `JWT_EXPIRES_IN`, `PORT`, `MONGO_MAX_POOL`, `LOG_LEVEL` | no | Login lifetime (7d), port (4000), DB connections per instance (10), log level (info) |
 | `AI_REQUEST_TIMEOUT_MS`, `AI_TOTAL_TIMEOUT_MS`, `AI_USER_PER_MINUTE`, `AI_USER_PER_DAY`, `AI_MAX_CONCURRENCY`, `AI_MAX_QUEUE` | no | AI timeouts (20 s / 28 s), per-user limits (20 per minute, 300 per day) and per-instance limits |
@@ -610,7 +610,7 @@ Saathi replies in the language you write or speak. Settings offers Hinglish, Eng
 <a name="ai-usage"></a>
 ## <img src="docs/readme/icons/ai.svg" width="34" height="34" align="top" alt=""> AI usage
 
-This project was built with help from Claude (Anthropic) for code generation, debugging and documentation, as allowed by the project guidelines. Every workflow is tested (154 automated tests plus live checks with the real AI), and the code is understood and maintained by the author. Inside the app, the AI (Gemini) only proposes actions; the server validates and executes them, and every change can be undone.
+This project was built with help from Claude (Anthropic) for code generation, debugging and documentation, as allowed by the project guidelines. Every workflow is tested (155 automated tests plus live checks with the real AI), and the code is understood and maintained by the author. Inside the app, the AI (Gemini) only proposes actions; the server validates and executes them, and every change can be undone.
 
 <a name="credits-and-author"></a>
 ## <img src="docs/readme/icons/credits.svg" width="34" height="34" align="top" alt=""> Credits and author

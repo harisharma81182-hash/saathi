@@ -32,6 +32,8 @@ export const googleConfigured = () => Boolean(env.GOOGLE_CLIENT_ID);
 
 export const googleSchema = z.object({
   credential: z.string().min(20, 'Google sign-in failed. Try again.').max(5000),
+  // The random value the browser sent to Google; Google signs it into the token (blocks replays).
+  nonce: z.string().min(16).max(200).optional(),
   timezone: z
     .string()
     .optional()
@@ -41,7 +43,7 @@ export const googleSchema = z.object({
 const LINKED_ELSEWHERE = 'This email is already linked to a different Google account. Log in with your email and password.';
 
 /** Returns { user, created } for a valid Google ID token. */
-export async function signInWithGoogle({ credential, timezone }) {
+export async function signInWithGoogle({ credential, nonce, timezone }) {
   if (!googleConfigured()) throw new AppError(404, 'GOOGLE_DISABLED', 'Google sign-in is not set up on this server. Use email and password.');
 
   let p;
@@ -52,6 +54,8 @@ export async function signInWithGoogle({ credential, timezone }) {
     throw AppError.unauthorized('Google sign-in failed. Try again.');
   }
   if (!p?.sub || !p.email) throw AppError.unauthorized('Google sign-in failed. Try again.');
+  // A token from our own sign-in trip must carry the nonce this browser sent (a copied token cannot).
+  if (nonce !== undefined && p.nonce !== nonce) throw AppError.unauthorized('Google sign-in failed. Try again.');
   // Only an email that Google itself has verified may open (or join) a Saathi account.
   if (p.email_verified !== true) throw AppError.unauthorized('This Google account has no verified email. Use email and password instead.');
 

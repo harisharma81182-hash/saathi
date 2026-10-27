@@ -82,7 +82,9 @@ Render ka free plan SMTP ports block karta hai, aur Brevo ne account band kar di
 6. **Authorized JavaScript origins** mein do add karo:
    - `https://saathi-ksk8.onrender.com`
    - `http://localhost:5173`
-   (Redirect URIs khaali chhod do.)
+   Aur **Authorized redirect URIs** mein bhi do add karo (aakhir mein `/` zaroor lagana):
+   - `https://saathi-ksk8.onrender.com/`
+   - `http://localhost:5173/`
 7. **Create** → **Client ID** copy karo (`...apps.googleusercontent.com` wala). Client secret ki zaroorat **nahi** hai.
 8. Render → Environment → `GOOGLE_CLIENT_ID` mein paste → **Save Changes**. Laptop par bhi chahiye toh `server\.env` mein `GOOGLE_CLIENT_ID=...` daalo.
 9. Deploy ke baad login page par "Continue with Google" dikhega. Origin badalne ke baad Google ko 5 minute lag sakte hain.

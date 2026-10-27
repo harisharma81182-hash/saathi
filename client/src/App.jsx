@@ -2,6 +2,8 @@ import { lazy, Suspense, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { api } from './lib/api.js';
 import { forgetThisDevice } from './lib/push.js';
+import { readGoogleReturn, setGoogleError } from './lib/googleAuth.js';
+import { rememberEmail } from './screens/AuthScreen.jsx';
 import { Face } from './components/Face.jsx';
 import { SpaceBackdrop } from './components/SpaceBackdrop.jsx';
 import { WarpFlash } from './components/WarpFlash.jsx';
@@ -39,6 +41,8 @@ const resetToken = () => (location.hash.startsWith('#reset=') ? location.hash.sl
 
 // Who is logged in decides the screen. The cookie is httpOnly, so the only way to know is to ask.
 export function App() {
+  // Back from Google's sign-in page? Read it first: it also cleans the address bar (#login/#signup).
+  const [google] = useState(readGoogleReturn);
   const [session, setSession] = useState({ status: 'loading', user: null });
   const [authView, setAuthView] = useState(authViewFromHash);
   useEffect(() => {
@@ -52,10 +56,30 @@ export function App() {
   };
 
   useEffect(() => {
-    api('/auth/me')
-      .then(({ user }) => setSession({ status: 'in', user }))
-      .catch((err) => setSession({ status: err.status === 401 ? 'out' : 'offline', user: null, error: err }));
-  }, []);
+    const checkSession = () =>
+      api('/auth/me')
+        .then(({ user }) => setSession({ status: 'in', user }))
+        .catch((err) => setSession({ status: err.status === 401 ? 'out' : 'offline', user: null, error: err }));
+    if (!google) return void checkSession();
+    if (google.error) {
+      setGoogleError(google.error);
+      return void checkSession();
+    }
+    // The server checks Google's signature, our client id and the nonce, then logs in or signs up.
+    api('/auth/google', {
+      method: 'POST',
+      body: { credential: google.credential, nonce: google.nonce, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
+    })
+      .then(({ user }) => {
+        rememberEmail(user.email);
+        history.replaceState(null, '', location.pathname);
+        setSession({ status: 'in', user });
+      })
+      .catch((err) => {
+        setGoogleError(err.message);
+        checkSession();
+      });
+  }, [google]);
 
   const logout = async () => {
     await forgetThisDevice(); // while still logged in, so the server accepts it

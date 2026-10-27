@@ -87,13 +87,7 @@ export function AuthScreen({ onAuthed, onBack, onForgot, initialMode = 'signup' 
           ))}
         </div>
 
-        <GoogleButton
-          mode={mode}
-          onAuthed={(user) => {
-            rememberEmail(user.email);
-            onAuthed(user);
-          }}
-        />
+        <GoogleButton mode={mode} />
 
         <form onSubmit={submit} className="flex flex-col gap-3" noValidate>
           {/* Autofill: the browser suggests only what is saved on this device (never other users' emails).

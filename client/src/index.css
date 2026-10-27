@@ -401,3 +401,48 @@ html.lenis body {
 @media (prefers-reduced-motion: reduce) {
   .far-orbit { animation: none; }
 }
+
+/* "Continue with Google": dark glass pill with a thin, softly glowing gold edge. Hover lifts it 2px
+   and brightens the edge, a shimmer passes once; press dips it; keyboard focus gets a gold ring. */
+.google-btn {
+  background: linear-gradient(180deg, rgb(30 37 80 / 0.55), rgb(11 14 34 / 0.6));
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgb(242 165 65 / 0.38);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 0 18px -8px rgb(242 165 65 / 0.45);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease, border-color 0.28s ease;
+  animation: google-glow 4.5s ease-in-out infinite;
+}
+.google-btn:hover:not(:disabled) {
+  border-color: rgb(242 165 65 / 0.7);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.09), 0 0 28px -6px rgb(242 165 65 / 0.6);
+  transform: translateY(-2px);
+  animation: none;
+}
+.google-btn:active:not(:disabled) {
+  transform: translateY(1px) scale(0.99);
+}
+.google-btn:focus-visible {
+  outline: 2px solid #f6c46f;
+  outline-offset: 3px;
+}
+.google-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 35%, rgb(255 236 200 / 0.16) 50%, transparent 65%);
+  transform: translateX(-120%);
+}
+.google-btn:hover:not(:disabled) .google-shimmer {
+  animation: google-shimmer 1.1s cubic-bezier(0.22, 1, 0.36, 1) 1 forwards;
+}
+@keyframes google-shimmer {
+  to { transform: translateX(120%); }
+}
+@keyframes google-glow {
+  0%, 100% { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 0 16px -8px rgb(242 165 65 / 0.35); }
+  50% { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.07), 0 0 22px -7px rgb(242 165 65 / 0.55); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .google-btn, .google-btn:hover, .google-btn:active:not(:disabled) { animation: none; transform: none; }
+  .google-btn:hover:not(:disabled) .google-shimmer { animation: none; }
+}
