@@ -129,6 +129,33 @@ describe('password reset ("Password bhool gaye?")', { skip: !hasTestDb && 'MONGO
     assert.ok(blocked.headers['retry-after']);
   });
 
+  it('when the email service refuses (Resend 403), the user still gets the same answer and the server keeps running', async () => {
+    const mail = await import('../src/services/mail.service.js');
+    const { env } = await import('../src/config/env.js');
+    await loggedInAgent(app, { email: 'resend.fail@example.com' });
+    const realFetch = globalThis.fetch;
+    let tried = false;
+    globalThis.fetch = async () => {
+      tried = true;
+      return new Response('{"message":"You can only send testing emails to your own email address"}', { status: 403 });
+    };
+    mail.setOutboxForTests(null);
+    env.RESEND_API_KEY = 'test-resend-key';
+    try {
+      const res = await forgot('resend.fail@example.com', '10.0.0.9');
+      assert.equal(res.status, 200);
+      assert.equal(res.body.message, SAME_ANSWER);
+      for (let i = 0; i < 100 && !tried; i++) await new Promise((r) => setTimeout(r, 50));
+      assert.equal(tried, true);
+      await new Promise((r) => setTimeout(r, 100)); // the refusal is logged, nothing throws
+      assert.equal((await request(app).get('/api/health/live')).status, 200);
+    } finally {
+      globalThis.fetch = realFetch;
+      env.RESEND_API_KEY = '';
+      mail.setOutboxForTests(outbox);
+    }
+  });
+
   it('rejects a made-up token', async () => {
     const res = await reset(crypto.randomBytes(32).toString('base64url'), 'newpass456');
     assert.equal(res.status, 400);

@@ -76,8 +76,8 @@ MongoDB Atlas: data, jobs, rate counters, idempotency keys, sessions' version nu
 ## 10. Notifications: Web Push first, email as a fallback
 
 - **What:** [services/delivery.service.js](../server/src/services/delivery.service.js) sends each notification once: quiet hours 23:00 to 07:00 (only reminders and timers ring), Web Push to every registered device (VAPID, [services/push.service.js](../server/src/services/push.service.js)), and an email copy only for important kinds when push reached no device and the app is closed (at most 10 a day).
-- **Why:** reminders must arrive with the app closed, on phones and computers, without a paid service. Emails go through Brevo's HTTPS API ([services/mail.service.js](../server/src/services/mail.service.js)) because Render's free plan blocks SMTP ports; SMTP still works on a laptop.
-- **Trade-off:** iPhone push needs "Add to Home Screen"; email depends on a verified sender and can land in Spam.
+- **Why:** reminders must arrive with the app closed, on phones and computers, without a paid service. Emails go through an HTTPS email API ([services/mail.service.js](../server/src/services/mail.service.js): Resend first, then Brevo) because Render's free plan blocks SMTP ports; SMTP still works on a laptop. A failed send is logged and never breaks the request that caused it.
+- **Trade-off:** iPhone push needs "Add to Home Screen". Without a verified domain, Resend's test sender delivers only to the account owner's address, and email can land in Spam.
 
 ## 11. Input validation and errors in one shape
 
@@ -93,6 +93,6 @@ MongoDB Atlas: data, jobs, rate counters, idempotency keys, sessions' version nu
 
 ## 13. Tests against a real database, with a fake AI
 
-- **What:** 150 tests with `node:test` and supertest against a separate MongoDB database (`saathi_test`); the AI, push sender and mail outbox are replaced by fakes ([server/tests](../server/tests)).
+- **What:** 154 tests with `node:test` and supertest against a separate MongoDB database (`saathi_test`); the AI, push sender and mail outbox are replaced by fakes ([server/tests](../server/tests)).
 - **Why:** the hard parts (atomic claims, unique indexes, quotas across instances) only show their bugs against a real MongoDB; a fake AI makes tests free and repeatable.
 - **Trade-off:** tests need network access to Atlas and take several minutes; they must never share a database with a running server (they drop it).

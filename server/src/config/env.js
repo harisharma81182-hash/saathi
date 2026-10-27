@@ -96,6 +96,9 @@ const schema = z.object({
   // plan blocks the SMTP ports (25, 465, 587), but an HTTPS request goes through. MAIL_FROM must be
   // a sender verified in Brevo (your Gmail address works).
   BREVO_API_KEY: z.string().optional(),
+  // Resend's HTTP email API (resend.com, free). Used first when set. Without a verified domain the
+  // sender is onboarding@resend.dev and mail reaches only the Resend account owner's address.
+  RESEND_API_KEY: z.string().optional(),
   // "Continue with Google": the OAuth Web Client ID from Google Cloud Console (not secret, it is
   // shown to the browser). Empty = the Google button is hidden and the endpoint answers 404.
   GOOGLE_CLIENT_ID: z.string().optional(),

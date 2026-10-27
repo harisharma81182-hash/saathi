@@ -13,7 +13,7 @@
 <img src="https://img.shields.io/badge/MongoDB-Atlas-F2A541?style=for-the-badge&labelColor=1B2148&logo=mongodb&logoColor=F6C46F" alt="MongoDB Atlas">
 <img src="https://img.shields.io/badge/AI-Google%20Gemini-F2A541?style=for-the-badge&labelColor=1B2148&logo=googlegemini&logoColor=F6C46F" alt="AI: Google Gemini">
 <img src="https://img.shields.io/badge/Deployed-Render-F2A541?style=for-the-badge&labelColor=1B2148&logo=render&logoColor=F6C46F" alt="Deployed on Render">
-<img src="https://img.shields.io/badge/Tests-150%20passing-F2A541?style=for-the-badge&labelColor=1B2148" alt="150 tests passing">
+<img src="https://img.shields.io/badge/Tests-154%20passing-F2A541?style=for-the-badge&labelColor=1B2148" alt="154 tests passing">
 
 <br><br>
 
@@ -44,7 +44,7 @@ It reminds you on time, remembers what matters to you, and talks like a close fr
   <tr>
     <td valign="top"><a href="#for-evaluators"><b>For evaluators</b></a><br><a href="#why-saathi">Why Saathi</a><br><a href="#features">Features</a><br><a href="#try-it-in-60-seconds">Try it in 60 seconds</a><br><a href="#screenshots">Screenshots</a><br><a href="#faq">FAQ</a></td>
     <td valign="top"><a href="#architecture">Architecture</a><br><a href="#engineering-highlights">Engineering highlights</a><br><a href="#tech-stack">Tech stack</a><br><a href="#getting-started">Getting started</a><br><a href="#environment-variables">Environment variables</a></td>
-    <td valign="top"><a href="#api">API</a><br><a href="#project-structure">Project structure</a><br><a href="#deployment">Deployment</a><br><a href="#roadmap">Roadmap</a><br><a href="#ai-usage">AI usage, credits and author</a></td>
+    <td valign="top"><a href="#api">API</a><br><a href="#project-structure">Project structure</a><br><a href="#deployment">Deployment</a><br><a href="#known-limitations">Known limitations</a><br><a href="#roadmap">Roadmap</a><br><a href="#ai-usage">AI usage, credits and author</a></td>
   </tr>
 </table>
 
@@ -62,7 +62,7 @@ Where to find the evidence for each part of the rubric. Every link goes to the r
 | **Engineering** | 20% | Atomic job queue with locks and dedupe keys, AI gateway with model chain, quotas, retries and circuit breaker, idempotency keys, undo log, load-tested and fixed | [jobs/queue.js](server/src/jobs/queue.js), [ai/gateway.js](server/src/ai/gateway.js), [middleware/idempotency.js](server/src/middleware/idempotency.js), [activity.service.js](server/src/services/activity.service.js), [docs/SCALING.md](docs/SCALING.md), [scaling.test.js](server/tests/scaling.test.js), [resilience.test.js](server/tests/resilience.test.js) |
 | **Architecture** | 15% | Thin routes → services → models; one image with web / worker roles; every decision with its trade-off | [Architecture](#architecture), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [Project structure](#project-structure) |
 | **UX & reliability** | 10% | Loading, empty and error states on every screen; receipts with Undo; works when the AI is down; push with email fallback; phone layout | [ScreenParts.jsx](client/src/components/ScreenParts.jsx), [UndoToast.jsx](client/src/components/UndoToast.jsx), [delivery.service.js](server/src/services/delivery.service.js), [Screenshots](#screenshots), [notifications.test.js](server/tests/notifications.test.js) |
-| **Code quality** | 10% | zod validation, one error shape, user-scoped queries (404 for others' data), 150 automated tests, a written bug hunt | [middleware/validate.js](server/src/middleware/validate.js), [utils/AppError.js](server/src/utils/AppError.js), [server/tests](server/tests), [docs/BUG-REPORT.md](docs/BUG-REPORT.md) |
+| **Code quality** | 10% | zod validation, one error shape, user-scoped queries (404 for others' data), 154 automated tests, a written bug hunt | [middleware/validate.js](server/src/middleware/validate.js), [utils/AppError.js](server/src/utils/AppError.js), [server/tests](server/tests), [docs/BUG-REPORT.md](docs/BUG-REPORT.md) |
 | **Deployment & docs** | 10% | Live on Render from `render.yaml` and a Dockerfile, health checks, env validation, this README | [Live app](https://saathi-ksk8.onrender.com), [render.yaml](render.yaml), [Dockerfile](Dockerfile), [config/env.js](server/src/config/env.js), [Deployment](#deployment) |
 
 <details open>
@@ -71,7 +71,7 @@ Where to find the evidence for each part of the rubric. Every link goes to the r
 | Feature | Works end to end | Tested in |
 |---|---|---|
 | Sign up, log in, log out, httpOnly cookie, brute-force limits | ✅ | [auth.test.js](server/tests/auth.test.js), [scaling.test.js](server/tests/scaling.test.js) |
-| "Password bhool gaye?" reset link (30 min, single use, logs out everywhere) | ✅ (email needs `BREVO_API_KEY` on Render) | [passwordReset.test.js](server/tests/passwordReset.test.js), [mail.test.js](server/tests/mail.test.js) |
+| "Password bhool gaye?" reset link (30 min, single use, logs out everywhere) | ✅ (email needs `RESEND_API_KEY` on Render; see [Known limitations](#known-limitations)) | [passwordReset.test.js](server/tests/passwordReset.test.js), [mail.test.js](server/tests/mail.test.js) |
 | "Continue with Google" | ✅ (needs `GOOGLE_CLIENT_ID`) | [google.test.js](server/tests/google.test.js) |
 | Chat agent with 18 tools, receipts, Undo, Confirm before delete | ✅ | [agent.test.js](server/tests/agent.test.js) |
 | Tasks, notes, reminders with snooze, activity log with Undo, Idempotency-Key | ✅ | [features.test.js](server/tests/features.test.js) |
@@ -262,7 +262,7 @@ flowchart TB
     J <--> M
     G --> AI["Gemini API<br/>or Claude API"]
     D --> P["Web Push services<br/>browsers and phones"]
-    D --> E["Email<br/>(Brevo API or SMTP)"]
+    D --> E["Email<br/>(Resend, Brevo or SMTP)"]
     P -. notification .-> U
     W -. "live updates (SSE)" .-> U
     W ~~~ J
@@ -286,7 +286,7 @@ One Docker image runs as `web`, `worker` or `all` (`PROCESS_ROLE`). Everything s
 ## <img src="docs/readme/icons/engineering.svg" width="34" height="34" align="top" alt=""> Engineering highlights
 
 <p align="center">
-  <img src="docs/readme/stats.svg" alt="5,135 requests per second for health checks while logins run (was 21); 150 automated tests; 18 agent tools; 6 languages" width="720">
+  <img src="docs/readme/stats.svg" alt="5,135 requests per second for health checks while logins run (was 21); 154 automated tests; 18 agent tools; 6 languages" width="720">
 </p>
 
 **Measured, then fixed.** Load-tested with `autocannon` on a 2-core machine (the load generator shared the same cores, so absolute numbers are pessimistic; the before/after comparison is what matters). From [docs/SCALING.md](docs/SCALING.md):
@@ -323,7 +323,7 @@ The big fix: password hashing moved from pure-JavaScript bcrypt (which froze the
     <td colspan="2" valign="top">
       <img src="docs/readme/icons/check.svg" width="32" height="32" alt=""> <b>Quality</b>
       <ul>
-        <li>150 automated tests (unit and integration) with <code>node:test</code> and supertest, against a real MongoDB; the AI is replaced by a fake provider, so tests are free and repeatable</li>
+        <li>154 automated tests (unit and integration) with <code>node:test</code> and supertest, against a real MongoDB; the AI is replaced by a fake provider, so tests are free and repeatable</li>
         <li>A written bug hunt before submission, with what was fixed and what was not: <a href="docs/BUG-REPORT.md">docs/BUG-REPORT.md</a></li>
       </ul>
     </td>
@@ -343,7 +343,7 @@ The big fix: password hashing moved from pure-JavaScript bcrypt (which froze the
 | <img src="https://cdn.simpleicons.org/jsonwebtokens/8A86A6" width="16" height="16" alt=""> Auth | scrypt (Node built-in) + JWT in an httpOnly cookie, Google Identity Services | Passwords are never stored in plain text; hashing runs off the event loop; tokens are unreadable from page JavaScript |
 | <img src="https://cdn.simpleicons.org/googlegemini" width="16" height="16" alt=""> AI | Google Gemini (function calling) by default, <img src="https://cdn.simpleicons.org/anthropic/8A86A6" width="14" height="14" alt=""> Claude (tool use) as an option | Gemini's free tier suits a student project. One provider interface (`server/src/ai/provider.js`): `AI_PROVIDER` switches without touching the agent code |
 | <img src="docs/readme/icons/voice.svg" width="16" height="16" alt=""> Voice | Web Speech API (SpeechRecognition, speechSynthesis) | Built into Edge and Chrome, free, supports Indian languages. The browser turns speech into text (Edge and Chrome use their own speech service for this); Saathi's server only receives the text |
-| <img src="docs/readme/icons/notifications.svg" width="16" height="16" alt=""> Notifications | Web Push (service worker, VAPID, `web-push`), Brevo email API or nodemailer (SMTP) | Works on desktop and phones with the app closed, no paid service; email as the fallback |
+| <img src="docs/readme/icons/notifications.svg" width="16" height="16" alt=""> Notifications | Web Push (service worker, VAPID, `web-push`), Resend or Brevo email API, or nodemailer (SMTP) | Works on desktop and phones with the app closed, no paid service; email as the fallback |
 | <img src="docs/readme/icons/jobs.svg" width="16" height="16" alt=""> Background jobs | Job queue in MongoDB | Reminders run exactly once, even with many instances; no extra service to pay for |
 | <img src="https://cdn.simpleicons.org/zod" width="16" height="16" alt=""> Validation | zod | One schema validates input and produces field-level error messages |
 | <img src="docs/readme/icons/logs.svg" width="16" height="16" alt=""> Logging | pino (JSON) | Structured logs with request ids |
@@ -412,6 +412,7 @@ Set in `server/.env` locally, or in the Render dashboard. **Required:** `MONGODB
 | `APP_URL` | no | Address used in email links (default `CLIENT_ORIGIN`) |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | for push | Web Push key pair (`npx web-push generate-vapid-keys`) and a contact (`mailto:...` or your https address). Without them notifications still arrive in the app and by email |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | for email | SMTP for password reset links and the email copy of important notifications (a Gmail App Password works). Without `SMTP_HOST` the email is written to the server log |
+| `RESEND_API_KEY` | for email on Render's free plan | Sends email through Resend's HTTPS API (used first when set), because Render's free plan blocks the SMTP ports. Sender `onboarding@resend.dev` until you verify your own domain in Resend (then set `MAIL_FROM` to an address on it); until then mail reaches only the Resend account owner |
 | `BREVO_API_KEY` | for email on Render's free plan | Sends the same emails through Brevo's HTTPS API (free, 300 a day) instead of SMTP, because Render's free plan blocks the SMTP ports. `MAIL_FROM` must be a sender verified in Brevo |
 | `GOOGLE_CLIENT_ID` | optional | OAuth Web Client ID for "Continue with Google" (public, not a secret). Without it the Google button is hidden |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_FALLBACK_MODEL` | for Claude | Only with `AI_PROVIDER=anthropic` |
@@ -517,11 +518,21 @@ Dockerfile, render.yaml
 <a name="deployment"></a>
 ## <img src="docs/readme/icons/deploy.svg" width="34" height="34" align="top" alt=""> Deployment
 
-Render, one web service from `render.yaml` (New → Blueprint). The Docker image builds the React app and the server; Express serves both from the same address, so the login cookie needs no CORS. Free plan: `PROCESS_ROLE=all` (API and reminder worker in one process), health check `/api/health/ready`. Secrets (`MONGODB_URI`, `GEMINI_API_KEY`, VAPID keys, `BREVO_API_KEY` or SMTP) are entered in the Render dashboard, never committed. MongoDB Atlas must allow Render's addresses (Network Access `0.0.0.0/0`; the database user's password protects it).
+Render, one web service from `render.yaml` (New → Blueprint). The Docker image builds the React app and the server; Express serves both from the same address, so the login cookie needs no CORS. Free plan: `PROCESS_ROLE=all` (API and reminder worker in one process), health check `/api/health/ready`. Secrets (`MONGODB_URI`, `GEMINI_API_KEY`, VAPID keys, `RESEND_API_KEY`, Brevo or SMTP) are entered in the Render dashboard, never committed. MongoDB Atlas must allow Render's addresses (Network Access `0.0.0.0/0`; the database user's password protects it).
 
 The free plan sleeps after 15 minutes without visits; reminders that fall due while it sleeps fire as soon as it wakes. A free uptime monitor calling `/api/health/live` every few minutes keeps it awake. Scaling beyond one instance: [docs/SCALING.md](docs/SCALING.md).
 
 **Live link:** https://saathi-ksk8.onrender.com
+
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
+
+<a name="known-limitations"></a>
+## <img src="docs/readme/icons/faq.svg" width="34" height="34" align="top" alt=""> Known limitations
+
+- **Email reaches only the owner's inbox for now.** On Render's free plan the SMTP ports are blocked, so email goes through Resend's HTTPS API. Without a domain verified in Resend, the sender is `onboarding@resend.dev`, and Resend delivers only to the email address of the Resend account's owner. Password reset links and email copies of notifications to other users are refused by Resend; the app logs the reason and carries on (the user sees the same friendly message, and notifications still arrive in the app and as push). Fix: verify a domain in Resend and set `MAIL_FROM` to an address on it.
+- **Free server sleeps** after 15 minutes without visitors; the first visit can take up to a minute (see [FAQ](#faq)).
+- **iPhone push** needs iOS 16.4+ and "Add to Home Screen".
+- **Voice** depends on the browser's speech service (best in Edge and Chrome; hidden in Firefox).
 
 <p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
 
@@ -536,6 +547,7 @@ The free plan sleeps after 15 minutes without visits; reminders that fall due wh
 - [x] "Continue with Google" sign-in
 
 **Next**
+- [ ] ✉️ Verify our own domain in Resend, so password reset links and notification emails reach every user, not only the owner
 - [ ] 🌐 More languages for the app and voice: Marathi, Gujarati, Punjabi, Telugu, Kannada, Malayalam, Odia, Urdu, Bhojpuri and more, and every screen fully translated (today the navigation, titles, chat and settings are translated; the rest is in Hinglish)
 - [ ] 🙋 "Apni bhasha maango": a button in Settings to ask for a missing language, so the most requested ones come first
 - [ ] ✅ Marwari out of beta, checked with native speakers
@@ -598,7 +610,7 @@ Saathi replies in the language you write or speak. Settings offers Hinglish, Eng
 <a name="ai-usage"></a>
 ## <img src="docs/readme/icons/ai.svg" width="34" height="34" align="top" alt=""> AI usage
 
-This project was built with help from Claude (Anthropic) for code generation, debugging and documentation, as allowed by the project guidelines. Every workflow is tested (150 automated tests plus live checks with the real AI), and the code is understood and maintained by the author. Inside the app, the AI (Gemini) only proposes actions; the server validates and executes them, and every change can be undone.
+This project was built with help from Claude (Anthropic) for code generation, debugging and documentation, as allowed by the project guidelines. Every workflow is tested (154 automated tests plus live checks with the real AI), and the code is understood and maintained by the author. Inside the app, the AI (Gemini) only proposes actions; the server validates and executes them, and every change can be undone.
 
 <a name="credits-and-author"></a>
 ## <img src="docs/readme/icons/credits.svg" width="34" height="34" align="top" alt=""> Credits and author

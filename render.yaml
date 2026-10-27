@@ -59,7 +59,9 @@ services:
         sync: false
       - key: MAIL_FROM
         sync: false
-      # Free plan: the SMTP ports are blocked, so emails go through Brevo's HTTP API instead.
+      # Free plan: the SMTP ports are blocked, so emails go through an HTTPS API: Resend first, then Brevo.
+      - key: RESEND_API_KEY
+        sync: false
       - key: BREVO_API_KEY
         sync: false
       # "Continue with Google": the OAuth Web Client ID (public). Empty = no Google button.

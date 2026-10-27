@@ -3,12 +3,13 @@ import './helpers.js';
 import { test, afterEach, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { env } from '../src/config/env.js';
-import { sendMail, mailConfigured, mailStatus } from '../src/services/mail.service.js';
+import { sendMail, mailConfigured, mailStatus, RESEND_DEFAULT_FROM } from '../src/services/mail.service.js';
 
 const realFetch = globalThis.fetch;
 afterEach(() => {
   globalThis.fetch = realFetch;
   env.BREVO_API_KEY = '';
+  env.RESEND_API_KEY = '';
   env.MAIL_FROM = undefined;
 });
 
@@ -64,4 +65,48 @@ test('Brevo without MAIL_FROM fails with a clear message, and the startup line s
 
 test('without any email settings the startup line says reset links only go to the log', () => {
   assert.match(mailStatus(), /not set up/);
+});
+
+test('Resend comes first: HTTPS API with a Bearer key, Saathi <onboarding@resend.dev> by default', async () => {
+  env.RESEND_API_KEY = 'test-resend-key';
+  env.BREVO_API_KEY = 'test-key'; // also set: Resend still wins
+  let call;
+  globalThis.fetch = async (url, options) => {
+    call = { url, options };
+    return new Response(JSON.stringify({ id: 're_1' }), { status: 200 });
+  };
+  assert.deepEqual(await sendMail({ to: 'him@example.com', subject: 'Reset', text: 'link', html: '<b>link</b>' }), { sent: true });
+  assert.equal(call.url, 'https://api.resend.com/emails');
+  assert.equal(call.options.headers.authorization, 'Bearer test-resend-key');
+  const body = JSON.parse(call.options.body);
+  assert.equal(body.from, `Saathi <${RESEND_DEFAULT_FROM}>`);
+  assert.deepEqual(body.to, ['him@example.com']);
+  assert.equal(body.html, '<b>link</b>');
+  assert.match(mailStatus(), /^email: Resend API, sender onboarding@resend\.dev, delivers only to the Resend account owner/);
+  assert.doesNotMatch(mailStatus(), /test-resend-key/);
+});
+
+test('Resend: MAIL_FROM on your own domain is used; a Gmail MAIL_FROM is ignored (Resend cannot send from it)', async () => {
+  env.RESEND_API_KEY = 'test-resend-key';
+  const froms = [];
+  globalThis.fetch = async (_url, options) => {
+    froms.push(JSON.parse(options.body).from);
+    return new Response('{"id":"re_2"}', { status: 200 });
+  };
+  env.MAIL_FROM = 'hello@saathi.app';
+  await sendMail({ to: 'a@example.com', subject: 's', text: 't' });
+  env.MAIL_FROM = 'someone@gmail.com';
+  await sendMail({ to: 'a@example.com', subject: 's', text: 't' });
+  assert.deepEqual(froms, ['Saathi <hello@saathi.app>', `Saathi <${RESEND_DEFAULT_FROM}>`]);
+  assert.match(mailStatus(), /MAIL_FROM someone@gmail\.com ignored/);
+});
+
+test('a refusal from Resend is an error with its reason (the caller logs it), never the key', async () => {
+  env.RESEND_API_KEY = 'test-resend-key';
+  globalThis.fetch = async () => new Response('{"message":"You can only send testing emails to your own email address"}', { status: 403 });
+  await assert.rejects(sendMail({ to: 'other@example.com', subject: 's', text: 't' }), (err) => {
+    assert.match(err.message, /Resend refused the email \(403\): .*own email address/);
+    assert.doesNotMatch(err.message, /test-resend-key/);
+    return true;
+  });
 });

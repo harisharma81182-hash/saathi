@@ -26,6 +26,7 @@ process.env.VAPID_PRIVATE_KEY = 'test-private-key';
 // No real email from tests either (they collect mail in an outbox).
 process.env.SMTP_HOST = '';
 process.env.BREVO_API_KEY = '';
+process.env.RESEND_API_KEY = '';
 
 export async function setupDb() {
   const { connectDB } = await import('../src/db/connect.js');
