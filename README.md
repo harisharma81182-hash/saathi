@@ -77,8 +77,8 @@ Saathi is a chat and voice assistant connected to your own data. The AI model (G
 | Notes | Settings: language, profile and what Saathi remembers |
 | ![Focus timer: start any length](docs/screenshots/focus-start.webp) | ![Focus timer running](docs/screenshots/focus-timer.webp) |
 | Focus timer: any length, quick picks | The golden ring empties with the time; Saathi's face follows the clock |
-| ![Celebration when the work is done](docs/screenshots/focus-celebration.webp) | |
-| Done: golden stars, Saathi's line and the time taken | |
+| ![Celebration when the work is done](docs/screenshots/focus-celebration.webp) | ![In-app notification: a reminder card](docs/screenshots/notification-popup.webp) |
+| Done: golden stars, Saathi's line and the time taken | In-app notification: a reminder fired, with Saathi's own line and the buttons "Ho gaya ✅", "10 min baad 😴", "Kholo" |
 
 <img src="docs/screenshots/phone-tasks.webp" alt="Saathi on a phone" width="260">
 
