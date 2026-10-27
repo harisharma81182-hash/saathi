@@ -21,9 +21,19 @@ export const RESEND_DEFAULT_FROM = 'onboarding@resend.dev';
 // Resend can only send from a domain verified in Resend, never from a public mailbox like Gmail.
 const PUBLIC_MAILBOX = /@(gmail|googlemail|yahoo|ymail|outlook|hotmail|live|icloud|me|rediffmail|proton(mail)?)\.[a-z.]+$/i;
 
+/** MAIL_FROM may be "you@x.com" or "Name <you@x.com>"; returns { name, email }. */
+export function parseSender(raw) {
+  const text = String(raw ?? '').trim();
+  const m = /^(.*?)\s*<([^<>\s]+@[^<>\s]+)>$/.exec(text);
+  if (m) return { name: m[1].replace(/^"(.*)"$/, '$1').trim() || 'Saathi', email: m[2] };
+  return { name: 'Saathi', email: text };
+}
+const fromHeader = ({ name, email }) => `${name} <${email}>`;
+
 /** The sender address for Resend: MAIL_FROM if it is on your own (verified) domain, else Resend's test sender. */
 export function resendSender() {
-  return env.MAIL_FROM && !PUBLIC_MAILBOX.test(env.MAIL_FROM) ? env.MAIL_FROM : RESEND_DEFAULT_FROM;
+  const email = env.MAIL_FROM ? parseSender(env.MAIL_FROM).email : '';
+  return email && !PUBLIC_MAILBOX.test(email) ? email : RESEND_DEFAULT_FROM;
 }
 
 export const mailConfigured = () => Boolean(env.RESEND_API_KEY || env.BREVO_API_KEY || env.SMTP_HOST);
@@ -31,7 +41,7 @@ export const mailConfigured = () => Boolean(env.RESEND_API_KEY || env.BREVO_API_
 /** How email goes out, in one line for the startup log (never shows a key). */
 export function mailStatus() {
   if (env.RESEND_API_KEY) {
-    const ignored = env.MAIL_FROM && resendSender() !== env.MAIL_FROM;
+    const ignored = env.MAIL_FROM && resendSender() !== parseSender(env.MAIL_FROM).email;
     return `email: Resend API, sender ${resendSender()}${ignored ? ` (MAIL_FROM ${env.MAIL_FROM} ignored: Resend cannot send from a public mailbox; verify your own domain in Resend to change the sender)` : ''}${resendSender() === RESEND_DEFAULT_FROM ? ', delivers only to the Resend account owner until a domain is verified' : ''}`;
   }
   if (env.BREVO_API_KEY) {
@@ -65,7 +75,7 @@ async function sendWithResend({ to, subject, text, html }) {
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { authorization: `Bearer ${env.RESEND_API_KEY}`, 'content-type': 'application/json' },
-    body: JSON.stringify({ from: `Saathi <${resendSender()}>`, to: [to], subject, text, ...(html ? { html } : {}) }),
+    body: JSON.stringify({ from: fromHeader({ name: env.MAIL_FROM ? parseSender(env.MAIL_FROM).name : 'Saathi', email: resendSender() }), to: [to], subject, text, ...(html ? { html } : {}) }),
     signal: AbortSignal.timeout(15_000),
   });
   if (!res.ok) {
@@ -116,7 +126,8 @@ export async function sendMail({ to, subject, text, html }) {
     log.info({ to, messageId, via: 'resend' }, 'email sent');
     return { sent: true };
   }
-  const from = env.MAIL_FROM ?? env.SMTP_USER;
+  const sender = parseSender(env.MAIL_FROM ?? env.SMTP_USER);
+  const from = sender.email;
   if (env.BREVO_API_KEY) {
     if (!from) throw new Error('MAIL_FROM is not set: Brevo needs the sender email you verified in Brevo.');
     const messageId = await sendWithBrevo({ from, to, subject, text, html });
@@ -125,7 +136,7 @@ export async function sendMail({ to, subject, text, html }) {
   }
   let info;
   try {
-    info = await getTransport().sendMail({ from: `Saathi <${from}>`, to, subject, text, html });
+    info = await getTransport().sendMail({ from: fromHeader(sender), to, subject, text, html });
   } catch (err) {
     if (UNREACHABLE.has(err.code)) {
       throw new Error(`SMTP server not reachable (${err.code}). Render's free plan blocks SMTP ports: set BREVO_API_KEY and MAIL_FROM instead.`);

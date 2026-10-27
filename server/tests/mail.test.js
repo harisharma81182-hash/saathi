@@ -110,3 +110,21 @@ test('a refusal from Resend is an error with its reason (the caller logs it), ne
     return true;
   });
 });
+
+test('MAIL_FROM written as "Name <email>" (like on Render) gives a valid sender, not "Saathi <Saathi <...>>"', async () => {
+  env.RESEND_API_KEY = 'test-resend-key';
+  const froms = [];
+  globalThis.fetch = async (_url, options) => {
+    froms.push(JSON.parse(options.body).from);
+    return new Response('{"id":"re_3"}', { status: 200 });
+  };
+  env.MAIL_FROM = 'Saathi <onboarding@resend.dev>';
+  await sendMail({ to: 'a@example.com', subject: 's', text: 't' });
+  assert.match(mailStatus(), /^email: Resend API, sender onboarding@resend\.dev/);
+  assert.doesNotMatch(mailStatus(), /ignored/);
+  env.MAIL_FROM = '"Saathi Team" <hello@saathi.app>';
+  await sendMail({ to: 'a@example.com', subject: 's', text: 't' });
+  env.MAIL_FROM = 'Me <someone@gmail.com>';
+  await sendMail({ to: 'a@example.com', subject: 's', text: 't' });
+  assert.deepEqual(froms, ['Saathi <onboarding@resend.dev>', 'Saathi Team <hello@saathi.app>', `Me <${RESEND_DEFAULT_FROM}>`]);
+});
