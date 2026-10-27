@@ -64,10 +64,12 @@ Everything below is committed and pushed to GitHub (private repo `harisharma8118
 ### Final status (27 Oct, submission day)
 
 - **All features done and on main:** black hole on Reminders; notifications everywhere (push, email fallback, every kind, quiet hours, iPhone guide, no settings); custom focus timer with celebration (18th agent tool `start_focus_timer`); big in-app notification cards; voice; languages.
-- **Tests:** 135 pass, run one file at a time (`node --test --test-concurrency=1 --test-reporter=spec tests/<file>.test.js`); passwordReset.test.js once got cancelled when Atlas was slow and passed 6/6 when run again. Client production build is clean; no console.log, no .env in Git, no live test accounts left.
+- **Tests:** 146 pass (135 + mail 3 + google 8), run one file at a time (`node --test --test-concurrency=1 --test-reporter=spec tests/<file>.test.js`); passwordReset.test.js once got cancelled when Atlas was slow and passed 6/6 when run again. Client production build is clean; no console.log, no .env in Git, no live test accounts left.
 - **README:** live link https://saathi-ksk8.onrender.com, focus timer section and screenshots (docs/screenshots/focus-*.webp), 18 tools, 135 tests, focus API.
 - **Himanshu's checklist:** `docs/MERE-LIYE-NEXT-STEPS.md` (new Render variables with clipboard commands, Gmail App Password, UptimeRobot, make the repo public, device testing, Incognito check).
-- **Left for Himanshu:** Render variables (VAPID_*, APP_URL, SMTP_*), UptimeRobot, repo public, demo video, Google Form.
+- **Databases (important):** the live app (Render `MONGODB_URI`) uses the `saathi` database; tests use `saathi_test` (`MONGODB_URI_TEST`) and DROP it on every run. On 27 Oct Render was found pointing at `saathi_test` by mistake (fixed by Himanshu): the live worker wrote jobs into the test database, which made scaling.test.js fail at random, and every test run wiped live data. Never point a running server at `saathi_test`.
+- **Added later on 27 Oct:** email through Brevo's HTTPS API when `BREVO_API_KEY` is set (Render's free plan blocks SMTP ports 25/465/587; SMTP stays for laptops); login/signup autofill attributes and the last email remembered on the device (never the password); "Continue with Google" (`services/google.service.js`, `POST /api/auth/google`, `GET /api/auth/config`, `User.googleId`, button hidden without `GOOGLE_CLIENT_ID`). 146 tests.
+- **Left for Himanshu:** Render variables (VAPID_*, APP_URL, BREVO_API_KEY + MAIL_FROM, GOOGLE_CLIENT_ID), UptimeRobot, repo public, demo video, Google Form.
 
 ### Not built yet (in this order)
 

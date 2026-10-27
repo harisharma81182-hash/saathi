@@ -24,3 +24,7 @@ Thumbs.db
 
 # HD originals of the background photos (large; the app uses the WebP files in client/public/bg)
 design/bg-hd/
+
+# Himanshu's reference screenshots and local design skills (never on GitHub)
+design/reference-photos/
+design/skills/
