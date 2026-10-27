@@ -373,3 +373,31 @@ html.lenis body {
 @media (prefers-reduced-motion: reduce) {
   .ring-flash { animation: none; }
 }
+
+/* Focus timer: the two tiny far planets drift around the cosmic clock (off with reduced motion). */
+.far-orbit {
+  animation: far-orbit 70s linear infinite;
+}
+.far-orbit-reverse {
+  animation-direction: reverse;
+}
+@keyframes far-orbit {
+  to { transform: rotate(360deg); }
+}
+/* Faint static stars behind the big timer, the same tile as the night-sky background. */
+.focus-stars {
+  opacity: 0.5;
+  background-image:
+    radial-gradient(1px 1px at 23px 41px, rgb(255 248 235 / 0.8), transparent 60%),
+    radial-gradient(1px 1px at 141px 97px, rgb(255 248 235 / 0.5), transparent 60%),
+    radial-gradient(1.4px 1.4px at 287px 23px, rgb(255 236 200 / 0.7), transparent 60%),
+    radial-gradient(1px 1px at 377px 211px, rgb(210 220 255 / 0.6), transparent 60%),
+    radial-gradient(1px 1px at 89px 283px, rgb(255 248 235 / 0.45), transparent 60%),
+    radial-gradient(1.2px 1.2px at 211px 337px, rgb(255 248 235 / 0.6), transparent 60%),
+    radial-gradient(1px 1px at 331px 401px, rgb(210 220 255 / 0.45), transparent 60%),
+    radial-gradient(1px 1px at 17px 389px, rgb(255 236 200 / 0.5), transparent 60%);
+  background-size: 420px 420px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .far-orbit { animation: none; }
+}

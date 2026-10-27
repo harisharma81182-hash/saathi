@@ -22,7 +22,7 @@ export function FocusBar() {
           aria-label={`Focus timer: ${focus.label}, ${f.timeUp ? 'time pura' : clockText(f.remainingMs)} baaki. Bada dekho`}
           className="glass relative z-30 mx-auto mt-1 flex max-w-[calc(100%-2rem)] items-center gap-3 rounded-full bg-ink/70 py-1.5 pl-1.5 pr-4 shadow-[0_0_24px_-6px_rgb(242_165_65/0.5)] transition hover:bg-ink/90"
         >
-          <FocusRing size={34} stroke={3.5} fraction={fraction} glow={false}>
+          <FocusRing size={34} stroke={3} fraction={fraction} detail="mini">
             {focus.status === 'paused' ? <Pause size={12} className="text-gold" /> : <Timer size={13} className="text-gold" />}
           </FocusRing>
           <span className="min-w-0 truncate text-sm text-muted">{focus.label}</span>

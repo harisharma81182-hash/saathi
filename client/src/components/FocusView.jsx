@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { Check, Minimize2, Pause, Play, Plus, X } from 'lucide-react';
-import { clockText, spokenLength, useFocus } from '../app/focus.js';
+import { clockText, endTimeText, spokenLength, useFocus } from '../app/focus.js';
 import { FocusRing } from './FocusRing.jsx';
 import { Face } from './Face.jsx';
 
-// The big focus view: a golden ring emptying with the time, big numbers, and Saathi's face, whose
+// The big focus view: the cosmic clock (FocusRing) emptying with the time, big numbers, when it
+// will end, and Saathi's face as the sun in the middle, whose
 // mood follows the clock (happy at the start, thoughtful midway, a little tense near the end).
 // When the work is done: a short celebration (gold stars, the ring flashes full, Saathi cheers,
 // a line from Saathi and how long it took). Esc or the minimise button goes back to the small bar.
@@ -44,6 +45,7 @@ export function FocusView({ user }) {
           className="fixed inset-0 z-[55] flex flex-col items-center overflow-y-auto bg-[#070914]/80 px-4 backdrop-blur-xl"
         >
           <div aria-hidden className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(40rem_30rem_at_50%_40%,rgb(242_165_65/0.14),transparent_70%)]" />
+          <div aria-hidden className="focus-stars pointer-events-none absolute inset-0 -z-10" />
           {f.celebration ? <Celebration user={user} /> : <Running />}
         </motion.div>
       )}
@@ -74,21 +76,28 @@ function Running() {
 
   return (
     <>
-      <div className="flex w-full max-w-xl items-center justify-between pt-[max(env(safe-area-inset-top),16px)]">
-        <p className="min-w-0 truncate text-sm text-faint">Focus: {focus.label}</p>
+      <div className="flex w-full max-w-xl justify-end pt-[max(env(safe-area-inset-top),16px)]">
         <button onClick={f.close} aria-label="Chhota karo" title="Chhota karo" className="grid h-10 w-10 place-items-center rounded-full text-faint transition hover:bg-surface hover:text-text">
           <Minimize2 size={18} />
         </button>
       </div>
 
-      <div className="flex flex-1 flex-col items-center justify-center py-6">
-        <FocusRing size={small ? 250 : 320} stroke={small ? 9 : 11} fraction={fraction}>
-          <Face size={small ? 96 : 120} expression={moodFor(focus, fraction, timeUp)} followCursor={false} />
+      <div className="flex w-full flex-1 flex-col items-center justify-center pb-6">
+        <p className="text-sm text-faint">Focus</p>
+        <h2 className="mb-8 max-w-full truncate px-2 text-center font-display text-xl font-semibold sm:mb-10 sm:text-2xl">{focus.label}</h2>
+        <FocusRing size={small ? 260 : 340} stroke={small ? 8 : 10} fraction={fraction}>
+          <Face size={small ? 84 : 112} expression={moodFor(focus, fraction, timeUp)} followCursor={false} />
         </FocusRing>
-        <p className={`mt-6 font-display text-[3.75rem] font-semibold leading-none tabular-nums tracking-tight sm:text-[4.75rem] ${timeUp ? 'text-gold' : ''}`} aria-live="polite">
+        <p className={`mt-8 font-display text-[3.5rem] font-semibold leading-none tabular-nums tracking-tight sm:text-[4.75rem] ${timeUp ? 'text-gold' : ''}`} aria-live="polite">
           {timeUp ? '00:00' : clockText(remainingMs)}
         </p>
-        <p className="mt-2 text-muted">{timeUp ? 'Time pura! Ho gaya?' : focus.status === 'paused' ? 'Ruka hua hai. Taiyaar ho toh chalu karo.' : 'Focus mode on. Phone side mein rakho.'}</p>
+        <p className="mt-2 text-muted">
+          {timeUp
+            ? 'Time pura! Ho gaya?'
+            : focus.status === 'paused'
+              ? 'Ruka hua hai. Taiyaar ho toh chalu karo.'
+              : `Khatam hoga ${endTimeText(remainingMs)} par. Phone side mein rakho.`}
+        </p>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           {timeUp ? (

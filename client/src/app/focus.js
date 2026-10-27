@@ -98,14 +98,19 @@ export function useFocusState() {
   return { focus, view, startFor, celebration, remainingMs, timeUp, ...actions };
 }
 
-/** 2:05:09 or 25:00, for the timer display. */
+/** 02:05:09 or 25:00, for the timer display. */
 export function clockText(ms) {
   const total = Math.ceil(ms / 1000);
   const h = Math.floor(total / 3600);
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
   const two = (n) => String(n).padStart(2, '0');
-  return h ? `${h}:${two(m)}:${two(s)}` : `${two(m)}:${two(s)}`;
+  return h ? `${two(h)}:${two(m)}:${two(s)}` : `${two(m)}:${two(s)}`;
+}
+
+/** "4:45 PM": when a running timer will end, in this device's time. */
+export function endTimeText(remainingMs) {
+  return new Date(Date.now() + remainingMs).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true }).toUpperCase();
 }
 
 /** "2 ghante 5 min" / "45 min", for how long someone focused. */
