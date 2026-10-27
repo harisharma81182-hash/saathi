@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="216" height="56" viewBox="0 0 216 56" role="img" aria-label="Demo video">
+  <title>Demo video</title>
+  <defs>
+    <linearGradient id="dark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1D2350"/><stop offset="1" stop-color="#0E1128"/></linearGradient>
+  </defs>
+  <rect x="1" y="1" width="214" height="54" rx="27" fill="url(#dark)" stroke="#F2A541" stroke-opacity="0.6" stroke-width="1.5"/>
+  <g transform="translate(30 18) scale(0.83)" fill="none" stroke="#F6C46F" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3z"/><path d="m6.2 5.3 3.1 3.9"/><path d="m12.4 3.4 3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></g>
+  <text x="122" y="34" text-anchor="middle" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="700" fill="#F5EFE6" letter-spacing="0.2">Demo video</text>
+</svg>

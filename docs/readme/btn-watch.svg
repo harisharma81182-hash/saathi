@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="268" height="60" viewBox="0 0 268 60" role="img" aria-label="Watch the demo">
+  <title>Watch the demo</title>
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC768"/><stop offset="1" stop-color="#E8912F"/></linearGradient>
+  </defs>
+  <rect x="1" y="1" width="266" height="58" rx="29" fill="url(#gold)" stroke="#FFE0A6" stroke-opacity="0.9" stroke-width="1.5"/>
+  <g transform="translate(36 20) scale(0.83)" fill="none" stroke="#1B1405" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z" fill="#1B1405"/></g>
+  <text x="146" y="36" text-anchor="middle" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="700" fill="#1B1405" letter-spacing="0.2">Watch the demo</text>
+</svg>

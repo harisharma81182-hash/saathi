@@ -4,7 +4,7 @@
 
 <br><br>
 
-<p><a href="https://saathi-ksk8.onrender.com"><img src="docs/readme/btn-live.svg" alt="Live demo" height="48"></a>&nbsp;<a href="#screenshots"><img src="docs/readme/btn-screenshots.svg" alt="Screenshots" height="48"></a>&nbsp;<a href="#getting-started"><img src="docs/readme/btn-docs.svg" alt="Docs" height="48"></a></p>
+<p><a href="https://saathi-ksk8.onrender.com"><img src="docs/readme/btn-live.svg" alt="Live demo" height="48"></a>&nbsp;<a href="#screenshots"><img src="docs/readme/btn-screenshots.svg" alt="Screenshots" height="48"></a>&nbsp;<a href="#getting-started"><img src="docs/readme/btn-docs.svg" alt="Docs" height="48"></a>&nbsp;<a href="https://drive.google.com/file/d/1eWcUd3gHKL-o1hefENYq-bqSc7Edhz0t/view?usp=drivesdk"><img src="docs/readme/btn-video.svg" alt="Demo video" height="48"></a></p>
 
 <br><br>
 
@@ -42,7 +42,7 @@ It reminds you on time, remembers what matters to you, and talks like a close fr
 
 <table>
   <tr>
-    <td valign="top"><a href="#whats-new"><b>What's new</b></a><br><a href="#for-evaluators"><b>For evaluators</b></a><br><a href="#why-saathi">Why Saathi</a><br><a href="#features">Features</a><br><a href="#try-it-in-60-seconds">Try it in 60 seconds</a><br><a href="#screenshots">Screenshots</a><br><a href="#faq">FAQ</a></td>
+    <td valign="top"><a href="#whats-new"><b>What's new</b></a><br><a href="#for-evaluators"><b>For evaluators</b></a><br><a href="#why-saathi">Why Saathi</a><br><a href="#features">Features</a><br><a href="#try-it-in-60-seconds">Try it in 60 seconds</a><br><a href="#demo-video">Demo video</a><br><a href="#screenshots">Screenshots</a><br><a href="#faq">FAQ</a></td>
     <td valign="top"><a href="#architecture">Architecture</a><br><a href="#engineering-highlights">Engineering highlights</a><br><a href="#tech-stack">Tech stack</a><br><a href="#getting-started">Getting started</a><br><a href="#environment-variables">Environment variables</a></td>
     <td valign="top"><a href="#api">API</a><br><a href="#project-structure">Project structure</a><br><a href="#deployment">Deployment</a><br><a href="#known-limitations">Known limitations</a><br><a href="#roadmap">Roadmap</a><br><a href="#ai-usage">AI usage, credits and author</a></td>
   </tr>
@@ -85,7 +85,7 @@ Where to find the evidence for each part of the rubric. Every link goes to the r
 | **Architecture** | 15% | Thin routes → services → models; one image with web / worker roles; every decision with its trade-off | [Architecture](#architecture), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [Project structure](#project-structure) |
 | **UX & reliability** | 10% | Loading, empty and error states on every screen; receipts with Undo; works when the AI is down; push with email fallback; phone layout | [ScreenParts.jsx](client/src/components/ScreenParts.jsx), [UndoToast.jsx](client/src/components/UndoToast.jsx), [delivery.service.js](server/src/services/delivery.service.js), [Screenshots](#screenshots), [notifications.test.js](server/tests/notifications.test.js) |
 | **Code quality** | 10% | zod validation, one error shape, user-scoped queries (404 for others' data), 156 automated tests, a written bug hunt | [middleware/validate.js](server/src/middleware/validate.js), [utils/AppError.js](server/src/utils/AppError.js), [server/tests](server/tests), [docs/BUG-REPORT.md](docs/BUG-REPORT.md) |
-| **Deployment & docs** | 10% | Live on Render from `render.yaml` and a Dockerfile, health checks, env validation, this README | [Live app](https://saathi-ksk8.onrender.com), [render.yaml](render.yaml), [Dockerfile](Dockerfile), [config/env.js](server/src/config/env.js), [Deployment](#deployment) |
+| **Deployment & docs** | 10% | Live on Render from `render.yaml` and a Dockerfile, health checks, env validation, this README | [Live app](https://saathi-ksk8.onrender.com), [Demo video](#demo-video), [render.yaml](render.yaml), [Dockerfile](Dockerfile), [config/env.js](server/src/config/env.js), [Deployment](#deployment) |
 
 <details open>
 <summary><b>Feature checklist</b></summary>
@@ -223,6 +223,22 @@ Where to find the evidence for each part of the rubric. Every link goes to the r
 5. Wait two minutes: the reminder arrives with Saathi's own line, as a card in the app and as a notification on your device, with "Ho gaya ✅" and "10 min baad 😴".
 
 Then try *"25 ko DBMS exam hai, plan bana do"* or the **Timer** button at the top.
+
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
+
+<a name="demo-video"></a>
+## <img src="docs/readme/icons/video.svg" width="34" height="34" align="top" alt=""> Demo video
+
+A full walkthrough of Saathi: the Saathi Orbit landing page, Google sign-in, chatting with Saathi to create tasks and reminders, notifications, the focus timer and its celebration, Reminders and Activity, the README and the live deployment on Render.
+
+<p align="center">
+  <a href="https://drive.google.com/file/d/1eWcUd3gHKL-o1hefENYq-bqSc7Edhz0t/view?usp=drivesdk"><img src="docs/readme/demo-thumb.webp" alt="Watch the Saathi demo video (opens in Google Drive)" width="100%"></a>
+</p>
+
+<p align="center">
+  <a href="https://drive.google.com/file/d/1eWcUd3gHKL-o1hefENYq-bqSc7Edhz0t/view?usp=drivesdk"><img src="docs/readme/btn-watch.svg" alt="Watch the demo" height="52"></a><br>
+  <sub>About 10 minutes · opens in Google Drive</sub>
+</p>
 
 <p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
 
