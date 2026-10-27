@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="216" height="56" viewBox="0 0 216 56" role="img" aria-label="Live demo">
+  <title>Live demo</title>
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC768"/><stop offset="1" stop-color="#E8912F"/></linearGradient>
+    <linearGradient id="dark" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1D2350"/><stop offset="1" stop-color="#0E1128"/></linearGradient>
+  </defs>
+  <rect x="1" y="1" width="214" height="54" rx="27" fill="url(#gold)" stroke="#FFE0A6" stroke-opacity="0.9" stroke-width="1.5"/>
+  <g transform="translate(36 18) scale(0.83)" fill="none" stroke="#1B1405" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l14 9-14 9V3z" fill="#1B1405"/></g>
+  <text x="122" y="34" text-anchor="middle" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="700" fill="#1B1405" letter-spacing="0.2">Live demo</text>
+</svg>

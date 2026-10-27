@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="904" height="304" viewBox="0 0 904 304" role="img" aria-label="5,135 requests per second for health checks while logins run (was 21); 148 automated tests; 18 agent tools; 6 languages">
+  <defs>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1B2148"/><stop offset="1" stop-color="#0B0E22"/></linearGradient>
+    <linearGradient id="num" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE3A8"/><stop offset="1" stop-color="#F2A541"/></linearGradient>
+  </defs>
+  <g transform="translate(2 2)">
+    <rect width="436" height="136" rx="22" fill="url(#card)" stroke="#F2A541" stroke-opacity="0.35" stroke-width="1.5"/>
+    <circle cx="402" cy="34" r="5" fill="#F6C46F" opacity="0.85"/>
+    <circle cx="402" cy="34" r="12" fill="none" stroke="#F6C46F" stroke-opacity="0.25"/>
+    <text x="28" y="62" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="800" fill="url(#num)">5,135 req/s</text>
+    <text x="30" y="92" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="600" fill="#F5EFE6">health checks while logins run</text>
+    <text x="30" y="116" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#A9A3BE">was 21 req/s before the scrypt fix</text>
+  </g>
+  <g transform="translate(466 2)">
+    <rect width="436" height="136" rx="22" fill="url(#card)" stroke="#F2A541" stroke-opacity="0.35" stroke-width="1.5"/>
+    <circle cx="402" cy="34" r="5" fill="#F6C46F" opacity="0.85"/>
+    <circle cx="402" cy="34" r="12" fill="none" stroke="#F6C46F" stroke-opacity="0.25"/>
+    <text x="28" y="62" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="800" fill="url(#num)">148</text>
+    <text x="30" y="92" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="600" fill="#F5EFE6">automated tests</text>
+    <text x="30" y="116" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#A9A3BE">node:test + supertest, real MongoDB</text>
+  </g>
+  <g transform="translate(2 166)">
+    <rect width="436" height="136" rx="22" fill="url(#card)" stroke="#F2A541" stroke-opacity="0.35" stroke-width="1.5"/>
+    <circle cx="402" cy="34" r="5" fill="#F6C46F" opacity="0.85"/>
+    <circle cx="402" cy="34" r="12" fill="none" stroke="#F6C46F" stroke-opacity="0.25"/>
+    <text x="28" y="62" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="800" fill="url(#num)">18</text>
+    <text x="30" y="92" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="600" fill="#F5EFE6">agent tools</text>
+    <text x="30" y="116" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#A9A3BE">every change has a receipt and Undo</text>
+  </g>
+  <g transform="translate(466 166)">
+    <rect width="436" height="136" rx="22" fill="url(#card)" stroke="#F2A541" stroke-opacity="0.35" stroke-width="1.5"/>
+    <circle cx="402" cy="34" r="5" fill="#F6C46F" opacity="0.85"/>
+    <circle cx="402" cy="34" r="12" fill="none" stroke="#F6C46F" stroke-opacity="0.25"/>
+    <text x="28" y="62" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="40" font-weight="800" fill="url(#num)">6</text>
+    <text x="30" y="92" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="600" fill="#F5EFE6">languages</text>
+    <text x="30" y="116" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#A9A3BE">Hinglish, English, Hindi and 3 more</text>
+  </g>
+</svg>

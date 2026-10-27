@@ -1,51 +1,57 @@
 <div align="center">
 
-<img src="docs/banner.svg" alt="Saathi: your AI friend who gets things done" width="100%">
+<img src="docs/banner.svg" alt="Saathi: a glowing golden face at the centre of a small solar system of its features (Tasks, Reminders, Study plan, Memory, Voice). Your AI friend who gets things done." width="100%">
 
-<p>
-  <a href="https://saathi-ksk8.onrender.com"><img src="https://img.shields.io/badge/Live%20Demo-saathi--ksk8.onrender.com-F2A541?style=for-the-badge&logo=render&logoColor=white" alt="Live Demo"></a>
-  <a href="#-screenshots"><img src="https://img.shields.io/badge/Screenshots-See%20the%20app-1E2452?style=for-the-badge" alt="Screenshots"></a>
-</p>
+<br><br>
 
-<p>
-  <img src="https://img.shields.io/badge/Node.js-20%2B-339933?logo=nodedotjs&logoColor=white" alt="Node.js 20+">
-  <img src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black" alt="React 19">
-  <img src="https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white" alt="MongoDB Atlas">
-  <img src="https://img.shields.io/badge/AI-Google%20Gemini-8E75B2?logo=googlegemini&logoColor=white" alt="Google Gemini">
-  <img src="https://img.shields.io/badge/Deployed%20on-Render-46E3B7?logo=render&logoColor=white" alt="Deployed on Render">
-  <img src="https://img.shields.io/badge/tests-148%20passing-2EA44F" alt="148 tests passing">
-</p>
+<p><a href="https://saathi-ksk8.onrender.com"><img src="docs/readme/btn-live.svg" alt="Live demo" height="48"></a>&nbsp;<a href="#screenshots"><img src="docs/readme/btn-screenshots.svg" alt="Screenshots" height="48"></a>&nbsp;<a href="#getting-started"><img src="docs/readme/btn-docs.svg" alt="Docs" height="48"></a></p>
 
-**Your AI friend who gets things done.** Tell Saathi, by typing or speaking, *"kal subah 9 baje lab file submit karni hai, yaad dila dena"*, and it creates the task and the reminder in your account, reminds you on time in a friendly voice, and remembers what matters to you. It talks like a close friend, in your language.
+<br><br>
 
-**Live app:** [saathi-ksk8.onrender.com](https://saathi-ksk8.onrender.com) &nbsp;·&nbsp; **Demo video:** _link coming soon_
+<img src="https://img.shields.io/badge/Node.js-20%2B-F2A541?style=for-the-badge&labelColor=1B2148&logo=nodedotjs&logoColor=F6C46F" alt="Node.js 20+">
+<img src="https://img.shields.io/badge/React-19-F2A541?style=for-the-badge&labelColor=1B2148&logo=react&logoColor=F6C46F" alt="React 19">
+<img src="https://img.shields.io/badge/MongoDB-Atlas-F2A541?style=for-the-badge&labelColor=1B2148&logo=mongodb&logoColor=F6C46F" alt="MongoDB Atlas">
+<img src="https://img.shields.io/badge/AI-Google%20Gemini-F2A541?style=for-the-badge&labelColor=1B2148&logo=googlegemini&logoColor=F6C46F" alt="AI: Google Gemini">
+<img src="https://img.shields.io/badge/Deployed-Render-F2A541?style=for-the-badge&labelColor=1B2148&logo=render&logoColor=F6C46F" alt="Deployed on Render">
+<img src="https://img.shields.io/badge/Tests-148%20passing-F2A541?style=for-the-badge&labelColor=1B2148" alt="148 tests passing">
+
+<br><br>
+
+### Your AI friend who gets things done.
+
+Tell Saathi what you need, by typing or speaking, and it does the work: tasks, reminders, study plans and notes in your own account.<br>
+It reminds you on time, remembers what matters to you, and talks like a close friend, in your language.
+
+<p><i>"kal subah 9 baje lab file submit karni hai, yaad dila dena"</i><br>
+<sub>→ a task for tomorrow, a reminder at 9 AM, and a receipt with <b>Undo</b></sub></p>
+
+**Live app:** [saathi-ksk8.onrender.com](https://saathi-ksk8.onrender.com)
 
 </div>
 
 > [!NOTE]
 > The free server sleeps after 15 minutes without visitors, so the first visit can take up to a minute to wake it.
 
-![Saathi chat: a reminder set from one Hinglish sentence, with receipts and Undo](docs/screenshots/home-chat.webp)
+<p align="center">
+  <img src="docs/screenshots/home-chat.webp" alt="Saathi chat: a reminder set from one Hinglish sentence, with receipts and Undo" width="100%">
+</p>
 
-## 📑 Contents
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
 
-- [What is Saathi](#-what-is-saathi)
-- [Try it in 60 seconds](#-try-it-in-60-seconds)
-- [Features](#-features)
-- [Screenshots](#-screenshots)
-- [Architecture](#-architecture)
-- [Engineering highlights](#-engineering-highlights)
-- [Tech stack](#-tech-stack)
-- [Local setup](#-local-setup)
-- [Environment variables](#-environment-variables)
-- [API](#-api)
-- [Project structure](#-project-structure)
-- [Deployment](#-deployment)
-- [Roadmap](#-roadmap)
-- [AI usage](#-ai-usage)
-- [Credits and author](#-credits-and-author)
+## Contents
 
-## 💡 What is Saathi
+<table>
+  <tr>
+    <td valign="top"><a href="#why-saathi">Why Saathi</a><br><a href="#features">Features</a><br><a href="#try-it-in-60-seconds">Try it in 60 seconds</a><br><a href="#screenshots">Screenshots</a><br><a href="#faq">FAQ</a></td>
+    <td valign="top"><a href="#architecture">Architecture</a><br><a href="#engineering-highlights">Engineering highlights</a><br><a href="#tech-stack">Tech stack</a><br><a href="#getting-started">Getting started</a><br><a href="#environment-variables">Environment variables</a></td>
+    <td valign="top"><a href="#api">API</a><br><a href="#project-structure">Project structure</a><br><a href="#deployment">Deployment</a><br><a href="#roadmap">Roadmap</a><br><a href="#ai-usage">AI usage, credits and author</a></td>
+  </tr>
+</table>
+
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
+
+<a name="why-saathi"></a>
+## <img src="docs/readme/icons/why.svg" width="34" height="34" align="top" alt=""> Why Saathi
 
 **The problem.** Students juggle assignments, lab submissions, exams and small personal errands across chat messages, notebooks and memory. Normal to-do apps make you stop, open a form, pick a date and type everything in, so things never get written down. Chatbots can talk about your tasks, but they cannot keep, change or remind you of them.
 
@@ -53,7 +59,98 @@
 
 **The solution.** Saathi is a chat and voice assistant connected to your own data. The AI model (Google Gemini by default, Claude as an option) reads your request and decides which actions to take: create a task, set a reminder, make a study plan, save a note, remember a fact. The server validates every action with the same rules as the normal screens, carries it out against your account, and shows it as a receipt with an Undo button. A background worker fires reminders on time, and Saathi messages you first when something is overdue.
 
-## ⚡ Try it in 60 seconds
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
+
+<a name="features"></a>
+## <img src="docs/readme/icons/features.svg" width="34" height="34" align="top" alt=""> Features
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/readme/icons/ai.svg" width="40" height="40" alt=""><br>
+      <b>AI agent, not a chatbot</b><br>
+      <sub>18 tools that really change your data, each with a receipt and Undo. Memory, voice and six languages.</sub>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/readme/icons/productivity.svg" width="40" height="40" alt=""><br>
+      <b>Productivity</b><br>
+      <sub>Tasks, habits with streaks, reminders, study plans, plan my day, notes and a cosmic focus timer.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/readme/icons/notifications.svg" width="40" height="40" alt=""><br>
+      <b>Notifications everywhere</b><br>
+      <sub>Push on phones and computers even with the app closed, written by Saathi, with buttons. Email as a fallback.</sub>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/readme/icons/design.svg" width="40" height="40" alt=""><br>
+      <b>Design</b><br>
+      <sub>A glowing 3D face with expressions, the Saathi Orbit landing page and real space photos on every screen.</sub>
+    </td>
+  </tr>
+</table>
+
+<details open>
+<summary><b>🤖 AI agent: an agent, not a chatbot</b></summary>
+
+- Chat with tool calling: 18 tools (tasks, reminders, notes, study plans, plan my day, focus timer, memory, undo) run through the same validated services as the screens
+- A receipt with Undo for every change Saathi makes; deleting needs a Confirm tap
+- Long-term memory (classes, hard subjects, routines) that you can see and edit in Settings
+- Saathi texts first: a nudge about overdue tasks (never at night, at most once per task per day) and an evening recap with "move leftovers to tomorrow"
+- **Languages:** Saathi replies in the language you write or speak, with the same friendly personality in every language. Preferred language in Settings: Hinglish, English, Hindi, Marwari (beta), Tamil, Bengali
+- **Voice:** mic button in the chat box: speak, your words appear as you talk and are sent when you stop (Web Speech API, Hindi/Hinglish and English). Speaker button (off by default): Saathi's replies are read aloud in the reply's language; the face listens, thinks and speaks
+
+</details>
+
+<details>
+<summary><b>📚 Productivity</b></summary>
+
+- Tasks with due dates, priority, tags and deadline countdowns; habits (daily or weekly) with streaks; quick add from one sentence
+- Reminders that fire exactly once, with snooze; a friendly line written by Saathi at fire time (plain text if the AI is down, never late)
+- Study plans: "25 ko DBMS exam hai, plan bana do" spreads the topics over the days with a reminder for each session; changing the plan replaces it instead of adding a second one
+- Plan my day: Saathi arranges today's tasks into time slots around your classes, shown as a timeline on the Today panel
+- Today panel, a 14-day progress chart, an activity timeline with Undo, notes with search and pins
+- Live updates in every open tab (Server-Sent Events)
+
+**⏱️ Focus timer: a cosmic clock**
+- Any length on any task or activity (1 minute to 12 hours: hours and minutes plus quick picks), or from chat: "ye kaam 2 ghante 30 minute mein khatam karna hai" and Saathi starts it
+- Small and sticky on every screen (a tiny orbit with its moving planet); the big view is a cosmic clock: the golden orbit empties with the time, hour numbers and stars around it, a small planet with a comet trail marks the time left, and Saathi's face is the sun in the middle, its mood following the clock (happy at the start, a little tense near the end). Big numbers and "Khatam hoga 4:45 PM par"
+- Pause, Resume, +5 min, Khatam (also completes the task), Cancel; the end time is kept on the server, so it survives a refresh or a closed tab
+- When the time is up: a soft chime, a notification on every device asking "Ho gaya? ✅ / 10 min aur? ⏳"; when the work is done: a short golden star-burst celebration with Saathi's line and the time taken (no motion with reduced motion)
+- Focus minutes on the Today panel, the progress chart and the activity timeline
+
+</details>
+
+<details>
+<summary><b>🔔 Notifications everywhere, in Saathi's voice</b></summary>
+
+- Push notifications on phones and computers (Chrome, Edge, Android, iPhone after "Add to Home Screen"), even with the app closed: Web Push with a service worker and VAPID keys; every device of a user is registered and expired ones are removed automatically
+- Always on, no setting: the browser asks on your first tap after login. If you say no (or on an iPhone not added to the Home Screen), notifications still reach you in the app, and the important ones (reminders, tasks due, the morning plan) by email
+- For everything that matters: reminders, a task due in an hour and due now, overdue nudges, the morning "Aaj ka din", the evening recap, exam countdowns (3 days, 1 day, today), study sessions, the focus timer, streak and weekly milestones, and what Saathi did from the chat if you closed the app
+- Every message written fresh by the AI in your language (a plain line if the AI is down, never late), with its own emoji, Saathi's icon, a space photo on Android/Chrome, and buttons: "Ho gaya ✅", "10 min baad 😴", "Kholo" (opens the right screen)
+- In the app: big glass cards with Saathi's face, the kind's colour and photo, big buttons; they stack, Esc closes the newest, reminders stay until you act, the others shrink after a few seconds
+- No spam: quiet hours 11 PM to 7 AM (only reminders and timers ring), several tasks at once become one notification, at most 2 nudges a day, emails only for the important kinds and at most 10 a day
+- Logging out removes the device, so a shared computer stops getting your reminders
+- Installable app (PWA) with its own icon
+
+</details>
+
+<details>
+<summary><b>🎨 Design</b></summary>
+
+- **Saathi's face:** a glowing golden 3D orb (React Three Fiber, custom shader) that breathes, blinks, follows your cursor and changes expression with each reply; a 2D SVG version is used without WebGL or with reduced motion
+- **Saathi Orbit landing page:** Saathi's features orbit its glowing core as dotted planets (Three.js), followed by a scroll story with a 3D folding feature panel and smooth scrolling
+- **Real space backgrounds:** every screen sits on a photo from ESA/Hubble, NASA, Chandra or Pexels (Reminders on NASA's black hole visualization), with a dark veil and glass panels so text stays readable
+- Loading skeletons, empty states with a next step, and error states with a retry on every screen; works on phones with a bottom tab bar
+- Sign in with email and password or "Continue with Google"; the browser can fill in your saved login
+
+</details>
+
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
+
+<a name="try-it-in-60-seconds"></a>
+## <img src="docs/readme/icons/try.svg" width="34" height="34" align="top" alt=""> Try it in 60 seconds
 
 1. Open **[saathi-ksk8.onrender.com](https://saathi-ksk8.onrender.com)** (give it up to a minute if the free server is asleep).
 2. Click **Account banao** and sign up with any name, email and password.
@@ -63,71 +160,51 @@
 
 Then try *"25 ko DBMS exam hai, plan bana do"* or the **Timer** button at the top.
 
-## ✨ Features
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
 
-### 🤖 AI agent: an agent, not a chatbot
-- Chat with tool calling: 18 tools (tasks, reminders, notes, study plans, plan my day, focus timer, memory, undo) run through the same validated services as the screens
-- A receipt with Undo for every change Saathi makes; deleting needs a Confirm tap
-- Long-term memory (classes, hard subjects, routines) that you can see and edit in Settings
-- Saathi texts first: a nudge about overdue tasks (never at night, at most once per task per day) and an evening recap with "move leftovers to tomorrow"
-- **Languages:** Saathi replies in the language you write or speak, with the same friendly personality in every language. Preferred language in Settings: Hinglish, English, Hindi, Marwari (beta), Tamil, Bengali
-- **Voice:** mic button in the chat box: speak, your words appear as you talk and are sent when you stop (Web Speech API, Hindi/Hinglish and English). Speaker button (off by default): Saathi's replies are read aloud in the reply's language; the face listens, thinks and speaks
+<a name="screenshots"></a>
+## <img src="docs/readme/icons/screens.svg" width="34" height="34" align="top" alt=""> Screenshots
 
-### 📚 Productivity
-- Tasks with due dates, priority, tags and deadline countdowns; habits (daily or weekly) with streaks; quick add from one sentence
-- Reminders that fire exactly once, with snooze; a friendly line written by Saathi at fire time (plain text if the AI is down, never late)
-- Study plans: "25 ko DBMS exam hai, plan bana do" spreads the topics over the days with a reminder for each session; changing the plan replaces it instead of adding a second one
-- Plan my day: Saathi arranges today's tasks into time slots around your classes, shown as a timeline on the Today panel
-- Today panel, a 14-day progress chart, an activity timeline with Undo, notes with search and pins
-- Live updates in every open tab (Server-Sent Events)
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/landing.webp" alt="Landing page with the Saathi Orbit scene"><br><sub>Landing page: Saathi's features orbit its glowing core (Three.js)</sub></td>
+    <td width="50%"><img src="docs/screenshots/voice-listening.webp" alt="Talking to Saathi with the mic"><br><sub>Mic in the chat box: the face turns violet and listens</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/tasks.webp" alt="Tasks grouped by when they are due"><br><sub>Tasks grouped by when they are due</sub></td>
+    <td><img src="docs/screenshots/tasks-completed.webp" alt="Completed tasks with the 14-day progress chart"><br><sub>Completed tasks and the 14-day progress chart</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/reminders.webp" alt="Reminders with snooze"><br><sub>Reminders with snooze and cancel, over NASA's black hole visualization</sub></td>
+    <td><img src="docs/screenshots/activity.webp" alt="Activity timeline with Undo"><br><sub>Every change, yours or Saathi's, with Undo</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/notes.webp" alt="Notes with pinned notes first"><br><sub>Notes</sub></td>
+    <td><img src="docs/screenshots/settings-language.webp" alt="Settings: language picker"><br><sub>Settings: language, profile and what Saathi remembers</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/focus-start.webp" alt="Focus timer: start any length"><br><sub>Focus timer: any length, quick picks</sub></td>
+    <td><img src="docs/screenshots/focus-timer.webp" alt="Focus timer running as a cosmic clock"><br><sub>The cosmic clock: the golden orbit empties with the time, a planet with a comet trail marks it, Saathi is the sun</sub></td>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/focus-celebration.webp" alt="Celebration when the work is done"><br><sub>Done: golden stars, Saathi's line and the time taken</sub></td>
+    <td><img src="docs/screenshots/notification-popup.webp" alt="In-app notification: a reminder card"><br><sub>In-app notification: a reminder fired, with Saathi's own line and the buttons "Ho gaya ✅", "10 min baad 😴", "Kholo"</sub></td>
+  </tr>
+</table>
 
-**⏱️ Focus timer**
-- Any length on any task or activity (1 minute to 12 hours: hours and minutes plus quick picks), or from chat: "ye kaam 2 ghante 30 minute mein khatam karna hai" and Saathi starts it
-- Small and sticky on every screen; the big view has a golden ring that empties with the time, big numbers and Saathi's face, whose mood follows the clock (happy at the start, a little tense near the end)
-- Pause, Resume, +5 min, Khatam (also completes the task), Cancel; the end time is kept on the server, so it survives a refresh or a closed tab
-- When the time is up: a soft chime, a notification on every device asking "Ho gaya? ✅ / 10 min aur? ⏳"; when the work is done: a short golden star-burst celebration with Saathi's line and the time taken (no motion with reduced motion)
-- Focus minutes on the Today panel, the progress chart and the activity timeline
-
-### 🔔 Notifications everywhere, in Saathi's voice
-- Push notifications on phones and computers (Chrome, Edge, Android, iPhone after "Add to Home Screen"), even with the app closed: Web Push with a service worker and VAPID keys; every device of a user is registered and expired ones are removed automatically
-- Always on, no setting: the browser asks on your first tap after login. If you say no (or on an iPhone not added to the Home Screen), notifications still reach you in the app, and the important ones (reminders, tasks due, the morning plan) by email
-- For everything that matters: reminders, a task due in an hour and due now, overdue nudges, the morning "Aaj ka din", the evening recap, exam countdowns (3 days, 1 day, today), study sessions, the focus timer, streak and weekly milestones, and what Saathi did from the chat if you closed the app
-- Every message written fresh by the AI in your language (a plain line if the AI is down, never late), with its own emoji, Saathi's icon, a space photo on Android/Chrome, and buttons: "Ho gaya ✅", "10 min baad 😴", "Kholo" (opens the right screen)
-- In the app: big glass cards with Saathi's face, the kind's colour and photo, big buttons; they stack, Esc closes the newest, reminders stay until you act, the others shrink after a few seconds
-- No spam: quiet hours 11 PM to 7 AM (only reminders and timers ring), several tasks at once become one notification, at most 2 nudges a day, emails only for the important kinds and at most 10 a day
-- Installable app (PWA) with its own icon
-
-### 🎨 Design
-- **Saathi's face:** a glowing golden 3D orb (React Three Fiber, custom shader) that breathes, blinks, follows your cursor and changes expression with each reply; a 2D SVG version is used without WebGL or with reduced motion
-- **Saathi Orbit landing page:** Saathi's features orbit its glowing core as dotted planets (Three.js), followed by a scroll story with a 3D folding feature panel and smooth scrolling
-- **Real space backgrounds:** every screen sits on a photo from ESA/Hubble, NASA, Chandra or Pexels (Reminders on NASA's black hole visualization), with a dark veil and glass panels so text stays readable
-- Loading skeletons, empty states with a next step, and error states with a retry on every screen; works on phones with a bottom tab bar
-
-## 📸 Screenshots
-
-| | |
-|---|---|
-| ![Landing page with the Saathi Orbit scene](docs/screenshots/landing.webp) | ![Talking to Saathi with the mic](docs/screenshots/voice-listening.webp) |
-| Landing page: Saathi's features orbit its glowing core (Three.js) | Mic in the chat box: the face turns violet and listens |
-| ![Tasks grouped by when they are due](docs/screenshots/tasks.webp) | ![Completed tasks with the 14-day progress chart](docs/screenshots/tasks-completed.webp) |
-| Tasks grouped by when they are due | Completed tasks and the 14-day progress chart |
-| ![Reminders with snooze](docs/screenshots/reminders.webp) | ![Activity timeline with Undo](docs/screenshots/activity.webp) |
-| Reminders with snooze and cancel, over NASA's black hole visualization | Every change, yours or Saathi's, with Undo |
-| ![Notes with pinned notes first](docs/screenshots/notes.webp) | ![Settings: language picker](docs/screenshots/settings-language.webp) |
-| Notes | Settings: language, profile and what Saathi remembers |
-| ![Focus timer: start any length](docs/screenshots/focus-start.webp) | ![Focus timer running](docs/screenshots/focus-timer.webp) |
-| Focus timer: any length, quick picks | The golden ring empties with the time; Saathi's face follows the clock |
-| ![Celebration when the work is done](docs/screenshots/focus-celebration.webp) | ![In-app notification: a reminder card](docs/screenshots/notification-popup.webp) |
-| Done: golden stars, Saathi's line and the time taken | In-app notification: a reminder fired, with Saathi's own line and the buttons "Ho gaya ✅", "10 min baad 😴", "Kholo" |
-
-<p align="center">
-  <img src="docs/screenshots/phone-tasks.webp" alt="Saathi on a phone" width="260"><br>
-  <sub>On a phone: the same screens with a bottom tab bar</sub>
-</p>
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/screenshots/phone-tasks.webp" alt="Saathi on a phone: Tasks with the bottom tab bar" width="260"><br><sub>On a phone: the same screens with a bottom tab bar</sub></td>
+    <td width="50%" align="center"><img src="docs/screenshots/focus-phone.webp" alt="The focus timer on a phone" width="260"><br><sub>The cosmic clock on a phone</sub></td>
+  </tr>
+</table>
 
 The space photos behind the screens come from ESA/Hubble, NASA, Chandra, ESA Herschel and Pexels; every photo and its credit is listed in **[CREDITS.md](CREDITS.md)** (and in the app under Settings).
 
-## 🏗️ Architecture
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
+
+<a name="architecture"></a>
+## <img src="docs/readme/icons/arch.svg" width="34" height="34" align="top" alt=""> Architecture
 
 ```mermaid
 flowchart TB
@@ -145,16 +222,32 @@ flowchart TB
     J <--> M
     G --> AI["Gemini API<br/>or Claude API"]
     D --> P["Web Push services<br/>browsers and phones"]
-    D --> E["Email (SMTP)"]
+    D --> E["Email<br/>(Brevo API or SMTP)"]
     P -. notification .-> U
     W -. "live updates (SSE)" .-> U
+    W ~~~ J
+
+    classDef app fill:#1B2148,stroke:#F2A541,color:#F5EFE6,stroke-width:1.5px
+    classDef ext fill:#12152B,stroke:#8A86A6,color:#F5EFE6
+    classDef data fill:#2A1E0B,stroke:#F2A541,color:#FFE3A8,stroke-width:1.5px
+    class W,S,A,G,J,D app
+    class U,AI,P,E ext
+    class M data
+    style R fill:transparent,stroke:#F2A541,stroke-dasharray: 5 5
 ```
 
 **How one request flows:** you say "kal 9 baje lab file yaad dila dena" → the agent sends your message, your memories and today's agenda to the AI → the AI asks for `create_task` and `set_reminder` → each tool call is validated and run through the same service as the Tasks screen (so it is logged and undoable) → the results go back to the AI, which writes a short reply → the chat shows the reply and a receipt per change. At 9 AM the worker claims the reminder job (atomically, so it fires once), asks Saathi for a friendly line, and pushes it to your open tabs, your devices (Web Push) and, if no device can be reached and the app is closed, your email.
 
 One Docker image runs as `web`, `worker` or `all` (`PROCESS_ROLE`). Everything shared between instances (sessions, jobs, rate limits) lives in MongoDB or in the signed cookie, never in one instance's memory. Details and load tests: **[docs/SCALING.md](docs/SCALING.md)**.
 
-## 🛠️ Engineering highlights
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
+
+<a name="engineering-highlights"></a>
+## <img src="docs/readme/icons/engineering.svg" width="34" height="34" align="top" alt=""> Engineering highlights
+
+<p align="center">
+  <img src="docs/readme/stats.svg" alt="5,135 requests per second for health checks while logins run (was 21); 148 automated tests; 18 agent tools; 6 languages" width="720">
+</p>
 
 **Measured, then fixed.** Load-tested with `autocannon` on a 2-core machine (the load generator shared the same cores, so absolute numbers are pessimistic; the before/after comparison is what matters). From [docs/SCALING.md](docs/SCALING.md):
 
@@ -166,37 +259,60 @@ One Docker image runs as `web`, `worker` or `all` (`PROCESS_ROLE`). Everything s
 
 The big fix: password hashing moved from pure-JavaScript bcrypt (which froze the event loop) to Node's built-in `scrypt` on the thread pool, plus a 30-second user cache and a right-sized connection pool.
 
-**Security**
-- Secure accounts: scrypt password hashing, JWT in an httpOnly cookie, brute-force limits per IP and per account, a single-use emailed reset link that logs out every session, and "Continue with Google" (Google's signed ID token is checked on the server; an existing account with the same verified email is joined, not duplicated)
-- Every query is scoped to the logged-in user; other users' data is never visible (404, not 403)
-- No secrets in Git: everything comes from environment variables, validated at startup
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <img src="docs/readme/icons/shield.svg" width="32" height="32" alt=""> <b>Security</b>
+      <ul>
+        <li>Secure accounts: scrypt password hashing, JWT in an httpOnly cookie, brute-force limits per IP and per account, a single-use emailed reset link that logs out every session, and "Continue with Google" (Google's signed ID token is checked on the server; an existing account with the same verified email is joined, not duplicated)</li>
+        <li>Every query is scoped to the logged-in user; other users' data is never visible (404, not 403)</li>
+        <li>No secrets in Git: everything comes from environment variables, validated at startup</li>
+      </ul>
+    </td>
+    <td width="50%" valign="top">
+      <img src="docs/readme/icons/jobs.svg" width="32" height="32" alt=""> <b>Reliability</b>
+      <ul>
+        <li>Background work in a MongoDB job queue: atomic claim, lock heartbeat, retries with backoff, dead-lettering, dedupe keys, so a reminder fires exactly once even with several instances</li>
+        <li>AI gateway: a chain of models with per-model limits, per-user quotas, timeouts, retries honouring <code>Retry-After</code>, and a circuit breaker; when the AI is down, tasks, notes and reminders keep working</li>
+        <li>Error handling everywhere: invalid input gets field-level messages, failed AI calls fall back to the next model or a friendly message, duplicates are caught (<code>Idempotency-Key</code>, similar-task check)</li>
+        <li>Ready to scale: stateless instances, a MongoDB job queue, shared quotas, health checks and graceful shutdown (<a href="docs/SCALING.md">docs/SCALING.md</a>)</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td colspan="2" valign="top">
+      <img src="docs/readme/icons/check.svg" width="32" height="32" alt=""> <b>Quality</b>
+      <ul>
+        <li>148 automated tests (unit and integration) with <code>node:test</code> and supertest, against a real MongoDB; the AI is replaced by a fake provider, so tests are free and repeatable</li>
+        <li>A written bug hunt before submission, with what was fixed and what was not: <a href="docs/BUG-REPORT.md">docs/BUG-REPORT.md</a></li>
+      </ul>
+    </td>
+  </tr>
+</table>
 
-**Reliability**
-- Background work in a MongoDB job queue: atomic claim, lock heartbeat, retries with backoff, dead-lettering, dedupe keys, so a reminder fires exactly once even with several instances
-- AI gateway: a chain of models with per-model limits, per-user quotas, timeouts, retries honouring `Retry-After`, and a circuit breaker; when the AI is down, tasks, notes and reminders keep working
-- Error handling everywhere: invalid input gets field-level messages, failed AI calls fall back to the next model or a friendly message, duplicates are caught (`Idempotency-Key`, similar-task check)
-- Ready to scale: stateless instances, a MongoDB job queue, shared quotas, health checks and graceful shutdown ([docs/SCALING.md](docs/SCALING.md))
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
 
-**Quality**
-- 148 automated tests (unit and integration) with `node:test` and supertest, against a real MongoDB; the AI is replaced by a fake provider, so tests are free and repeatable
-
-## 🧰 Tech stack
+<a name="tech-stack"></a>
+## <img src="docs/readme/icons/stack.svg" width="34" height="34" align="top" alt=""> Tech stack
 
 | Layer | Choice | Why |
 |---|---|---|
-| Frontend | React 19, Vite, Tailwind CSS, Motion, React Three Fiber | Fast builds; one design system; motion only where something changes; one 3D element (Saathi's face) with a 2D fallback |
-| Backend | Node.js, Express 5 | Async errors are handled natively; small and well understood |
-| Database | MongoDB Atlas with Mongoose | Tasks, notes and conversations are document-shaped; free hosted tier |
-| Auth | scrypt (Node built-in) + JWT in an httpOnly cookie | Passwords are never stored in plain text; hashing runs off the event loop; tokens are unreadable from page JavaScript |
-| AI | Google Gemini (function calling) by default, Claude (tool use) as an option | Gemini's free tier suits a student project. One provider interface (`server/src/ai/provider.js`): `AI_PROVIDER` switches without touching the agent code |
-| Voice | Web Speech API (SpeechRecognition, speechSynthesis) | Built into Edge and Chrome, free, supports Indian languages. The browser turns speech into text (Edge and Chrome use their own speech service for this); Saathi's server only receives the text |
-| Notifications | Web Push (service worker, VAPID, `web-push`), nodemailer | Works on desktop and phones with the app closed, no paid service; email as the fallback |
-| Background jobs | Job queue in MongoDB | Reminders run exactly once, even with many instances; no extra service to pay for |
-| Validation | zod | One schema validates input and produces field-level error messages |
-| Logging | pino (JSON) | Structured logs with request ids |
-| Deployment | Docker on Render | One image serves the API and the built frontend; runs on any container platform |
+| <img src="https://cdn.simpleicons.org/react" width="16" height="16" alt=""> Frontend | React 19, <img src="https://cdn.simpleicons.org/vite" width="14" height="14" alt=""> Vite, <img src="https://cdn.simpleicons.org/tailwindcss" width="14" height="14" alt=""> Tailwind CSS, Motion, <img src="https://cdn.simpleicons.org/threedotjs/8A86A6" width="14" height="14" alt=""> React Three Fiber | Fast builds; one design system; motion only where something changes; one 3D element (Saathi's face) with a 2D fallback |
+| <img src="https://cdn.simpleicons.org/nodedotjs" width="16" height="16" alt=""> Backend | Node.js, <img src="https://cdn.simpleicons.org/express/8A86A6" width="14" height="14" alt=""> Express 5 | Async errors are handled natively; small and well understood |
+| <img src="https://cdn.simpleicons.org/mongodb" width="16" height="16" alt=""> Database | MongoDB Atlas with <img src="https://cdn.simpleicons.org/mongoose" width="14" height="14" alt=""> Mongoose | Tasks, notes and conversations are document-shaped; free hosted tier |
+| <img src="https://cdn.simpleicons.org/jsonwebtokens/8A86A6" width="16" height="16" alt=""> Auth | scrypt (Node built-in) + JWT in an httpOnly cookie, Google Identity Services | Passwords are never stored in plain text; hashing runs off the event loop; tokens are unreadable from page JavaScript |
+| <img src="https://cdn.simpleicons.org/googlegemini" width="16" height="16" alt=""> AI | Google Gemini (function calling) by default, <img src="https://cdn.simpleicons.org/anthropic/8A86A6" width="14" height="14" alt=""> Claude (tool use) as an option | Gemini's free tier suits a student project. One provider interface (`server/src/ai/provider.js`): `AI_PROVIDER` switches without touching the agent code |
+| <img src="docs/readme/icons/voice.svg" width="16" height="16" alt=""> Voice | Web Speech API (SpeechRecognition, speechSynthesis) | Built into Edge and Chrome, free, supports Indian languages. The browser turns speech into text (Edge and Chrome use their own speech service for this); Saathi's server only receives the text |
+| <img src="docs/readme/icons/notifications.svg" width="16" height="16" alt=""> Notifications | Web Push (service worker, VAPID, `web-push`), Brevo email API or nodemailer (SMTP) | Works on desktop and phones with the app closed, no paid service; email as the fallback |
+| <img src="docs/readme/icons/jobs.svg" width="16" height="16" alt=""> Background jobs | Job queue in MongoDB | Reminders run exactly once, even with many instances; no extra service to pay for |
+| <img src="https://cdn.simpleicons.org/zod" width="16" height="16" alt=""> Validation | zod | One schema validates input and produces field-level error messages |
+| <img src="docs/readme/icons/logs.svg" width="16" height="16" alt=""> Logging | pino (JSON) | Structured logs with request ids |
+| <img src="https://cdn.simpleicons.org/docker" width="16" height="16" alt=""> Deployment | Docker on <img src="https://cdn.simpleicons.org/render/8A86A6" width="14" height="14" alt=""> Render | One image serves the API and the built frontend; runs on any container platform |
 
-## 🚀 Local setup
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
+
+<a name="getting-started"></a>
+## <img src="docs/readme/icons/setup.svg" width="34" height="34" align="top" alt=""> Getting started
 
 Requirements: Node.js 20.19 or newer, a free MongoDB Atlas cluster, a free Gemini API key (aistudio.google.com).
 
@@ -218,22 +334,29 @@ Check the backend: http://localhost:4000/api/health/ready should show `{"status"
 
 **Production build locally:** `cd client && npm run build`, then in `server` run `$env:NODE_ENV='production'; node src/index.js` (PowerShell) or `NODE_ENV=production node src/index.js` (macOS/Linux): the server also serves the built app at http://localhost:4000.
 
-**With Docker (optional):**
+<details>
+<summary><b>With Docker (optional)</b></summary>
 
 ```bash
 docker build -t saathi .
 docker run -p 4000:4000 --env-file server/.env saathi
 ```
 
+</details>
+
 ### Tests
 
-The tests need a separate database because they wipe it. Add `MONGODB_URI_TEST` to `server/.env` (same as `MONGODB_URI` but ending in `/saathi_test`), then `cd server && npm test`. The tests never call a real AI (a fake provider stands in).
+The tests need a separate database because they wipe it. Add `MONGODB_URI_TEST` to `server/.env` (same as `MONGODB_URI` but ending in `/saathi_test`), then `cd server && npm test`. The tests never call a real AI (a fake provider stands in). Never point a running server at the test database.
 
 To try Saathi with the real AI from the terminal (server running): `npm run live:chat -- "kal subah 9 baje lab file submit karni hai, yaad dila dena"`. It uses a throwaway account and deletes it afterwards; `npm run live:cleanup` removes leftovers.
 
-## 🔐 Environment variables
+<a name="environment-variables"></a>
+### <img src="docs/readme/icons/env.svg" width="28" height="28" align="top" alt=""> Environment variables
 
-Set in `server/.env` locally, or in the Render dashboard.
+Set in `server/.env` locally, or in the Render dashboard. **Required:** `MONGODB_URI`, `JWT_SECRET`, and `GEMINI_API_KEY` for chat. Everything else has a sensible default or is optional.
+
+<details>
+<summary><b>All environment variables</b> (click to open)</summary>
 
 | Variable | Required | Description |
 |---|---|---|
@@ -256,7 +379,12 @@ Set in `server/.env` locally, or in the Render dashboard.
 | `AI_REQUEST_TIMEOUT_MS`, `AI_TOTAL_TIMEOUT_MS`, `AI_USER_PER_MINUTE`, `AI_USER_PER_DAY`, `AI_MAX_CONCURRENCY`, `AI_MAX_QUEUE` | no | AI timeouts (20 s / 28 s), per-user limits (20 per minute, 300 per day) and per-instance limits |
 | `MONGODB_URI_TEST` | for tests | Separate database for the test suite |
 
-## 📡 API
+</details>
+
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
+
+<a name="api"></a>
+## <img src="docs/readme/icons/api.svg" width="34" height="34" align="top" alt=""> API
 
 **In short:** auth (`/api/auth`), tasks (`/api/tasks`), notes (`/api/notes`), reminders (`/api/reminders`), my day, progress, notifications and activity (`/api/me`), push devices and notification buttons (`/api/push`), the focus timer (`/api/focus`), and Saathi itself (`/api/agent`). All JSON; chat and live updates stream as Server-Sent Events.
 
@@ -299,7 +427,7 @@ Set in `server/.env` locally, or in the Render dashboard.
 | POST | `/api/push/action` | yes | A notification button `{ notificationId, action: done / snooze / more / open }` |
 | GET | `/api/focus/current` | yes | The running focus timer (or null) |
 | POST | `/api/focus` | yes | Start a timer `{ minutes (1 to 720), taskId?, label? }`; one at a time (409 otherwise) |
-| POST | `/api/focus/:id/pause`, `/resume`, `/extend`, `/finish`, `/cancel` | yes | Control the timer; `extend { minutes }`, `finish { done }` also completes its task and returns Saathi's line |
+| POST | `/api/focus/:id/pause`, `/resume`, `/extend`, `/finish`, `/cancel` | yes | Control the timer; `extend { minutes }` (12 hours in total at most), `finish { done }` also completes its task and returns Saathi's line |
 | POST | `/api/me/notifications/:id/read`, `/read-all` | yes | Mark read |
 | GET | `/api/me/activity` | yes | Timeline of changes, each with `canUndo` |
 | POST | `/api/me/activity/:id/undo` | yes | Undo one change |
@@ -315,7 +443,11 @@ Set in `server/.env` locally, or in the Render dashboard.
 
 Dates are ISO 8601 with a timezone (`2026-10-18T09:00:00+05:30`); dates without one are rejected because "9 AM" is ambiguous. Create endpoints accept an optional `Idempotency-Key` header: the same key twice returns the first response instead of creating a duplicate. Every error has the same shape: `{ "error": { "code": "...", "message": "...", "details": [...] } }`. Every response has an `X-Request-Id` header that matches the server log line; 429 and 503 responses include `Retry-After`.
 
-## 📁 Project structure
+<a name="project-structure"></a>
+### <img src="docs/readme/icons/structure.svg" width="28" height="28" align="top" alt=""> Project structure
+
+<details>
+<summary><b>Folders and what lives where</b> (click to open)</summary>
 
 ```
 client/                React app (Vite)
@@ -334,38 +466,117 @@ server/
   src/jobs/            MongoDB job queue, worker, reminder and proactive jobs
   src/middleware/      auth, validation, errors, idempotency, overload protection
   tests/               unit and integration tests (node:test + supertest)
-docs/                  scaling notes, screenshots, banner
+docs/                  scaling notes, bug report, screenshots, banner, README assets (readme/)
 Dockerfile, render.yaml
 ```
 
-## ☁️ Deployment
+</details>
 
-Render, one web service from `render.yaml` (New → Blueprint). The Docker image builds the React app and the server; Express serves both from the same address, so the login cookie needs no CORS. Free plan: `PROCESS_ROLE=all` (API and reminder worker in one process), health check `/api/health/ready`. Secrets (`MONGODB_URI`, `GEMINI_API_KEY`, VAPID keys, SMTP) are entered in the Render dashboard, never committed. MongoDB Atlas must allow Render's addresses (Network Access `0.0.0.0/0`; the database user's password protects it).
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
+
+<a name="deployment"></a>
+## <img src="docs/readme/icons/deploy.svg" width="34" height="34" align="top" alt=""> Deployment
+
+Render, one web service from `render.yaml` (New → Blueprint). The Docker image builds the React app and the server; Express serves both from the same address, so the login cookie needs no CORS. Free plan: `PROCESS_ROLE=all` (API and reminder worker in one process), health check `/api/health/ready`. Secrets (`MONGODB_URI`, `GEMINI_API_KEY`, VAPID keys, `BREVO_API_KEY` or SMTP) are entered in the Render dashboard, never committed. MongoDB Atlas must allow Render's addresses (Network Access `0.0.0.0/0`; the database user's password protects it).
 
 The free plan sleeps after 15 minutes without visits; reminders that fall due while it sleeps fire as soon as it wakes. A free uptime monitor calling `/api/health/live` every few minutes keeps it awake. Scaling beyond one instance: [docs/SCALING.md](docs/SCALING.md).
 
 **Live link:** https://saathi-ksk8.onrender.com
 
-## 🗺️ Roadmap
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
 
-- 🌐 More languages for the app and voice: Marathi, Gujarati, Punjabi, Telugu, Kannada, Malayalam, Odia, Urdu, Bhojpuri and more, and every screen fully translated (today the navigation, titles, chat and settings are translated; the rest is in Hinglish)
-- 🙋 "Apni bhasha maango": a button in Settings to ask for a missing language, so the most requested ones come first
-- ✅ Marwari out of beta, checked with native speakers
-- 🔑 Facebook and Instagram sign-in, next to email, password and Google
-- 📅 Google Calendar sync (classes and exams in, Saathi's reminders out)
-- 💬 Saathi on WhatsApp and Telegram
-- 📄 Upload a syllabus or PDF and turn it into a study plan
-- 🔎 Web search for explanations and quick facts
-- 👥 Shared tasks and study groups with friends
+<a name="roadmap"></a>
+## <img src="docs/readme/icons/roadmap.svg" width="34" height="34" align="top" alt=""> Roadmap
 
-## 🤝 AI usage
+**Done**
+- [x] AI agent with 18 tools, receipts and Undo
+- [x] Reminders, habits, study plans, plan my day, focus timer
+- [x] Push notifications on every device, with email as a fallback
+- [x] Voice and six languages
+- [x] "Continue with Google" sign-in
+
+**Next**
+- [ ] 🌐 More languages for the app and voice: Marathi, Gujarati, Punjabi, Telugu, Kannada, Malayalam, Odia, Urdu, Bhojpuri and more, and every screen fully translated (today the navigation, titles, chat and settings are translated; the rest is in Hinglish)
+- [ ] 🙋 "Apni bhasha maango": a button in Settings to ask for a missing language, so the most requested ones come first
+- [ ] ✅ Marwari out of beta, checked with native speakers
+- [ ] 🔑 Facebook and Instagram sign-in, next to email, password and Google
+- [ ] 📅 Google Calendar sync (classes and exams in, Saathi's reminders out)
+- [ ] 💬 Saathi on WhatsApp and Telegram
+- [ ] 📄 Upload a syllabus or PDF and turn it into a study plan
+- [ ] 🔎 Web search for explanations and quick facts
+- [ ] 👥 Shared tasks and study groups with friends
+
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
+
+<a name="faq"></a>
+## <img src="docs/readme/icons/faq.svg" width="34" height="34" align="top" alt=""> FAQ
+
+<details>
+<summary><b>Why does the first visit take so long?</b></summary>
+
+The app runs on Render's free plan, which sleeps after 15 minutes without visitors. The first request wakes it, which can take up to a minute. Reminders that fell due while it slept fire as soon as it wakes. An uptime monitor that calls `/api/health/live` every few minutes keeps it awake.
+
+</details>
+
+<details>
+<summary><b>Do notifications work on an iPhone?</b></summary>
+
+Yes, on iOS 16.4 or newer, after you add Saathi to the Home Screen (Safari → Share → Add to Home Screen) and open it from there; Saathi shows these steps once. Without that, reminders still appear inside the app, and the important ones also come by email.
+
+</details>
+
+<details>
+<summary><b>Which browser is best for voice?</b></summary>
+
+Microsoft Edge, which has the best Indian voices, then Chrome. In browsers without speech recognition (such as Firefox) the mic button is hidden and everything else works.
+
+</details>
+
+<details>
+<summary><b>What happens when the AI is down or its free limit is used up?</b></summary>
+
+Tasks, notes, reminders and the focus timer keep working without the AI. Saathi first moves to the next model in its chain; when every model is full, the chat says so kindly, and reminders go out with their plain text, never late.
+
+</details>
+
+<details>
+<summary><b>Is my data private?</b></summary>
+
+Every query is scoped to your account, passwords are stored only as scrypt hashes, and the login lives in an httpOnly cookie that page scripts cannot read. Logging out also removes the device from push, so a shared computer stops getting your reminders.
+
+</details>
+
+<details>
+<summary><b>Which languages does Saathi speak?</b></summary>
+
+Saathi replies in the language you write or speak. Settings offers Hinglish, English, Hindi, Marwari (beta), Tamil and Bengali for the messages Saathi starts itself and for the main screens.
+
+</details>
+
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
+
+<a name="ai-usage"></a>
+## <img src="docs/readme/icons/ai.svg" width="34" height="34" align="top" alt=""> AI usage
 
 This project was built with help from Claude (Anthropic) for code generation, debugging and documentation, as allowed by the project guidelines. Every workflow is tested (148 automated tests plus live checks with the real AI), and the code is understood and maintained by the author. Inside the app, the AI (Gemini) only proposes actions; the server validates and executes them, and every change can be undone.
 
-## 🙏 Credits and author
+<a name="credits-and-author"></a>
+## <img src="docs/readme/icons/credits.svg" width="34" height="34" align="top" alt=""> Credits and author
 
-Background photos: ESA/Hubble, NASA, Chandra X-ray Observatory, ESA Herschel and photographers on Pexels; full list with sources and licences in [CREDITS.md](CREDITS.md). Fonts: Baloo 2 and Mukta (Google Fonts). Icons: Lucide.
+Background photos: ESA/Hubble, NASA, Chandra X-ray Observatory, ESA Herschel and photographers on Pexels; full list with sources and licences in [CREDITS.md](CREDITS.md). Fonts: Baloo 2 and Mukta (Google Fonts). Icons: Lucide (in the app and in this README); technology logos from Simple Icons.
 
 Using NASA and ESA images does not mean they endorse this project.
 
 **Author:** Himanshu ([@harisharma81182-hash](https://github.com/harisharma81182-hash)), End-Term Software Project, 2026.
+
+<p align="center"><img src="docs/readme/divider.svg" alt="" width="100%"></p>
+
+<div align="center">
+
+<img src="docs/readme/icons/credits.svg" width="28" height="28" alt="">
+
+**Made with ❤️ in India**
+
+<sub>Saathi · your AI friend who gets things done · <a href="https://saathi-ksk8.onrender.com">saathi-ksk8.onrender.com</a></sub>
+
+</div>
