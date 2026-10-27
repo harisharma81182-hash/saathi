@@ -249,6 +249,7 @@ Set in `server/.env` locally, or in the Render dashboard.
 | `APP_URL` | no | Address used in email links (default `CLIENT_ORIGIN`) |
 | `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | for push | Web Push key pair (`npx web-push generate-vapid-keys`) and a contact (`mailto:...` or your https address). Without them notifications still arrive in the app and by email |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `MAIL_FROM` | for email | SMTP for password reset links and the email copy of important notifications (a Gmail App Password works). Without `SMTP_HOST` the email is written to the server log |
+| `BREVO_API_KEY` | for email on Render's free plan | Sends the same emails through Brevo's HTTPS API (free, 300 a day) instead of SMTP, because Render's free plan blocks the SMTP ports. `MAIL_FROM` must be a sender verified in Brevo |
 | `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL`, `ANTHROPIC_FALLBACK_MODEL` | for Claude | Only with `AI_PROVIDER=anthropic` |
 | `JWT_EXPIRES_IN`, `PORT`, `MONGO_MAX_POOL`, `LOG_LEVEL` | no | Login lifetime (7d), port (4000), DB connections per instance (10), log level (info) |
 | `AI_REQUEST_TIMEOUT_MS`, `AI_TOTAL_TIMEOUT_MS`, `AI_USER_PER_MINUTE`, `AI_USER_PER_DAY`, `AI_MAX_CONCURRENCY`, `AI_MAX_QUEUE` | no | AI timeouts (20 s / 28 s), per-user limits (20 per minute, 300 per day) and per-instance limits |
@@ -347,6 +348,7 @@ The free plan sleeps after 15 minutes without visits; reminders that fall due wh
 - 🌐 More languages for the app and voice: Marathi, Gujarati, Punjabi, Telugu, Kannada, Malayalam, Odia, Urdu, Bhojpuri and more, and every screen fully translated (today the navigation, titles, chat and settings are translated; the rest is in Hinglish)
 - 🙋 "Apni bhasha maango": a button in Settings to ask for a missing language, so the most requested ones come first
 - ✅ Marwari out of beta, checked with native speakers
+- 🔑 "Continue with Google" sign-in, and later Facebook and Instagram sign-in, next to email and password
 - 📅 Google Calendar sync (classes and exams in, Saathi's reminders out)
 - 💬 Saathi on WhatsApp and Telegram
 - 📄 Upload a syllabus or PDF and turn it into a study plan

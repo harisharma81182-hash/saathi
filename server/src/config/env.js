@@ -92,6 +92,10 @@ const schema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
   MAIL_FROM: z.string().optional(),
+  // Brevo's HTTP email API (free: 300 emails a day). Used instead of SMTP when set: Render's free
+  // plan blocks the SMTP ports (25, 465, 587), but an HTTPS request goes through. MAIL_FROM must be
+  // a sender verified in Brevo (your Gmail address works).
+  BREVO_API_KEY: z.string().optional(),
   // Where the app lives, for links in emails (defaults to CLIENT_ORIGIN).
   APP_URL: z.string().optional(),
 

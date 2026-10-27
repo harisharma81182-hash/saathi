@@ -60,6 +60,16 @@ Sab daalne ke baad **Save Changes**. Render apne aap dobara deploy karega (5 min
 5. Use seedha Render ke `SMTP_PASS` mein paste karo (spaces ke bina). **Chat mein ya kahin aur mat bhejna.**
 6. Laptop par bhi chahiye toh `server\.env` mein `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=465`, `SMTP_SECURE=true`, `SMTP_USER=...`, `SMTP_PASS=...`, `MAIL_FROM=...` daalo.
 
+### Render par email: Brevo (zaroori)
+
+Render ka free plan SMTP ports (25, 465, 587) block karta hai, isliye Gmail SMTP wahan timeout ho jaata hai. Hal: Brevo, jo email HTTPS se bhejta hai (free, din mein 300).
+
+1. https://www.brevo.com par free account banao (apne Gmail se).
+2. **Senders, domains & dedicated IPs** → **Senders** → **Add a sender** → apna Gmail daalo → email mein aaya link khol kar verify karo.
+3. Upar right mein naam → **SMTP & API** → **API keys** → **Generate a new API key** → naam `Saathi` → key copy karo.
+4. Render → Environment → `BREVO_API_KEY` mein paste karo. `MAIL_FROM` mein wahi verified Gmail ho. **Save Changes.**
+5. Deploy ke baad app mein "Password bhool gaye?" try karo. Email spam folder mein bhi dekh lena.
+
 ## 4. UptimeRobot (server ko jagaye rakhne ke liye)
 
 1. https://uptimerobot.com par free account banao.

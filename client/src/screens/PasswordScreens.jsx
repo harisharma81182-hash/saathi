@@ -48,7 +48,7 @@ export function ForgotScreen({ onBack, onLogin }) {
   return (
     <AuthShell photo="mysticmountain" onBack={onBack} busy={busy} failed={Boolean(error)} title="Password bhool gaye?" subtitle="Account ka email likho. Naya password set karne ka link wahan bhej denge.">
       <form onSubmit={submit} className="flex flex-col gap-3" noValidate>
-        <Field label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} error={error} autoComplete="email" autoFocus />
+        <Field label="Email" name="email" type="email" inputMode="email" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={email} onChange={(e) => setEmail(e.target.value)} error={error} autoComplete="username" autoFocus />
         <button type="submit" disabled={busy || !email.trim()} className="btn-gold btn-lg mt-3 w-full">
           {busy ? 'Ek second...' : 'Link bhejo'}
         </button>
@@ -131,8 +131,8 @@ export function ResetScreen({ token, onLogin, onForgot }) {
   return (
     <AuthShell photo="mysticmountain" busy={busy} failed={Boolean(message || errors.password || errors.confirm)} title="Naya password set karo" subtitle="Isse purane saare logins band ho jaayenge.">
       <form onSubmit={submit} className="flex flex-col gap-3" noValidate>
-        <Field label="Naya password" type="password" value={form.password} onChange={set('password')} error={errors.password} hint={PASSWORD_HINT} autoComplete="new-password" autoFocus />
-        <Field label="Naya password dobara" type="password" value={form.confirm} onChange={set('confirm')} error={errors.confirm} autoComplete="new-password" />
+        <Field label="Naya password" name="new-password" type="password" value={form.password} onChange={set('password')} error={errors.password} hint={PASSWORD_HINT} autoComplete="new-password" autoFocus />
+        <Field label="Naya password dobara" name="confirm-password" type="password" value={form.confirm} onChange={set('confirm')} error={errors.confirm} autoComplete="new-password" />
         {message && (
           <p role="alert" className="border-l-2 border-vermilion/60 pl-3 text-sm text-text">
             {message}

@@ -59,6 +59,9 @@ services:
         sync: false
       - key: MAIL_FROM
         sync: false
+      # Free plan: the SMTP ports are blocked, so emails go through Brevo's HTTP API instead.
+      - key: BREVO_API_KEY
+        sync: false
 
 # ---- Stage 1: scale web and worker separately (paid plans) ----
 # Change the web service above to:

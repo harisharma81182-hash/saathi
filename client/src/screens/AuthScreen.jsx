@@ -67,10 +67,26 @@ export function AuthScreen({ onAuthed, onBack, onForgot, initialMode = 'signup' 
         </div>
 
         <form onSubmit={submit} className="flex flex-col gap-3" noValidate>
-          {mode === 'signup' && <Field label="Naam" value={form.name} onChange={set('name')} error={errors.name} autoComplete="given-name" />}
-          <Field label="Email" type="email" value={form.email} onChange={set('email')} error={errors.email} autoComplete="email" />
+          {/* Autofill: the browser suggests only what is saved on this device (never other users' emails).
+              Login pairs "username" + "current-password" so password managers fill both; signup uses
+              "email" + "new-password" so Chrome offers to save the new login. */}
+          {mode === 'signup' && <Field label="Naam" name="name" value={form.name} onChange={set('name')} error={errors.name} autoComplete="name" />}
+          <Field
+            label="Email"
+            name="email"
+            type="email"
+            inputMode="email"
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            value={form.email}
+            onChange={set('email')}
+            error={errors.email}
+            autoComplete={mode === 'signup' ? 'email' : 'username'}
+          />
           <Field
             label="Password"
+            name="password"
             type="password"
             value={form.password}
             onChange={set('password')}
