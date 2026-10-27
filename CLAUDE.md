@@ -19,9 +19,9 @@ Read this whole file before doing anything. It is the hand-off from the earlier 
 - The rubric rewards: real workflows (not CRUD, not a thin API wrapper), engineering depth, error handling (invalid input, failed APIs, duplicates, unauthorized access), security (no secrets in Git, hashed passwords, auth), loading/empty/error states, and meaningful commits. **Depth beats feature count.** Every feature must actually work end to end.
 - It is fine (and allowed) that AI writes code. The README already has an "AI usage" section.
 
-## Current status (25 Oct 2026)
+## Current status (27 Oct 2026)
 
-Everything below is committed and pushed to GitHub (private repo `harisharma81182-hash/saathi`, branch `main`). 131 backend tests pass (`cd server && npm test`, about 7 minutes against Atlas; integration tests use `MONGODB_URI_TEST`, already in `server/.env`).
+Everything below is committed and pushed to GitHub (private repo `harisharma81182-hash/saathi`, branch `main`). 135 backend tests pass (`cd server && npm test`, about 7 minutes against Atlas; integration tests use `MONGODB_URI_TEST`, already in `server/.env`).
 
 ### Backend (`server/`): done
 
@@ -61,11 +61,13 @@ Everything below is committed and pushed to GitHub (private repo `harisharma8118
   - **Testing:** `tests/notifications.test.js` (fake push sender, mail outbox). Headless Edge cannot test real push (no Push API in that mode), so real push must be tried in a normal browser and on phones. Live check: a real reminder fired by the worker showed the in-app card with a Gemini line.
 - **Checking the UI:** screenshots from headless Edge (playwright-core in the scratchpad; WebGL needs `--use-angle=swiftshader --enable-unsafe-swiftshader`). Gotchas: `Element.scrollTo` returns a Promise in Edge (never return it from useEffect); the "THREE.Clock deprecated" warning comes from inside R3F.
 
-### Paused on 26 Oct (Himanshu asked to stop; resume from here)
+### Final status (27 Oct, submission day)
 
-- **Done and pushed to main (`005f0e7`):** black hole on Reminders; notifications everywhere (push, email fallback, all kinds, quiet hours, iPhone guide, no settings); custom focus timer (`services/focus.service.js`, `app/focus.js`, FocusBar/FocusView/FocusStart/FocusRing, chime, `start_focus_timer` tool, focus minutes on Today and progress, timer notification with "Ho gaya" / "10 min aur"); big in-app notification cards (`components/Toasts.jsx`). Checked in Edge on 26 Oct: start dialog, big timer, time up and celebration all work (screenshots in the scratchpad, F-*.png).
-- **Not finished:** the full test suite has not run since the focus timer (only tests/focus.test.js, 4/4 pass; the last full run was killed for low RAM). README and docs/screenshots do not yet mention the timer, notifications or the live link https://saathi-ksk8.onrender.com. docs/MERE-LIYE-NEXT-STEPS.md (Himanshu's final checklist) is not written.
-- **Next steps:** 1) run tests one file at a time (`node --test --test-concurrency=1 tests/<file>.test.js`), fix any failure; 2) `npx vite build` in client; 3) README: live link, new features, new screenshots; 4) write docs/MERE-LIYE-NEXT-STEPS.md (new Render variables: VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT, SMTP_HOST, SMTP_USER, SMTP_PASS, MAIL_FROM, APP_URL; clipboard commands; Gmail App Password; UptimeRobot; make the repo public; device testing; Incognito check); 5) commit and push.
+- **All features done and on main:** black hole on Reminders; notifications everywhere (push, email fallback, every kind, quiet hours, iPhone guide, no settings); custom focus timer with celebration (18th agent tool `start_focus_timer`); big in-app notification cards; voice; languages.
+- **Tests:** 135 pass, run one file at a time (`node --test --test-concurrency=1 --test-reporter=spec tests/<file>.test.js`); passwordReset.test.js once got cancelled when Atlas was slow and passed 6/6 when run again. Client production build is clean; no console.log, no .env in Git, no live test accounts left.
+- **README:** live link https://saathi-ksk8.onrender.com, focus timer section and screenshots (docs/screenshots/focus-*.webp), 18 tools, 135 tests, focus API.
+- **Himanshu's checklist:** `docs/MERE-LIYE-NEXT-STEPS.md` (new Render variables with clipboard commands, Gmail App Password, UptimeRobot, make the repo public, device testing, Incognito check).
+- **Left for Himanshu:** Render variables (VAPID_*, APP_URL, SMTP_*), UptimeRobot, repo public, demo video, Google Form.
 
 ### Not built yet (in this order)
 

@@ -2,7 +2,9 @@
 
 **Your AI friend who gets things done.** Tell Saathi, by typing or speaking, "kal subah 9 baje lab file submit karni hai, yaad dila dena", and it creates the task and the reminder in your account, reminds you on time in a friendly voice, and remembers what matters to you. It talks like a close friend, in your language.
 
-**Live app:** _link coming soon_ &nbsp;·&nbsp; **Demo video:** _link coming soon_
+**Live app:** [saathi-ksk8.onrender.com](https://saathi-ksk8.onrender.com) &nbsp;·&nbsp; **Demo video:** _link coming soon_
+
+> The free server sleeps after 15 minutes without visitors, so the first visit can take up to a minute to wake it.
 
 ![Saathi chat: a reminder set from one Hinglish sentence, with receipts and Undo](docs/screenshots/home-chat.webp)
 
@@ -21,7 +23,7 @@ Saathi is a chat and voice assistant connected to your own data. The AI model (G
 ## Key features
 
 **An agent, not a chatbot**
-- Chat with tool calling: 17 tools (tasks, reminders, notes, study plans, plan my day, memory, undo) run through the same validated services as the screens
+- Chat with tool calling: 18 tools (tasks, reminders, notes, study plans, plan my day, focus timer, memory, undo) run through the same validated services as the screens
 - A receipt with Undo for every change Saathi makes; deleting needs a Confirm tap
 - Study plans: "25 ko DBMS exam hai, plan bana do" spreads the topics over the days with a reminder for each session; changing the plan replaces it instead of adding a second one
 - Long-term memory (classes, hard subjects, routines) that you can see and edit in Settings
@@ -38,12 +40,20 @@ Saathi is a chat and voice assistant connected to your own data. The AI model (G
 - Today panel, a 14-day progress chart, an activity timeline with Undo, notes with search and pins
 - Live updates in every open tab (Server-Sent Events)
 
+**Focus timer**
+- Any length on any task or activity (1 minute to 12 hours: hours and minutes plus quick picks), or from chat: "ye kaam 2 ghante 30 minute mein khatam karna hai" and Saathi starts it
+- Small and sticky on every screen; the big view has a golden ring that empties with the time, big numbers and Saathi's face, whose mood follows the clock (happy at the start, a little tense near the end)
+- Pause, Resume, +5 min, Khatam (also completes the task), Cancel; the end time is kept on the server, so it survives a refresh or a closed tab
+- When the time is up: a soft chime, a notification on every device asking "Ho gaya? ✅ / 10 min aur? ⏳"; when the work is done: a short golden star-burst celebration with Saathi's line and the time taken (no motion with reduced motion)
+- Focus minutes on the Today panel, the progress chart and the activity timeline
+
 **Notifications everywhere, in Saathi's voice**
 - Push notifications on phones and computers (Chrome, Edge, Android, iPhone after "Add to Home Screen"), even with the app closed: Web Push with a service worker and VAPID keys; every device of a user is registered and expired ones are removed automatically
 - Always on, no setting: the browser asks on your first tap after login. If you say no (or on an iPhone not added to the Home Screen), notifications still reach you in the app, and the important ones (reminders, tasks due, the morning plan) by email
 - For everything that matters: reminders, a task due in an hour and due now, overdue nudges, the morning "Aaj ka din", the evening recap, exam countdowns (3 days, 1 day, today), study sessions, streak and weekly milestones, and what Saathi did from the chat if you closed the app
 - Every message written fresh by the AI in your language (a plain line if the AI is down, never late), with its own emoji, Saathi's icon, a space photo on Android/Chrome, and buttons: "Ho gaya ✅", "10 min baad 😴", "Kholo" (opens the right screen)
-- No spam: quiet hours 11 PM to 7 AM (only reminders ring), several tasks at once become one notification, at most 2 nudges a day, emails only for the important kinds and at most 10 a day
+- In the app: big glass cards with Saathi's face, the kind's colour and photo, big buttons; they stack, Esc closes the newest, reminders stay until you act, the others shrink after a few seconds
+- No spam: quiet hours 11 PM to 7 AM (only reminders and timers ring), several tasks at once become one notification, at most 2 nudges a day, emails only for the important kinds and at most 10 a day
 - Installable app (PWA) with its own icon
 
 **Built properly**
@@ -51,7 +61,7 @@ Saathi is a chat and voice assistant connected to your own data. The AI model (G
 - Error handling everywhere: invalid input gets field-level messages, failed AI calls fall back to the next model or a friendly message, duplicates are caught (`Idempotency-Key`, similar-task check), other users' data is never visible (404, not 403)
 - Loading skeletons, empty states with a next step, and error states with a retry on every screen
 - Ready to scale: stateless instances, a MongoDB job queue, shared quotas, health checks and graceful shutdown ([docs/SCALING.md](docs/SCALING.md))
-- 131 automated tests (unit and integration)
+- 135 automated tests (unit and integration)
 
 ## Screenshots
 
@@ -65,6 +75,10 @@ Saathi is a chat and voice assistant connected to your own data. The AI model (G
 | Reminders with snooze and cancel, over NASA's black hole visualization | Every change, yours or Saathi's, with Undo |
 | ![Notes with pinned notes first](docs/screenshots/notes.webp) | ![Settings: language picker](docs/screenshots/settings-language.webp) |
 | Notes | Settings: language, profile and what Saathi remembers |
+| ![Focus timer: start any length](docs/screenshots/focus-start.webp) | ![Focus timer running](docs/screenshots/focus-timer.webp) |
+| Focus timer: any length, quick picks | The golden ring empties with the time; Saathi's face follows the clock |
+| ![Celebration when the work is done](docs/screenshots/focus-celebration.webp) | |
+| Done: golden stars, Saathi's line and the time taken | |
 
 <img src="docs/screenshots/phone-tasks.webp" alt="Saathi on a phone" width="260">
 
@@ -92,7 +106,7 @@ flowchart LR
     U[Browser<br/>React app, voice, 3D face] -- HTTPS, same origin --> W
     subgraph R[Saathi container on Render]
         W[Express<br/>API + built frontend] --> S[Services<br/>tasks, reminders, notes,<br/>memory, undo log]
-        W --> A[Agent loop<br/>17 tools]
+        W --> A[Agent loop<br/>18 tools]
         A --> S
         A --> G[AI gateway<br/>model chain, quotas,<br/>retries, circuit breaker]
         J[Worker<br/>job queue] --> S
@@ -218,7 +232,10 @@ Set in `server/.env` locally, or in the Render dashboard.
 | GET | `/api/me/notifications` | yes | Notifications (`unread=true`), with unread count |
 | GET | `/api/push/key` | yes | The public VAPID key for subscribing this device |
 | POST | `/api/push/subscribe`, `/unsubscribe` | yes | Register this device for push `{ endpoint, keys: { p256dh, auth }, device? }` / forget it `{ endpoint }` |
-| POST | `/api/push/action` | yes | A notification button `{ notificationId, action: done / snooze / open }` |
+| POST | `/api/push/action` | yes | A notification button `{ notificationId, action: done / snooze / more / open }` |
+| GET | `/api/focus/current` | yes | The running focus timer (or null) |
+| POST | `/api/focus` | yes | Start a timer `{ minutes (1 to 720), taskId?, label? }`; one at a time (409 otherwise) |
+| POST | `/api/focus/:id/pause`, `/resume`, `/extend`, `/finish`, `/cancel` | yes | Control the timer; `extend { minutes }`, `finish { done }` also completes its task and returns Saathi's line |
 | POST | `/api/me/notifications/:id/read`, `/read-all` | yes | Mark read |
 | GET | `/api/me/activity` | yes | Timeline of changes, each with `canUndo` |
 | POST | `/api/me/activity/:id/undo` | yes | Undo one change |
@@ -238,7 +255,7 @@ Render, one web service from `render.yaml` (New → Blueprint). The Docker image
 
 The free plan sleeps after 15 minutes without visits; reminders that fall due while it sleeps fire as soon as it wakes. A free uptime monitor calling `/api/health/live` every few minutes keeps it awake. Scaling beyond one instance: [docs/SCALING.md](docs/SCALING.md).
 
-**Live link:** _coming soon_
+**Live link:** https://saathi-ksk8.onrender.com
 
 ## Roadmap
 
@@ -253,7 +270,7 @@ The free plan sleeps after 15 minutes without visits; reminders that fall due wh
 
 ## AI usage
 
-This project was built with help from Claude (Anthropic) for code generation, debugging and documentation, as allowed by the project guidelines. Every workflow is tested (131 automated tests plus live checks with the real AI), and the code is understood and maintained by the author. Inside the app, the AI (Gemini) only proposes actions; the server validates and executes them, and every change can be undone.
+This project was built with help from Claude (Anthropic) for code generation, debugging and documentation, as allowed by the project guidelines. Every workflow is tested (135 automated tests plus live checks with the real AI), and the code is understood and maintained by the author. Inside the app, the AI (Gemini) only proposes actions; the server validates and executes them, and every change can be undone.
 
 ## Credits
 
