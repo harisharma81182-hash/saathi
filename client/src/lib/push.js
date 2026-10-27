@@ -48,6 +48,23 @@ async function subscribe() {
 }
 
 /**
+ * Before logout: forget this device on the server and in the browser, so a shared computer (a
+ * college lab) stops getting the previous user's reminders. The next login registers it again.
+ * Never throws and never takes more than a few seconds.
+ */
+export async function forgetThisDevice() {
+  if (!supported()) return;
+  const work = (async () => {
+    const registration = await navigator.serviceWorker.getRegistration();
+    const sub = await registration?.pushManager.getSubscription();
+    if (!sub) return;
+    await api('/push/unsubscribe', { method: 'POST', body: { endpoint: sub.endpoint } }).catch(() => {});
+    await sub.unsubscribe().catch(() => {});
+  })().catch(() => {});
+  await Promise.race([work, new Promise((r) => setTimeout(r, 3000))]);
+}
+
+/**
  * Called once after login: registers the service worker, keeps an existing permission's device
  * registered, and otherwise asks on the first tap. Returns a cleanup function.
  */

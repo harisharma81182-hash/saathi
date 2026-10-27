@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { api } from './lib/api.js';
+import { forgetThisDevice } from './lib/push.js';
 import { Face } from './components/Face.jsx';
 import { SpaceBackdrop } from './components/SpaceBackdrop.jsx';
 import { WarpFlash } from './components/WarpFlash.jsx';
@@ -57,6 +58,7 @@ export function App() {
   }, []);
 
   const logout = async () => {
+    await forgetThisDevice(); // while still logged in, so the server accepts it
     await api('/auth/logout', { method: 'POST' }).catch(() => {});
     go('landing');
     setSession({ status: 'out', user: null });
