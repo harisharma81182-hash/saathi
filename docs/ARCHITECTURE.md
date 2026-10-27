@@ -93,6 +93,6 @@ MongoDB Atlas: data, jobs, rate counters, idempotency keys, sessions' version nu
 
 ## 13. Tests against a real database, with a fake AI
 
-- **What:** 155 tests with `node:test` and supertest against a separate MongoDB database (`saathi_test`); the AI, push sender and mail outbox are replaced by fakes ([server/tests](../server/tests)).
+- **What:** 156 tests with `node:test` and supertest against a separate MongoDB database (`saathi_test`); the AI, push sender and mail outbox are replaced by fakes ([server/tests](../server/tests)).
 - **Why:** the hard parts (atomic claims, unique indexes, quotas across instances) only show their bugs against a real MongoDB; a fake AI makes tests free and repeatable.
 - **Trade-off:** tests need network access to Atlas and take several minutes; they must never share a database with a running server (they drop it).
