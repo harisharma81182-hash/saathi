@@ -10,14 +10,14 @@ export function FocusRing({ size = 280, stroke = 10, fraction = 1, glow = true, 
   const id = `ring-${size}`;
   return (
     <div className="relative grid place-items-center" style={{ width: size, height: size }}>
-      <svg width={size} height={size} className={`absolute inset-0 ${flash ? 'ring-flash' : ''}`} aria-hidden>
+      <svg width={size} height={size} overflow="visible" className={`absolute inset-0 overflow-visible ${flash ? 'ring-flash' : ''}`} aria-hidden>
         <defs>
           <linearGradient id={`${id}-g`} x1="0" y1="0" x2="1" y2="1">
             <stop offset="0" stopColor="#FFE3A8" />
             <stop offset="0.5" stopColor="#F2A541" />
             <stop offset="1" stopColor="#C46A1C" />
           </linearGradient>
-          <filter id={`${id}-glow`} x="-30%" y="-30%" width="160%" height="160%">
+          <filter id={`${id}-glow`} filterUnits="userSpaceOnUse" x={-stroke * 3} y={-stroke * 3} width={size + stroke * 6} height={size + stroke * 6}>
             <feGaussianBlur stdDeviation={stroke * 0.8} result="b" />
             <feMerge>
               <feMergeNode in="b" />

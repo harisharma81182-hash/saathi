@@ -137,13 +137,13 @@ function ReminderItem({ reminder: r, onChanged }) {
         {r.status !== 'cancelled' && (
           <div className="flex shrink-0 flex-wrap items-center gap-1">
             <AlarmClock size={15} className="mr-1 text-faint" aria-hidden />
-            <button disabled={busy} onClick={() => snooze({ minutes: 10 })} className="rounded-full bg-surface px-3 py-1 text-xs font-semibold transition-colors hover:bg-surface-2 active:scale-95 disabled:opacity-50">
+            <button disabled={busy} onClick={() => snooze({ minutes: 10 })} className="min-h-8 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-surface-2 active:scale-95 disabled:opacity-50">
               10 min
             </button>
-            <button disabled={busy} onClick={() => snooze({ minutes: 60 })} className="rounded-full bg-surface px-3 py-1 text-xs font-semibold transition-colors hover:bg-surface-2 active:scale-95 disabled:opacity-50">
+            <button disabled={busy} onClick={() => snooze({ minutes: 60 })} className="min-h-8 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-surface-2 active:scale-95 disabled:opacity-50">
               1 ghanta
             </button>
-            <button disabled={busy} onClick={() => snooze({ until: tomorrowMorning() })} className="rounded-full bg-surface px-3 py-1 text-xs font-semibold transition-colors hover:bg-surface-2 active:scale-95 disabled:opacity-50">
+            <button disabled={busy} onClick={() => snooze({ until: tomorrowMorning() })} className="min-h-8 rounded-full bg-surface px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-surface-2 active:scale-95 disabled:opacity-50">
               Kal subah
             </button>
             {r.status === 'scheduled' && (

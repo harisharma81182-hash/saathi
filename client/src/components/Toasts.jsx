@@ -176,7 +176,7 @@ function Btn({ primary, ...props }) {
   return (
     <button
       {...props}
-      className={`h-11 flex-1 rounded-full px-4 text-sm font-semibold transition active:scale-95 disabled:opacity-50 sm:flex-none ${primary ? 'bg-gold text-ink shadow-[0_0_24px_-6px_rgb(242_165_65/0.7)] hover:brightness-110' : 'bg-surface-2/80 text-text hover:bg-line'}`}
+      className={`h-11 grow whitespace-nowrap rounded-full px-4 text-sm font-semibold transition active:scale-95 disabled:opacity-50 sm:grow-0 ${primary ? 'bg-gold text-ink shadow-[0_0_24px_-6px_rgb(242_165_65/0.7)] hover:brightness-110' : 'bg-surface-2/80 text-text hover:bg-line'}`}
     />
   );
 }

@@ -91,7 +91,7 @@ export function ProgressChart({ progress }) {
                   onFocus={() => setHover(i)}
                   onBlur={() => setHover(null)}
                   aria-label={`${long(d.date)}: ${d.completed} kaam`}
-                  className="group relative flex flex-1 flex-col items-center justify-end outline-none"
+                  className="group relative flex flex-1 flex-col items-center justify-end rounded-md"
                 >
                   <span className="relative flex h-[calc(100%-1.5rem)] w-full items-end justify-center">
                     {i === best && d.completed > 0 && (

@@ -79,7 +79,7 @@ export function AuthScreen({ onAuthed, onBack, onForgot, initialMode = 'signup' 
             hint={mode === 'signup' ? PASSWORD_HINT : null}
           />
           {mode === 'login' && onForgot && (
-            <button type="button" onClick={onForgot} className="-mt-1 self-end rounded px-1 text-sm text-faint transition-colors hover:text-gold">
+            <button type="button" onClick={onForgot} className="-mt-1 self-end rounded px-2 py-2 text-sm text-faint transition-colors hover:text-gold">
               Password bhool gaye?
             </button>
           )}

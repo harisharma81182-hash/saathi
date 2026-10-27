@@ -11,9 +11,10 @@ import * as THREE from 'three';
 //  - the render loop STOPS (no frames at all) while the tab is hidden or the canvas is off screen
 //  - dispose() frees every geometry, material, texture and the WebGL context
 //
-// createOrbitScene({ canvas, labels }) -> { dispose }   (throws if WebGL is not available)
+// createOrbitScene({ canvas, labels, avoid }) -> { dispose }   (throws if WebGL is not available)
+// avoid: an element whose children (headline, text, buttons) the planet labels must never cover.
 
-export function createOrbitScene({ canvas, labels: labelsEl }) {
+export function createOrbitScene({ canvas, labels: labelsEl, avoid = null }) {
   const lite = (navigator.deviceMemory ?? 8) <= 4 || (navigator.hardwareConcurrency ?? 8) <= 4;
   const density = lite ? 0.55 : 1;
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -400,6 +401,10 @@ export function createOrbitScene({ canvas, labels: labelsEl }) {
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.fov = w / h < 0.8 ? 62 : 42; // keep the outer orbit in frame on tall phone screens
+    // Wide screens: the headline sits bottom-left, so the whole system is framed a little to the
+    // right and up (a shifted view of the same camera: same look, same motion).
+    if (w / h >= 1.1) camera.setViewOffset(w, h, -w * 0.13, h * 0.07, w, h);
+    else camera.clearViewOffset();
     camera.updateProjectionMatrix();
     uniformsShared.uAspect.value = w / h;
   }
@@ -420,12 +425,36 @@ export function createOrbitScene({ canvas, labels: labelsEl }) {
   let raf = 0;
   let onScreen = true;
 
+  // Labels stay fully inside the screen (never cut at an edge) and hide while they would sit on the
+  // headline, the text or the buttons. Their sizes are measured once; the text boxes once per frame.
+  const EDGE = 10;
+  let avoidRects = [];
+  function measureAvoid() {
+    if (!avoid) return;
+    const base = labelsEl.getBoundingClientRect();
+    avoidRects = [...avoid.children].map((el) => {
+      const r = el.getBoundingClientRect();
+      return { l: r.left - base.left - 12, r: r.right - base.left + 12, t: r.top - base.top - 12, b: r.bottom - base.top + 12 };
+    });
+  }
+  function placeLabel(tag, x, y, behind) {
+    tag._w ??= tag.offsetWidth;
+    tag._h ??= tag.offsetHeight;
+    const w = tag._w, h = tag._h;
+    const left = Math.min(Math.max(x - w / 2, EDGE), innerWidth - w - EDGE);
+    const top = Math.max(y - h, EDGE);
+    const hit = avoidRects.some((a) => left < a.r && left + w > a.l && top < a.b && top + h > a.t);
+    tag.style.opacity = behind || hit ? 0 : 1;
+    tag.style.transform = `translate(${left}px, ${top}px)`;
+  }
+
   function frame() {
     raf = requestAnimationFrame(frame);
     const dt = Math.min(delta(), 0.05);
     simTime += dt * speed;
     uniformsShared.uTime.value += dt * Math.max(speed, 0.35);
 
+    measureAvoid();
     mouse.lerp(mouseTarget, 0.06);
     uniformsShared.uMouse.value.copy(mouseActive ? mouseTarget : farAway);
 
@@ -441,8 +470,7 @@ export function createOrbitScene({ canvas, labels: labelsEl }) {
       p.body.getWorldPosition(tmp);
       tmp.y += p.f.radius * 1.6;
       tmp.project(camera);
-      p.tag.style.opacity = tmp.z > 1 ? 0 : 1;
-      p.tag.style.transform = `translate(${(tmp.x * 0.5 + 0.5) * innerWidth}px, ${(-tmp.y * 0.5 + 0.5) * innerHeight}px) translate(-50%, -100%)`;
+      placeLabel(p.tag, (tmp.x * 0.5 + 0.5) * innerWidth, (-tmp.y * 0.5 + 0.5) * innerHeight, tmp.z > 1);
     }
 
     // the core breathes, and brightens when the cursor is near it

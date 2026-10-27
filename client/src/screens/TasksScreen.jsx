@@ -238,9 +238,10 @@ function TaskItem({ task, group, done = false, onChanged }) {
             })}
           >
             {task.title}
-            {task.kind === 'deadline' && !done && <span className="ml-2 text-xs text-gold">deadline</span>}
-            {task.priority === 'high' && !done && task.kind !== 'deadline' && <span className="ml-2 text-xs text-gold">important</span>}
           </p>
+          {!done && (task.kind === 'deadline' || task.priority === 'high') && (
+            <p className="text-xs text-gold">{task.kind === 'deadline' ? 'deadline' : 'important'}</p>
+          )}
           {(task.repeat || task.tags?.length > 0) && (
             <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-xs text-faint">
               {task.repeat && (

@@ -92,6 +92,7 @@ function Header({ active, onFeature, onTop, onLogin, onSignup }) {
 function Hero({ onSignup, onLogin, onNext }) {
   const stage = useRef(null);
   const labels = useRef(null);
+  const copy = useRef(null); // the headline block: planet labels never sit on it
   const hero = useRef(null);
   const [failed, setFailed] = useState(false);
   const reduce = useReducedMotion();
@@ -106,7 +107,7 @@ function Hero({ onSignup, onLogin, onNext }) {
     stage.current.appendChild(canvas);
     let scene;
     try {
-      scene = createOrbitScene({ canvas, labels: labels.current });
+      scene = createOrbitScene({ canvas, labels: labels.current, avoid: copy.current });
     } catch (err) {
       console.warn('Saathi Orbit could not start, showing the plain sky instead:', err);
       setFailed(true);
@@ -131,9 +132,15 @@ function Hero({ onSignup, onLogin, onNext }) {
         className="pointer-events-none absolute inset-0"
         style={{ background: 'radial-gradient(120% 90% at 50% 55%, transparent 55%, rgba(5,6,13,0.85) 100%), linear-gradient(to top, rgba(8,11,24,1), rgba(5,6,13,0.6) 30%, transparent 55%)' }}
       />
+      {/* A soft shadow behind the headline: a planet passing behind the text stays dim, the text stays crisp. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{ background: 'radial-gradient(60% 50% at 18% 82%, rgba(5,6,13,0.78), rgba(5,6,13,0.35) 55%, transparent 80%)' }}
+      />
       {failed && <div aria-hidden className="night-sky absolute inset-0" />}
 
-      <motion.div style={{ y: textY, opacity: textOpacity }} className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-4 pb-24 sm:px-8 sm:pb-28">
+      <motion.div ref={copy} style={{ y: textY, opacity: textOpacity }} className="absolute inset-x-0 bottom-0 mx-auto max-w-6xl px-4 pb-24 sm:px-8 sm:pb-28">
         <motion.h1
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}

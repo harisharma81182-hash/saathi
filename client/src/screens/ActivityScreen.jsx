@@ -99,7 +99,7 @@ function ActivityItem({ a, user, onChanged }) {
         <span className="flex shrink-0 items-center gap-2 text-sm">
           <span className="text-faint tabular-nums">{clock(a.createdAt)}</span>
           {a.canUndo && (
-            <button onClick={undo} disabled={busy} className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold text-gold transition-colors hover:bg-surface hover:text-text disabled:opacity-50">
+            <button onClick={undo} disabled={busy} className="inline-flex min-h-8 items-center gap-1 rounded-full px-2.5 py-1.5 text-xs font-semibold text-gold transition-colors hover:bg-surface hover:text-text disabled:opacity-50">
               <Undo2 size={13} /> {busy ? 'Undo ho raha hai' : 'Undo'}
             </button>
           )}

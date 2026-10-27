@@ -85,7 +85,7 @@ function Running() {
         <FocusRing size={small ? 250 : 320} stroke={small ? 9 : 11} fraction={fraction}>
           <Face size={small ? 96 : 120} expression={moodFor(focus, fraction, timeUp)} followCursor={false} />
         </FocusRing>
-        <p className={`mt-6 font-display text-6xl font-semibold tabular-nums tracking-tight sm:text-7xl ${timeUp ? 'text-gold' : ''}`} aria-live="polite">
+        <p className={`mt-6 font-display text-[3.75rem] font-semibold leading-none tabular-nums tracking-tight sm:text-[4.75rem] ${timeUp ? 'text-gold' : ''}`} aria-live="polite">
           {timeUp ? '00:00' : clockText(remainingMs)}
         </p>
         <p className="mt-2 text-muted">{timeUp ? 'Time pura! Ho gaya?' : focus.status === 'paused' ? 'Ruka hua hai. Taiyaar ho toh chalu karo.' : 'Focus mode on. Phone side mein rakho.'}</p>

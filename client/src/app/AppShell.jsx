@@ -179,7 +179,7 @@ function TopBar({ screen, go, user, live, onLogout }) {
   const { t } = useI18n();
   return (
     <header className="relative z-20 flex items-center justify-between gap-4 px-4 pb-1 pt-[max(env(safe-area-inset-top),12px)] sm:px-8">
-      <button onClick={() => go('home')} className="flex items-center gap-2 rounded-lg" aria-label="Saathi, Home">
+      <button onClick={() => go('home')} className="-ml-1 flex h-9 items-center gap-2 rounded-lg px-1" aria-label="Saathi, Home">
         <span className="font-display text-lg font-semibold tracking-tight">Saathi</span>
         <span
           className={`h-1.5 w-1.5 rounded-full transition-colors ${live === 'live' ? 'bg-leaf' : 'bg-faint'}`}
